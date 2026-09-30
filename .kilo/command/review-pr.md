@@ -17,6 +17,11 @@ never edit, format, commit, push or fix the reviewed branch. Use a separate deta
 review worktree at the frozen head for local reads/non-mutating checks; preserve
 existing worktrees and keep generated check artifacts local/ignored.
 
+Apply the Git/platform identity separation in `.kilo/rules/20-forgejo-mcp.md`.
+Formal independent review must fail closed if Forgejo considers the reviewer to
+be reviewing its own authored change: report the identity conflict, never claim
+independence or substitute an informal comment/self-review for the formal gate.
+
 Review the **entire current PR**, not only its latest delta. Inspect authoritative
 local sources, the selected issue acceptance criteria and relevant existing
 behavior. Verify claimed tests/evidence and assess correctness, regressions,

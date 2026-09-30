@@ -14,3 +14,9 @@ Commands: `/implement-issue <number|URL|unambiguous title>` and
 `/review-pr <Forgejo PR number|URL>`. A plain `Implement issue #N` follows the same
 implementation workflow. These do not select additional work or authorize merging.
 No Program Execution Mode exists. Session/model choice is external to repo policy.
+
+`.kilo/command/*` slash commands are discovered/loaded by the Kilo/VS Code workspace
+runtime; availability is not dynamically guaranteed when files appear. After adding
+or changing commands, a VS Code/Kilo workspace reload may be required. Open the
+development worktree as the active VS Code workspace to load its repository-local
+commands/rules. An unavailable command never permits inventing a different workflow.

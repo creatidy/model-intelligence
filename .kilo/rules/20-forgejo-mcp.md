@@ -8,6 +8,16 @@
   Forgejo MCP for platform operations: issue reads/comments, PR creation/metadata
   and reviews. Never substitute curl, wget, custom HTTP scripts or direct REST
   when MCP supports the required operation. Read repository contents locally.
+- Implementation commits/pushes use normal Git under Adrian's Git identity:
+  `Adrian Tkacz <adrian.tkacz@creatidy.com>`, Forgejo user `adrian.tkacz`.
+  `forgejo-mcp` uses the Kilo/Forgejo platform identity for issues, PRs and formal
+  review, not implementation authorship. Never author/commit implementation as
+  forgejo-mcp, Kilo, a bot/service identity or the reviewer identity.
+- Before the first commit in an implementation worktree, verify
+  `git config user.name` and `git config user.email` resolve to the expected owner identity;
+  verify effective author/committer with `git var GIT_AUTHOR_IDENT` and
+  `git var GIT_COMMITTER_IDENT` as well. If identity is wrong, stop before committing
+  and report the mismatch. Never silently rewrite global Git configuration.
 - Repository: owner `Creatidy`, repo `model-intelligence`. Successful reads prove
   only read access; successful writes prove only that operation. Do not assume
   permissions from configuration or metadata. Report an actual access blocker;
