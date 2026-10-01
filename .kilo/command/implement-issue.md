@@ -17,8 +17,10 @@ constraints; seek only genuine decisions, not routine reversible choices.
    Track short local progress when needed, excluded through .git/info/exclude.
 4. Run focused checks and final `make check`. Inspect intended diff/status/full
    base delta for scope, secrets and local state. Diagnose failures before retry.
-5. Inspect recent commit style, stage explicit intended files, commit the smallest
-   coherent change and push the issue branch to canonical Forgejo via normal Git.
+5. Inspect recent commit style and stage explicit intended files. Make small,
+   coherent, reviewable commits as needed, including remediation commits; commit
+   count is not acceptance. Follow the history-safety rule in
+   `.kilo/rules/30-implementation-discipline.md`. Push via normal Git.
 6. Create one Forgejo MCP PR targeting develop with `Refs #N`, scope, acceptance
    evidence, exact base/head SHAs, checks/results and limitations. Keep issue open.
 7. Post a concise issue update with PR and validation. Report READY_FOR_REVIEW with

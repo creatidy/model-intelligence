@@ -13,7 +13,9 @@ automatic discovery of nested rule files:
 Commands: `/implement-issue <number|URL|unambiguous title>` and
 `/review-pr <Forgejo PR number|URL>`. A plain `Implement issue #N` follows the same
 implementation workflow. These do not select additional work or authorize merging.
-No Program Execution Mode exists. Session/model choice is external to repo policy.
+No Program Execution Mode exists. `/review-pr` orchestrates existing M5-B v2;
+`creatidy-autonomy` owns independent reviewer routing/execution and formal publication.
+No Kilo subagent or implementation self-review satisfies the formal review gate.
 
 `.kilo/command/*` slash commands are discovered/loaded by the Kilo/VS Code workspace
 runtime; availability is not dynamically guaranteed when files appear. After adding

@@ -20,6 +20,9 @@
 
 ## Scope and Autonomy
 
+- Commit count is not an acceptance criterion. Use as many small, coherent,
+  reviewable commits as needed. Remediation commits are normal. Do not squash,
+  amend, force-push, or rewrite published history merely to reduce commit count.
 - Make the smallest coherent accepted change. No unrelated refactors, speculative
   abstractions, invented APIs/fields, empty future layers, silent vocabulary changes
   or excessive documentation. No ingestion/web/REST/MCP server/scheduler/storage

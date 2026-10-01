@@ -6,12 +6,14 @@
   Never create/mutate GitHub branches, issues, PRs, releases or project state.
 - Use normal Git for fetch, branch, worktree, commit and push. Use configured
   Forgejo MCP for platform operations: issue reads/comments, PR creation/metadata
-  and reviews. Never substitute curl, wget, custom HTTP scripts or direct REST
+  and review requests/results. Never substitute curl, wget, custom HTTP scripts or direct REST
   when MCP supports the required operation. Read repository contents locally.
 - Implementation commits/pushes use normal Git under Adrian's Git identity:
   `Adrian Tkacz <adrian.tkacz@creatidy.com>`, Forgejo user `adrian.tkacz`.
-  `forgejo-mcp` uses the Kilo/Forgejo platform identity for issues, PRs and formal
-  review, not implementation authorship. Never author/commit implementation as
+  `forgejo-mcp` uses the Kilo/Forgejo platform identity for issues, PRs and M5-B
+  request/result operations, not implementation authorship or independent review.
+  Formal review uses the distinct trusted `autonomy` publisher through M5-B v2.
+  Never author/commit implementation as
   forgejo-mcp, Kilo, a bot/service identity or the reviewer identity.
 - Before the first commit in an implementation worktree, verify
   `git config user.name` and `git config user.email` resolve to the expected owner identity;
