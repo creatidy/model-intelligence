@@ -1,0 +1,33 @@
+[build-system]
+requires = ["uv_build==0.9.30"]
+build-backend = "uv_build"
+
+[project]
+name = "model-intelligence"
+version = "0.1.0"
+description = "Public AI ecosystem intelligence: repository bootstrap"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.31.0,<2",
+    "ruff>=0.14.0,<1",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"

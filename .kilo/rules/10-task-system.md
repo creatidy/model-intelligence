@@ -1,0 +1,22 @@
+# Single-Issue Workflow
+
+- Start implementation only when Adrian explicitly selects one Forgejo issue by
+  number, URL or unambiguous title. Fetch the actual issue via MCP before planning
+  or editing. If the selection is ambiguous, clarify; never infer work from order,
+  age, labels, milestones, Projects, branches, documentation queues or memory.
+- The one-time issue #1 bootstrap creation/selection exception has expired. Do not
+  create more issues without explicit authorization. No Program Execution Mode,
+  controller, execution graph, autonomous issue selection or planning framework.
+- Verify the canonical remote, fetch current `develop`, record its exact SHA and
+  inspect files/status/worktrees. Demonstrate access by successful operations.
+  Preserve unrelated changes and worktrees; never stash/reset others' work.
+- Create an isolated worktree and new branch from that recorded fetched SHA, both
+  named `issue-<number>-<short-topic>`. Use normal Git transport. Never implement
+  directly on `develop`; never target, modify, merge into or promote `main`.
+- Confirm accepted scope, implement the smallest coherent change, run checks,
+  inspect status/full base delta, commit only intended files, push to canonical
+  Forgejo, create one PR to `develop` via MCP and post a concise issue update.
+- Never merge, auto-merge, bypass the human merge gate, release, promote or deploy
+  as part of implementation/review. Keep the issue open at handoff; use `Refs #N`,
+  not automatic closing keywords. Report issue/PR, base/head SHAs, validation and
+  genuine blockers; READY_FOR_REVIEW means implemented and verified, not approved.
