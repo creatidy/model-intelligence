@@ -1,1 +1,1 @@
-"""Public AI ecosystem intelligence; currently a repository foundation only."""
+"""Public AI ecosystem intelligence; deterministic M0 domain proof only."""
