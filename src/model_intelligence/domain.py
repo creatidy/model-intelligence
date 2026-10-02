@@ -352,18 +352,30 @@ class Snapshot:
         ordered = tuple(sorted(set(self.facts), key=lambda fact: _json(asdict(fact))))
         object.__setattr__(self, "facts", ordered)
 
-    def effective(self) -> dict[Key, tuple[Fact, ...]]:
+    def retained(self) -> dict[Key, tuple[Fact, ...]]:
+        """Non-superseded assertions, including future and expired claims."""
         groups: dict[Key, tuple[Fact, ...]] = {}
         for fact in self.facts:
-            states = fact.evidence.states_at(self.at)
-            if State.CURRENT in states and State.SUPERSEDED not in states:
+            if State.SUPERSEDED not in fact.evidence.states_at(self.at):
                 key = _key(fact)
                 groups[key] = (*groups.get(key, ()), fact)
         return groups
 
+    def effective(self) -> dict[Key, tuple[Fact, ...]]:
+        """Currently applicable assertions; retention alone does not imply applicability."""
+        groups: dict[Key, tuple[Fact, ...]] = {}
+        for key, facts in self.retained().items():
+            current = tuple(f for f in facts if f.evidence.validity.state_at(self.at) == State.CURRENT)
+            if current:
+                groups[key] = current
+        return groups
+
     def conflicts(self) -> tuple[Key, ...]:
         conflicts: list[Key] = []
-        for key, facts in self.effective().items():
+        groups = self.effective()
+        # Competing offer boundaries remain disputed even when one claim has expired.
+        groups.update((key, facts) for key, facts in self.retained().items() if key[0] == "offer")
+        for key, facts in groups.items():
             models = tuple(f for f in facts if isinstance(f, ModelFact))
             if models:
                 # Prices share a provider identity; benchmark scores additionally need comparable context.
@@ -402,7 +414,7 @@ class Snapshot:
         if (
             not unknown
             and State.SUPERSEDED not in states
-            and State.CURRENT in states
+            and (isinstance(fact, OfferRule) or State.CURRENT in states)
             and _key(fact) in self.conflicts()
         ):
             states += (State.CONFLICTING,)
@@ -422,6 +434,16 @@ class Change:
     subject: Key
 
 
+def _ceased(prior: tuple[Fact, ...], after: Snapshot) -> bool:
+    """Require same-source/terms/interval closure for every previously applicable assertion."""
+    ended = {
+        (f.evidence.source.source_id, _meaning(f, schedule=True), f.evidence.validity)
+        for f in after.facts
+        if {State.EXPIRED, State.SUPERSEDED}.intersection(f.evidence.states_at(after.at))
+    }
+    return all((f.evidence.source.source_id, _meaning(f, schedule=True), f.evidence.validity) in ended for f in prior)
+
+
 def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
     """Endpoint comparison, not replay of transitions that occurred between snapshots."""
     if after.at < before.at or after.version <= before.version:
@@ -435,8 +457,7 @@ def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
                 changes.add(Change(ChangeKind.PROMOTION_STARTED, key))
             elif prior and not current:
                 # Missing rows are not evidence that a bounded promotion ended.
-                retained = tuple(f for f in after.facts if _key(f) == key and State.SUPERSEDED not in after.states(f))
-                if retained and all(State.EXPIRED in after.states(f) for f in retained):
+                if _ceased(prior, after):
                     changes.add(Change(ChangeKind.PROMOTION_ENDED, key))
             elif {_meaning(f, schedule=True) for f in prior} != {_meaning(f, schedule=True) for f in current}:
                 changes.add(Change(ChangeKind.OFFER_CHANGED, key))
@@ -457,6 +478,8 @@ def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
                 new_details = {(f.capabilities, f.benchmark) for f in current if isinstance(f, ModelFact)}
                 if old_details != new_details:
                     changes.add(Change(ChangeKind.MODEL_EVIDENCE_CHANGED, key))
+        elif prior and _ceased(prior, after):
+            changes.add(Change(ChangeKind.MODEL_EVIDENCE_CHANGED, key))
     for key in set(after.conflicts()) - set(before.conflicts()):
         changes.add(Change(ChangeKind.EVIDENCE_CONFLICT_DETECTED, key))
     return tuple(sorted(changes))

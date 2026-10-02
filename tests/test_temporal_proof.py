@@ -329,6 +329,113 @@ class TemporalProofTests(unittest.TestCase):
         events = semantic_changes(Snapshot(1, DURING, (promotion(),)), Snapshot(2, DURING, ()))
         self.assertEqual(events, ())
 
+    def test_partial_source_removal_cannot_use_historical_offer_as_end_evidence(self) -> None:
+        active = promotion()
+        historical = replace(
+            active, evidence=replace(evidence("historical", bounded=True), validity=Validity(LEARNED, START))
+        )
+        before = Snapshot(1, DURING, (active, historical))
+        self.assertEqual(tuple(before.effective().values()), ((active,),))
+        for at in (DURING + timedelta(seconds=1), END):
+            with self.subTest(at=at):
+                after = Snapshot(2, at, (historical,))
+                self.assertIn(State.EXPIRED, after.states(historical))
+                self.assertEqual(after.effective(), {})
+                self.assertEqual(semantic_changes(before, after), ())
+
+    def test_promotion_end_needs_evidence_for_every_previously_effective_assertion(self) -> None:
+        early = promotion()
+        later = replace(
+            early, evidence=replace(evidence("later", bounded=True), validity=Validity(START, END + timedelta(days=1)))
+        )
+        before = Snapshot(1, DURING, (early, later))
+        after = Snapshot(2, END, (early,))
+        self.assertEqual(semantic_changes(before, after), ())
+
+    def test_last_model_evidence_expiry_emits_semantic_change(self) -> None:
+        fact = replace(model(), evidence=replace(evidence(), validity=Validity(LEARNED, END)))
+        before = Snapshot(1, DURING, (fact,))
+        after = Snapshot(2, END, (fact,))
+        self.assertTrue(before.effective())
+        self.assertEqual(after.effective(), {})
+        self.assertIn(State.EXPIRED, after.states(fact))
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.MODEL_EVIDENCE_CHANGED])
+
+    def test_last_model_evidence_supersession_emits_semantic_change(self) -> None:
+        fact = replace(model(), evidence=replace(evidence(), superseded_at=END))
+        before = Snapshot(1, DURING, (fact,))
+        after = Snapshot(2, END, (fact,))
+        self.assertTrue(before.effective())
+        self.assertEqual(after.effective(), {})
+        self.assertIn(State.SUPERSEDED, after.states(fact))
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.MODEL_EVIDENCE_CHANGED])
+
+    def test_equivalent_model_replacement_is_semantically_silent(self) -> None:
+        for prior_evidence in (
+            replace(evidence(), validity=Validity(LEARNED, END)),
+            replace(evidence(), superseded_at=END),
+        ):
+            with self.subTest(evidence=prior_evidence):
+                prior = replace(model(), evidence=prior_evidence)
+                replacement = replace(model(), evidence=replace(evidence("replacement"), validity=Validity(END)))
+                before = Snapshot(1, DURING, (prior,))
+                after = Snapshot(2, END, (prior, replacement))
+                self.assertEqual(tuple(after.effective().values()), ((replacement,),))
+                self.assertEqual(semantic_changes(before, after), ())
+
+    def test_model_source_removal_is_not_evidence_of_expiry(self) -> None:
+        fact = replace(model(), evidence=replace(evidence(), validity=Validity(LEARNED, END)))
+        self.assertEqual(semantic_changes(Snapshot(1, DURING, (fact,)), Snapshot(2, END, ())), ())
+
+    def test_offer_cessation_requires_same_source_terms_and_interval(self) -> None:
+        prior = promotion()
+        for unrelated in (
+            replace(prior, evidence=evidence("other", bounded=True)),
+            replace(prior, monthly_price=Decimal("19")),
+            replace(prior, evidence=replace(prior.evidence, validity=Validity(LEARNED, START))),
+        ):
+            with self.subTest(unrelated=unrelated):
+                before = Snapshot(1, DURING, (prior,))
+                after = Snapshot(2, END, (unrelated,))
+                self.assertEqual(after.effective(), {})
+                self.assertEqual(semantic_changes(before, after), ())
+
+    def test_retained_offer_refresh_still_establishes_expiry(self) -> None:
+        prior = promotion()
+        refreshed = replace(
+            prior,
+            evidence=replace(
+                prior.evidence,
+                source=replace(prior.evidence.source, observed_at=DURING, retrieved_at=DURING),
+            ),
+        )
+        changes = semantic_changes(Snapshot(1, DURING, (prior,)), Snapshot(2, END, (refreshed,)))
+        self.assertEqual([c.kind for c in changes], [ChangeKind.PROMOTION_ENDED])
+
+    def test_explicit_offer_supersession_establishes_end_of_applicability(self) -> None:
+        prior = promotion()
+        superseded = replace(prior, evidence=replace(prior.evidence, superseded_at=DURING))
+        before = Snapshot(1, START, (prior,))
+        after = Snapshot(2, DURING, (superseded,))
+        self.assertIn(superseded, after.facts)
+        self.assertEqual(after.retained(), {})
+        self.assertEqual(after.effective(), {})
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.PROMOTION_ENDED])
+
+    def test_present_retained_and_effective_are_distinct(self) -> None:
+        current = model()
+        future = promotion()
+        expired = replace(
+            future, evidence=replace(evidence("expired", bounded=True), validity=Validity(LEARNED, BEFORE))
+        )
+        superseded = replace(current, evidence=replace(evidence("superseded"), superseded_at=BEFORE))
+        snapshot = Snapshot(1, BEFORE, (current, future, expired, superseded))
+        retained = {f for facts in snapshot.retained().values() for f in facts}
+        effective = {f for facts in snapshot.effective().values() for f in facts}
+        self.assertEqual(set(snapshot.facts), {current, future, expired, superseded})
+        self.assertEqual(retained, {current, future, expired})
+        self.assertEqual(effective, {current})
+
     def test_unchanged_and_retrieval_only_changes_are_silent(self) -> None:
         fact = model()
         before = Snapshot(1, DURING, (fact,))
@@ -394,10 +501,27 @@ class TemporalProofTests(unittest.TestCase):
         )
         during = Snapshot(1, DURING, (first, second))
         self.assertEqual(len(during.conflicts()), 1)
-        after = Snapshot(2, END, (first, second))
-        # One source has expired, another still asserts applicability; never pick a winner.
-        self.assertTrue(after.effective())
-        self.assertNotIn(ChangeKind.PROMOTION_ENDED, {c.kind for c in semantic_changes(during, after)})
+        for at in (END, END + timedelta(microseconds=1), END + timedelta(hours=12)):
+            with self.subTest(at=at):
+                after = Snapshot(2, at, (first, second))
+                # Retain the disagreement without making the earlier expired assertion effective.
+                self.assertEqual(after.conflicts(), during.conflicts())
+                self.assertIn(State.EXPIRED, after.states(first))
+                self.assertIn(State.CONFLICTING, after.states(first))
+                self.assertIn(State.CURRENT, after.states(second))
+                self.assertIn(State.CONFLICTING, after.states(second))
+                self.assertEqual(tuple(after.effective().values()), ((second,),))
+                kinds = {c.kind for c in semantic_changes(during, after)}
+                self.assertNotIn(ChangeKind.PROMOTION_ENDED, kinds)
+                self.assertNotIn(ChangeKind.EVIDENCE_CONFLICT_DETECTED, kinds)
+        expired = Snapshot(3, END + timedelta(days=1), (first, second))
+        self.assertEqual(expired.effective(), {})
+        self.assertEqual(expired.conflicts(), during.conflicts())
+        self.assertEqual([c.kind for c in semantic_changes(during, expired)], [ChangeKind.PROMOTION_ENDED])
+        superseded = replace(first, evidence=replace(first.evidence, superseded_at=END))
+        resolved = Snapshot(3, END, (superseded, second))
+        self.assertEqual(resolved.conflicts(), ())
+        self.assertNotIn(State.CONFLICTING, resolved.states(superseded))
 
     def test_superseded_offer_history_does_not_hide_expiry(self) -> None:
         current = promotion()
