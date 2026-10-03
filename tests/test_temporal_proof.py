@@ -78,7 +78,9 @@ class TemporalProofTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = replace(source, distribution=Distribution.OPEN_LICENSE)
         with self.assertRaises(ValueError):
-            _ = replace(evidence(), fresh_until=LEARNED - timedelta(seconds=1))
+            _ = replace(evidence(), fresh_until=datetime(2026, 1, 1))
+        with self.assertRaises(ValueError):
+            _ = replace(evidence(), superseded_at=datetime(2026, 1, 1))
         self.assertEqual(replace(source, authority=Authority.SECONDARY).authority, Authority.SECONDARY)
         self.assertEqual(replace(source, distribution=Distribution.OPEN_LICENSE, license_id="MIT").license_id, "MIT")
 
@@ -387,18 +389,21 @@ class TemporalProofTests(unittest.TestCase):
         fact = replace(model(), evidence=replace(evidence(), validity=Validity(LEARNED, END)))
         self.assertEqual(semantic_changes(Snapshot(1, DURING, (fact,)), Snapshot(2, END, ())), ())
 
-    def test_offer_cessation_requires_same_source_terms_and_interval(self) -> None:
+    def test_offer_cessation_and_supplied_correction_are_distinct(self) -> None:
         prior = promotion()
-        for unrelated in (
-            replace(prior, evidence=evidence("other", bounded=True)),
-            replace(prior, monthly_price=Decimal("19")),
-            replace(prior, evidence=replace(prior.evidence, validity=Validity(LEARNED, START))),
+        for supplied, expected in (
+            (replace(prior, evidence=evidence("other", bounded=True)), []),
+            (replace(prior, monthly_price=Decimal("19")), [ChangeKind.OFFER_CHANGED]),
+            (
+                replace(prior, evidence=replace(prior.evidence, validity=Validity(LEARNED, START))),
+                [ChangeKind.OFFER_CHANGED],
+            ),
         ):
-            with self.subTest(unrelated=unrelated):
+            with self.subTest(supplied=supplied):
                 before = Snapshot(1, DURING, (prior,))
-                after = Snapshot(2, END, (unrelated,))
+                after = Snapshot(2, END, (supplied,))
                 self.assertEqual(after.effective(), {})
-                self.assertEqual(semantic_changes(before, after), ())
+                self.assertEqual([c.kind for c in semantic_changes(before, after)], expected)
 
     def test_retained_offer_refresh_still_establishes_expiry(self) -> None:
         prior = promotion()
@@ -411,6 +416,122 @@ class TemporalProofTests(unittest.TestCase):
         )
         changes = semantic_changes(Snapshot(1, DURING, (prior,)), Snapshot(2, END, (refreshed,)))
         self.assertEqual([c.kind for c in changes], [ChangeKind.PROMOTION_ENDED])
+
+    def test_supplied_offer_correction_to_earlier_end_emits_change_not_end(self) -> None:
+        prior = promotion()
+        at = DURING + timedelta(seconds=1)
+        corrected = replace(prior, evidence=replace(prior.evidence, validity=Validity(START, at)))
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, at, (corrected,))
+        self.assertEqual(after.effective(), {})
+        self.assertIn(State.EXPIRED, after.states(corrected))
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.OFFER_CHANGED])
+
+    def test_supplied_offer_correction_to_future_start_emits_change(self) -> None:
+        prior = promotion()
+        corrected = replace(prior, evidence=replace(prior.evidence, validity=Validity(DURING + timedelta(days=1), END)))
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, DURING + timedelta(seconds=1), (corrected,))
+        self.assertEqual(after.effective(), {})
+        self.assertIn(State.FUTURE, after.states(corrected))
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.OFFER_CHANGED])
+
+    def test_supplied_offer_correction_takes_precedence_over_proven_cessation(self) -> None:
+        prior = promotion()
+        closed = replace(prior, evidence=replace(prior.evidence, superseded_at=END))
+        corrected = replace(
+            prior,
+            evidence=replace(
+                prior.evidence,
+                validity=Validity(
+                    END + timedelta(days=1),
+                    END + timedelta(days=2),
+                ),
+            ),
+        )
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, END, (closed, corrected))
+        self.assertEqual(after.effective(), {})
+        self.assertIn(State.EXPIRED, after.states(closed))
+        self.assertIn(State.SUPERSEDED, after.states(closed))
+        # Supplied changed claims are more precise than treating their correction as an end.
+        self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.OFFER_CHANGED])
+
+    def test_existing_same_source_history_is_not_a_supplied_correction(self) -> None:
+        prior = promotion()
+        historical = replace(prior, evidence=replace(prior.evidence, validity=Validity(LEARNED, START)))
+        before = Snapshot(1, DURING, (prior, historical))
+        after = Snapshot(2, DURING + timedelta(seconds=1), (historical,))
+        self.assertEqual(semantic_changes(before, after), ())
+
+    def test_supplied_correction_requires_same_offer_and_source(self) -> None:
+        prior = promotion()
+        at = DURING + timedelta(seconds=1)
+        corrected = replace(prior, evidence=replace(prior.evidence, validity=Validity(START, at)))
+        for unrelated in (
+            replace(corrected, evidence=replace(corrected.evidence, source=evidence("other").source)),
+            replace(corrected, promotion_id="another-promotion"),
+        ):
+            with self.subTest(unrelated=unrelated):
+                self.assertEqual(semantic_changes(Snapshot(1, DURING, (prior,)), Snapshot(2, at, (unrelated,))), ())
+
+    def test_reretrieved_stale_evidence_preserves_freshness_history(self) -> None:
+        prior = replace(execution(), evidence=replace(evidence(), fresh_until=START))
+        refreshed = replace(
+            prior,
+            evidence=replace(
+                prior.evidence,
+                source=replace(
+                    prior.evidence.source,
+                    retrieved_at=DURING,
+                ),
+            ),
+        )
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, DURING, (refreshed,))
+        self.assertEqual(refreshed.evidence.fresh_until, START)
+        self.assertIn(State.STALE, after.states(refreshed))
+        self.assertTrue(refreshed.supported)
+        self.assertTrue(after.effective())
+        same_version = replace(after, version=before.version)
+        self.assertNotEqual(before.serialize(), same_version.serialize())
+        self.assertNotEqual(before.snapshot_id, same_version.snapshot_id)
+        self.assertEqual(semantic_changes(before, after), ())
+
+    def test_reretrieved_superseded_evidence_does_not_reactivate(self) -> None:
+        prior = replace(model(), evidence=replace(evidence(), superseded_at=START))
+        refreshed = replace(
+            prior,
+            evidence=replace(
+                prior.evidence,
+                source=replace(
+                    prior.evidence.source,
+                    retrieved_at=DURING,
+                ),
+            ),
+        )
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, DURING, (refreshed,))
+        self.assertEqual(refreshed.evidence.superseded_at, START)
+        self.assertIn(State.SUPERSEDED, after.states(refreshed))
+        self.assertEqual(after.retained(), {})
+        self.assertEqual(after.effective(), {})
+        same_version = replace(after, version=before.version)
+        self.assertNotEqual(before.serialize(), same_version.serialize())
+        self.assertNotEqual(before.snapshot_id, same_version.snapshot_id)
+        self.assertEqual(semantic_changes(before, after), ())
+
+    def test_evidence_boundaries_are_independent_aware_and_canonical(self) -> None:
+        boundary = (LEARNED - timedelta(seconds=1)).astimezone(ZoneInfo("Asia/Singapore"))
+        historical = replace(evidence(), fresh_until=boundary, superseded_at=boundary)
+        self.assertEqual(historical.fresh_until, boundary.astimezone(UTC))
+        self.assertEqual(historical.superseded_at, boundary.astimezone(UTC))
+        assert historical.fresh_until is not None
+        assert historical.superseded_at is not None
+        self.assertIs(historical.fresh_until.tzinfo, UTC)
+        self.assertIs(historical.superseded_at.tzinfo, UTC)
+        self.assertIn(State.STALE, historical.states_at(LEARNED))
+        self.assertIn(State.SUPERSEDED, historical.states_at(LEARNED))
 
     def test_explicit_offer_supersession_establishes_end_of_applicability(self) -> None:
         prior = promotion()

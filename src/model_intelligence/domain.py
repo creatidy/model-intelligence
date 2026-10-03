@@ -158,6 +158,8 @@ class Validity:
 
 @dataclass(frozen=True)
 class Evidence:
+    """Freshness and supersession are evidence history, independent of acquisition time."""
+
     source: Source
     validity: Validity
     fresh_until: datetime | None = None
@@ -169,8 +171,6 @@ class Evidence:
             if timestamp is not None:
                 timestamp = _instant(timestamp)
                 object.__setattr__(self, name, timestamp)
-                if timestamp < self.source.retrieved_at:
-                    raise ValueError("freshness/supersession boundary cannot predate retrieval")
 
     def states_at(self, at: datetime) -> tuple[State, ...]:
         at = _instant(at)
@@ -444,6 +444,19 @@ def _ceased(prior: tuple[Fact, ...], after: Snapshot) -> bool:
     return all((f.evidence.source.source_id, _meaning(f, schedule=True), f.evidence.validity) in ended for f in prior)
 
 
+def _offer_corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot) -> bool:
+    """New claims from a previously effective source, not disappearance or already-known history."""
+    key = _key(prior[0])
+    sources = {f.evidence.source.source_id for f in prior}
+    seen = {(f.evidence.source.source_id, _meaning(f, schedule=True)) for f in before.facts if _key(f) == key}
+    return any(
+        _key(f) == key
+        and f.evidence.source.source_id in sources
+        and (f.evidence.source.source_id, _meaning(f, schedule=True)) not in seen
+        for f in after.facts
+    )
+
+
 def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
     """Endpoint comparison, not replay of transitions that occurred between snapshots."""
     if after.at < before.at or after.version <= before.version:
@@ -453,7 +466,10 @@ def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
     for key in sorted(old.keys() | new.keys()):
         prior, current = old.get(key, ()), new.get(key, ())
         if key[0] == "offer":
-            if not prior and current:
+            # A newly supplied correction is more precise than an inferred cessation, even if inactive.
+            if prior and _offer_corrected(prior, before, after):
+                changes.add(Change(ChangeKind.OFFER_CHANGED, key))
+            elif not prior and current:
                 changes.add(Change(ChangeKind.PROMOTION_STARTED, key))
             elif prior and not current:
                 # Missing rows are not evidence that a bounded promotion ended.
