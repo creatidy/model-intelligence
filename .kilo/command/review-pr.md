@@ -1,46 +1,37 @@
 ---
-description: Independently review an exact Forgejo PR snapshot in a fresh interactive context
+description: Fresh read-only whole-PR review through the native pr-reviewer subagent
 ---
 
 Review the exact Forgejo PR: $ARGUMENTS
 
-Run in a fresh Kilo session/context distinct from the implementation session.
-Implementation self-review does not satisfy independent review. A different
-model/provider may be used when useful; no specific provider or routing
-infrastructure is required. Do not automatically launch a reviewer subtask.
+Run in the primary context; do not require a separate owner-opened session.
+Fetch actual PR metadata and its linked issue through `forgejo-mcp`. Require an
+open, unmerged canonical Creatidy/model-intelligence PR targeting `develop`.
+Read AGENTS.md and its rules, verify canonical remote, fetch current Git objects,
+freeze exact HEAD/base/merge-base and inspect status/branches. Do not edit the PR.
 
-1. Require an exact PR number/URL. Fetch actual PR metadata and the linked issue
-   through `forgejo-mcp`; if acceptance context is missing, report that limitation
-   rather than inventing requirements. Require an open, unmerged PR to `develop`.
-   Freeze and report exact HEAD SHA, base SHA, base branch and merge-base-to-HEAD
-   diff boundary. Fetch the exact Git objects through normal canonical Git transport.
-2. Read repository `AGENTS.md` and its applicable rules at the frozen snapshot.
-   Inspect the entire current PR and full diff, not only the latest commit, along
-   with relevant source/tests and the issue's scope and acceptance criteria.
-   Verify claimed evidence; assess correctness, regressions, missing tests,
-   architecture, security/privacy and provenance/licenses when relevant. Preserve
-   the M0 A/B/C and STOP/GO contract; commit count is not acceptance.
-3. Operate read-only. Never edit, format, fix, commit, push or modify the reviewed
-   branch. Use a separate detached review worktree at frozen HEAD when local
-   inspection/checks need a checkout; preserve existing changes/worktrees. Run
-   only safe non-mutating local checks when useful, with generated artifacts kept
-   local/ignored in that separate checkout. Do not run untrusted code as a trusted
-   action, access private credentials, or mutate external services.
-4. Return severity-ordered actionable findings with concrete file/line evidence
-   and consequences. State explicitly if none. Report acceptance coverage, exact
-   frozen HEAD/base, executed checks/results, testing gaps and limitations;
-   distinguish reproduced evidence from unverified claims.
-5. Re-fetch PR metadata through MCP before reporting or optionally posting the
-   result. Changed HEAD/base invalidates the snapshot: return `COMMENT` identifying
-   the stale review, never a current approval. Every changed HEAD requires a fresh
-   independent review of the entire PR; a changed base also requires a fresh review.
-6. Return exactly one verdict: `APPROVE` when acceptance is sufficiently verified
-   and no blocking findings remain; `REQUEST_CHANGES` for actionable blocking
-   findings; `COMMENT` for an incomplete/stale review or informational assessment
-   that cannot support approval. Approval never authorizes integration.
+Use ONE normal checkout: safely switch to the fetched PR branch if needed, creating
+its local tracking branch at fetched HEAD only if absent. Require clean status and
+exact frozen HEAD; refuse local divergence rather than rewriting a branch.
+Never stash/reset unrelated changes;
+if they prevent safe switching, report a precise blocker. No git worktree,
+additional checkout or alternate checkout management. Prepare the offline locked
+environment here; review frozen Git objects/current clean branch read-only. The
+parent must not edit/switch while the reviewer is active. Locate `pr-reviewer`.
+If native task/agent or required access is unavailable, report a finite blocker;
+never self-review instead.
 
-The result may remain in chat. Posting a formal Forgejo review through
-`forgejo-mcp` is optional and is not an acceptance gate. A posting/access failure
-does not invalidate a current independent chat review; report it truthfully.
-Never merge/auto-merge, retarget or modify the reviewed branch, promote `main`,
-release or deploy.
+Invoke `task` with `subagent_type: pr-reviewer`, `background: false`, no `task_id`.
+Pass only the PR number/URL, expected HEAD/base and fresh whole-PR review
+instructions including this checkout path. Do not pass implementation
+reasoning, previous findings or desired verdict. The agent definition owns the
+JSON result contract and GPT-6.1 Sol High selection. Never resume a past reviewer.
+
+Require JSON fields reviewed_head, reviewed_base, verdict, findings, limitations,
+checks_run as defined in `.kilo/agents/pr-reviewer.md`. Validate their types and
+exact frozen SHAs. Recheck local HEAD/clean status and MCP before reporting. A
+changed HEAD/base, dirty checkout, malformed result or mismatch cannot support
+approval; report COMMENT with the precise limitation. Present findings in severity
+order and exactly one verdict.
+Do not remediate, commit, push, publish a formal review, merge or modify Forgejo
+state. The returned task result is the handoff, not an owner copy or PR comment.

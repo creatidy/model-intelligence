@@ -4,18 +4,19 @@
   Forgejo owns source development state, issues, PRs, reviews and integration.
 - `https://github.com/creatidy/model-intelligence` is a read-only public mirror.
   Never create/mutate GitHub branches, issues, PRs, releases or project state.
-- Use normal Git for fetch, branch, worktree, commit and push. Use configured
+- Use normal Git for fetch, branch switching, commit and push. Use configured
   Forgejo MCP for platform operations: issue reads/comments, PR creation/metadata
   and optional review publication. Never substitute curl, wget, custom HTTP scripts
   or direct REST when MCP supports the required operation. Read repository contents locally.
 - Implementation commits/pushes use normal Git under Adrian's Git identity:
   `Adrian Tkacz <adrian.tkacz@creatidy.com>`, Forgejo user `adrian.tkacz`.
   `forgejo-mcp` handles platform operations, not implementation authorship.
-  Independent review uses a fresh Kilo session/context, not a required platform
-  identity. Its result may remain in chat; formal publication is optional and
-  is not an acceptance gate. Never author/commit implementation as forgejo-mcp,
+  Independent review uses a newly spawned read-only `pr-reviewer` subagent context,
+  not a manual session or required platform identity. Its native task result is
+  the handoff; Forgejo publication is optional, not orchestration state or an
+  acceptance gate. Never author/commit implementation as forgejo-mcp,
   Kilo, a bot/service identity or the reviewer identity.
-- Before the first commit in an implementation worktree, verify
+- Before the first commit on an implementation branch, verify
   `git config user.name` and `git config user.email` resolve to the expected owner identity;
   verify effective author/committer with `git var GIT_AUTHOR_IDENT` and
   `git var GIT_COMMITTER_IDENT` as well. If identity is wrong, stop before committing
