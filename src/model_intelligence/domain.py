@@ -3,10 +3,11 @@
 import hashlib
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, time
 from decimal import Decimal
 from enum import StrEnum
+from itertools import combinations
 from zoneinfo import ZoneInfo
 
 
@@ -336,6 +337,24 @@ def _meaning(fact: Fact, *, schedule: bool = False) -> str:
     return _json(data)
 
 
+def _disagrees(first: Fact, second: Fact) -> bool:
+    """Contradiction requires a shared subject and comparable assertion context."""
+    if _key(first) != _key(second):
+        return False
+    if isinstance(first, ModelFact) and isinstance(second, ModelFact):
+        return (
+            first.price != second.price
+            or first.capabilities != second.capabilities
+            or (
+                replace(first.benchmark, score=second.benchmark.score) == second.benchmark
+                and first.benchmark.score != second.benchmark.score
+            )
+        )
+    if any(isinstance(f, ExecutionFact) and f.supported is None for f in (first, second)):
+        return False
+    return _meaning(first, schedule=True) != _meaning(second, schedule=True)
+
+
 @dataclass(frozen=True)
 class Snapshot:
     version: int
@@ -376,31 +395,7 @@ class Snapshot:
         # Competing offer boundaries remain disputed even when one claim has expired.
         groups.update((key, facts) for key, facts in self.retained().items() if key[0] == "offer")
         for key, facts in groups.items():
-            models = tuple(f for f in facts if isinstance(f, ModelFact))
-            if models:
-                # Prices share a provider identity; benchmark scores additionally need comparable context.
-                benchmarks: dict[Key, set[Decimal]] = {}
-                for fact in models:
-                    b = fact.benchmark
-                    context = (b.name, b.version, b.methodology, b.configuration, b.unit)
-                    benchmarks.setdefault(context, set()).add(b.score)
-                disagrees = (
-                    len({f.price for f in models}) > 1
-                    or len({f.capabilities for f in models}) > 1
-                    or any(len(scores) > 1 for scores in benchmarks.values())
-                )
-            else:
-                disagrees = (
-                    len(
-                        {
-                            _meaning(f, schedule=True)
-                            for f in facts
-                            if not isinstance(f, ExecutionFact) or f.supported is not None
-                        }
-                    )
-                    > 1
-                )
-            if disagrees:
+            if any(_disagrees(first, second) for first, second in combinations(facts, 2)):
                 conflicts.append(key)
         return tuple(sorted(conflicts))
 
@@ -410,12 +405,11 @@ class Snapshot:
         states = fact.evidence.states_at(self.at)
         if isinstance(fact, ExecutionFact) and fact.supported is None:
             states += (State.UNKNOWN,)
-        unknown = isinstance(fact, ExecutionFact) and fact.supported is None
+        comparable = self.retained() if isinstance(fact, OfferRule) else self.effective()
         if (
-            not unknown
-            and State.SUPERSEDED not in states
+            State.SUPERSEDED not in states
             and (isinstance(fact, OfferRule) or State.CURRENT in states)
-            and _key(fact) in self.conflicts()
+            and any(_disagrees(fact, other) for other in comparable.get(_key(fact), ()))
         ):
             states += (State.CONFLICTING,)
         return states
@@ -466,8 +460,18 @@ def _corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot) -> bo
         and State.SUPERSEDED not in f.evidence.states_at(after.at)
         and _claim(f) not in seen
         and (not isinstance(f, OfferRule) or _meaning(f, schedule=True) not in meanings)
-        # Model corrections must identify the prior observation; offers may announce newly observed schedules.
-        and (isinstance(f, OfferRule) or _claim(f)[:3] in observations)
+        # Offers may announce newer schedules, but delayed older history cannot correct a newer observation.
+        and (
+            _claim(f)[:3] in observations
+            or (
+                isinstance(f, OfferRule)
+                and all(
+                    f.evidence.source.observed_at > p.evidence.source.observed_at
+                    for p in prior
+                    if p.evidence.source.source_id == f.evidence.source.source_id
+                )
+            )
+        )
         for f in after.facts
     )
 

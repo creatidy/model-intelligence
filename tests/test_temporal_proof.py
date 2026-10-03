@@ -130,6 +130,26 @@ class TemporalProofTests(unittest.TestCase):
         comparable = replace(first, benchmark=replace(first.benchmark, score=Decimal("50")), evidence=evidence("other"))
         self.assertEqual(len(Snapshot(1, DURING, (first, comparable)).conflicts()), 1)
 
+    def test_benchmark_conflict_states_only_mark_comparable_participants(self) -> None:
+        first = model()
+        second = replace(first, benchmark=replace(first.benchmark, score=Decimal("50")), evidence=evidence("other"))
+        unrelated = replace(
+            first,
+            benchmark=replace(first.benchmark, configuration="temperature=1", score=Decimal("90")),
+            evidence=evidence("another-context"),
+        )
+        snapshot = Snapshot(1, DURING, (first, second, unrelated))
+        self.assertEqual(len(snapshot.conflicts()), 1)
+        self.assertIn(State.CONFLICTING, snapshot.states(first))
+        self.assertIn(State.CONFLICTING, snapshot.states(second))
+        self.assertNotIn(State.CONFLICTING, snapshot.states(unrelated))
+        for disputed in (
+            replace(unrelated, price=Price(Decimal("0.20"), Decimal("0.30"), "USD")),
+            replace(unrelated, capabilities=("text",)),
+        ):
+            with self.subTest(disputed=disputed):
+                self.assertIn(State.CONFLICTING, Snapshot(1, DURING, (first, second, disputed)).states(disputed))
+
     def test_daily_overnight_window_boundaries(self) -> None:
         offer = promotion()
         for hour, minute, active in ((22, 59, False), (23, 0, True), (0, 0, True), (8, 59, True), (9, 0, False)):
@@ -817,3 +837,48 @@ class TemporalProofTests(unittest.TestCase):
         before = Snapshot(1, DURING, (prior,))
         after = Snapshot(2, DURING + timedelta(seconds=1), (observed,))
         self.assertEqual(semantic_changes(before, after), ())
+
+    def test_delayed_older_offer_history_does_not_correct_newer_observation(self) -> None:
+        original = promotion()
+        current = replace(
+            original,
+            evidence=replace(
+                original.evidence,
+                source=replace(original.evidence.source, observed_at=START, retrieved_at=START),
+            ),
+        )
+        before = Snapshot(1, DURING, (current,))
+        for at, expected in (
+            (DURING + timedelta(seconds=1), []),
+            (END, [ChangeKind.PROMOTION_ENDED]),
+        ):
+            historical = replace(
+                original,
+                monthly_price=Decimal("9"),
+                evidence=replace(
+                    original.evidence,
+                    source=replace(original.evidence.source, retrieved_at=at),
+                    validity=Validity(LEARNED, START),
+                ),
+            )
+            after = Snapshot(2, at, (current, historical))
+            with self.subTest(at=at):
+                self.assertIn(historical, after.facts)
+                self.assertIn(State.EXPIRED, after.states(historical))
+                self.assertNotIn(State.SUPERSEDED, after.states(historical))
+                self.assertEqual(after.effective(), Snapshot(2, at, (current,)).effective())
+                # Retained contradictory terms can still add a conflict summary, not a correction.
+                kinds = [
+                    c.kind for c in semantic_changes(before, after) if c.kind != ChangeKind.EVIDENCE_CONFLICT_DETECTED
+                ]
+                self.assertEqual(kinds, expected)
+        newer = replace(
+            historical,
+            evidence=replace(
+                historical.evidence,
+                source=replace(historical.evidence.source, observed_at=DURING, retrieved_at=END),
+            ),
+        )
+        kinds = {c.kind for c in semantic_changes(before, Snapshot(2, END, (current, newer)))}
+        self.assertIn(ChangeKind.OFFER_CHANGED, kinds)
+        self.assertNotIn(ChangeKind.PROMOTION_ENDED, kinds)
