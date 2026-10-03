@@ -48,7 +48,7 @@ permission:
     "*&*": deny
     "*$(*": deny
     "*`*": deny
-    "*\\*": deny
+    # Backslashes normalize to forward slashes in Kilo globs; denying them blocks HTTPS Git reads.
     "*\n*": deny
 ---
 
