@@ -31,7 +31,8 @@ permission:
     "git show *": allow
     "git diff *": allow
     "git ls-tree *": allow
-    "git ls-remote *": allow
+    "git ls-remote https://forgejo.creatidy.com/Creatidy/model-intelligence refs/heads/develop refs/heads/*": allow
+    "git ls-remote https://forgejo.creatidy.com/Creatidy/model-intelligence.git refs/heads/develop refs/heads/*": allow
     "kilo debug agent pr-reviewer": allow
     "uv run --no-sync ruff check .": allow
     "uv run --no-sync ruff format --check .": allow
@@ -41,6 +42,9 @@ permission:
     "*--output*": deny
     "*--ext-diff*": deny
     "*--textconv*": deny
+    "git ls-remote * -*": deny
+    "git ls-remote *\"-*": deny
+    "git ls-remote *'-*": deny
     "*>*": deny
     "*<*": deny
     "*|*": deny
@@ -63,7 +67,9 @@ GPT-6.1 Sol High is `openai/gpt-6.1-sol` with `variant: high`, established by th
 installed Kilo 7.8.3 model listing and config schema. If unavailable, return a
 precise model/tool blocker; do not silently fall back or invent an identifier.
 
-First fetch current PR metadata via Forgejo MCP and canonical `git ls-remote`.
+First fetch current PR metadata via Forgejo MCP, then query the canonical HTTPS
+repository with `git ls-remote`, using `refs/heads/develop` and the exact head ref
+from metadata. Do not guess branch names, use alternate transports or add options.
 Require open/unmerged develop target and exact expected HEAD/base. Mismatch means
 COMMENT with actual SHAs; do not review a different range. Require the SAME normal
 checkout to be clean at expected HEAD. Inspect exact frozen Git objects/current
