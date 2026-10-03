@@ -20,3 +20,11 @@
   as part of implementation/review. Keep the issue open at handoff; use `Refs #N`,
   not automatic closing keywords. Report issue/PR, base/head SHAs, validation and
   genuine blockers; READY_FOR_REVIEW means implemented and verified, not approved.
+- `/finish-pr` selects an existing PR and authorizes only its linked issue's
+  accepted-scope remediation. Use a fresh foreground `pr-reviewer` native `task`
+  for each frozen whole-PR review; consume its result without owner relaying.
+  At most three remediation rounds per invocation; never reset the count by
+  restarting a session. Current APPROVE yields READY_TO_MERGE, never a merge.
+  At the bound return STOP_REVISE with new defects versus incomplete fixes and
+  recurring architectural/semantic patterns. Material scope/architecture decisions
+  yield OWNER_DECISION_NEEDED; unavailable tools yield a precise finite BLOCKED.

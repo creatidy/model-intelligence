@@ -16,3 +16,11 @@
 - Handoff includes issue/PR URLs, exact base/head SHAs, substantive files, exact
   executed validation/results and genuine unresolved decisions/blockers. No claim
   of passing checks, push or PR creation without successful evidence.
+- Parent prepares a clean detached checkout at frozen HEAD and offline locked
+  development environment for each reviewer. Reviewer reads checks before running
+  them; generated ignored validation artifacts are allowed, tracked-file edits
+  and Git/Forgejo mutations are not. Permission allowlists do not make arbitrary
+  repository code safe. Preserve all unrelated checkouts and changes.
+- `/finish-pr` records each reviewed HEAD/base/verdict, normal remediation commits,
+  regression/check results and final currentness. Only an exact matching native
+  reviewer result plus a final MCP currentness check can yield READY_TO_MERGE.
