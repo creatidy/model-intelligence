@@ -435,13 +435,29 @@ class Change:
 
 
 def _ceased(prior: tuple[Fact, ...], after: Snapshot) -> bool:
-    """Require same-source/terms/interval closure for every previously applicable assertion."""
+    """Require closure of each prior observation; retrieval-only refreshes preserve it."""
     ended = {
-        (f.evidence.source.source_id, _meaning(f, schedule=True), f.evidence.validity)
+        (
+            f.evidence.source.source_id,
+            f.evidence.source.reference,
+            f.evidence.source.observed_at,
+            _meaning(f, schedule=True),
+            f.evidence.validity,
+        )
         for f in after.facts
         if {State.EXPIRED, State.SUPERSEDED}.intersection(f.evidence.states_at(after.at))
     }
-    return all((f.evidence.source.source_id, _meaning(f, schedule=True), f.evidence.validity) in ended for f in prior)
+    return all(
+        (
+            f.evidence.source.source_id,
+            f.evidence.source.reference,
+            f.evidence.source.observed_at,
+            _meaning(f, schedule=True),
+            f.evidence.validity,
+        )
+        in ended
+        for f in prior
+    )
 
 
 def _offer_corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot) -> bool:
@@ -452,6 +468,7 @@ def _offer_corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot)
     return any(
         _key(f) == key
         and f.evidence.source.source_id in sources
+        and State.SUPERSEDED not in f.evidence.states_at(after.at)
         and (f.evidence.source.source_id, _meaning(f, schedule=True)) not in seen
         for f in after.facts
     )
