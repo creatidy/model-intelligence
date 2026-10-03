@@ -434,42 +434,40 @@ class Change:
     subject: Key
 
 
-def _ceased(prior: tuple[Fact, ...], after: Snapshot) -> bool:
-    """Require closure of each prior observation; retrieval-only refreshes preserve it."""
-    ended = {
-        (
-            f.evidence.source.source_id,
-            f.evidence.source.reference,
-            f.evidence.source.observed_at,
-            _meaning(f, schedule=True),
-            f.evidence.validity,
-        )
-        for f in after.facts
-        if {State.EXPIRED, State.SUPERSEDED}.intersection(f.evidence.states_at(after.at))
-    }
-    return all(
-        (
-            f.evidence.source.source_id,
-            f.evidence.source.reference,
-            f.evidence.source.observed_at,
-            _meaning(f, schedule=True),
-            f.evidence.validity,
-        )
-        in ended
-        for f in prior
+def _claim(fact: Fact) -> tuple[str, str, datetime, str, Validity]:
+    """Observation and assertion identity excludes retrieval/freshness metadata."""
+    return (
+        fact.evidence.source.source_id,
+        fact.evidence.source.reference,
+        fact.evidence.source.observed_at,
+        _meaning(fact),
+        fact.evidence.validity,
     )
 
 
-def _offer_corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot) -> bool:
-    """New claims from a previously effective source, not disappearance or already-known history."""
+def _ceased(prior: tuple[Fact, ...], after: Snapshot) -> bool:
+    """Require closure of each prior observation; retrieval-only refreshes preserve it."""
+    ended = {
+        _claim(f) for f in after.facts if {State.EXPIRED, State.SUPERSEDED}.intersection(f.evidence.states_at(after.at))
+    }
+    return all(_claim(f) in ended for f in prior)
+
+
+def _corrected(prior: tuple[Fact, ...], before: Snapshot, after: Snapshot) -> bool:
+    """Supplied claims, not missing rows, known claims or superseded history."""
     key = _key(prior[0])
     sources = {f.evidence.source.source_id for f in prior}
-    seen = {(f.evidence.source.source_id, _meaning(f, schedule=True)) for f in before.facts if _key(f) == key}
+    observations = {_claim(f)[:3] for f in prior}
+    seen = {_claim(f) for f in before.retained().get(key, ())}
+    meanings = {_meaning(f, schedule=True) for f in prior}
     return any(
         _key(f) == key
         and f.evidence.source.source_id in sources
         and State.SUPERSEDED not in f.evidence.states_at(after.at)
-        and (f.evidence.source.source_id, _meaning(f, schedule=True)) not in seen
+        and _claim(f) not in seen
+        and (not isinstance(f, OfferRule) or _meaning(f, schedule=True) not in meanings)
+        # Model corrections must identify the prior observation; offers may announce newly observed schedules.
+        and (isinstance(f, OfferRule) or _claim(f)[:3] in observations)
         for f in after.facts
     )
 
@@ -484,7 +482,7 @@ def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
         prior, current = old.get(key, ()), new.get(key, ())
         if key[0] == "offer":
             # A newly supplied correction is more precise than an inferred cessation, even if inactive.
-            if prior and _offer_corrected(prior, before, after):
+            if prior and _corrected(prior, before, after):
                 changes.add(Change(ChangeKind.OFFER_CHANGED, key))
             elif not prior and current:
                 changes.add(Change(ChangeKind.PROMOTION_STARTED, key))
@@ -511,7 +509,7 @@ def semantic_changes(before: Snapshot, after: Snapshot) -> tuple[Change, ...]:
                 new_details = {(f.capabilities, f.benchmark) for f in current if isinstance(f, ModelFact)}
                 if old_details != new_details:
                     changes.add(Change(ChangeKind.MODEL_EVIDENCE_CHANGED, key))
-        elif prior and _ceased(prior, after):
+        elif prior and (_corrected(prior, before, after) or _ceased(prior, after)):
             changes.add(Change(ChangeKind.MODEL_EVIDENCE_CHANGED, key))
     for key in set(after.conflicts()) - set(before.conflicts()):
         changes.add(Change(ChangeKind.EVIDENCE_CONFLICT_DETECTED, key))

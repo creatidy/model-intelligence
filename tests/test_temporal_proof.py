@@ -741,3 +741,79 @@ class TemporalProofTests(unittest.TestCase):
                 after = Snapshot(2, DURING, (closed,))
                 with self.subTest(family=type(prior).__name__, source=source):
                     self.assertEqual(bool(semantic_changes(before, after)), matches)
+
+    def test_new_offer_observation_can_reintroduce_superseded_terms(self) -> None:
+        prior = promotion()
+        historical = replace(
+            prior,
+            monthly_price=Decimal("19"),
+            evidence=replace(
+                prior.evidence,
+                validity=Validity(END + timedelta(days=1), END + timedelta(days=2)),
+                superseded_at=BEFORE,
+            ),
+        )
+        closed = replace(prior, evidence=replace(prior.evidence, superseded_at=END))
+        supplied = replace(
+            historical,
+            evidence=replace(
+                historical.evidence,
+                source=replace(
+                    historical.evidence.source,
+                    reference="fixture:new-correction",
+                    observed_at=DURING,
+                    retrieved_at=DURING,
+                ),
+                superseded_at=None,
+            ),
+        )
+        for old_facts in ((prior,), (prior, historical)):
+            before = Snapshot(1, DURING, old_facts)
+            after = Snapshot(2, END, (closed, supplied))
+            with self.subTest(history=historical in old_facts):
+                self.assertEqual(after.effective(), {})
+                self.assertIn(State.FUTURE, after.states(supplied))
+                self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.OFFER_CHANGED])
+        refreshed_history = replace(
+            historical,
+            evidence=replace(historical.evidence, source=replace(historical.evidence.source, retrieved_at=DURING)),
+        )
+        before = Snapshot(1, DURING, (prior, historical))
+        for old in (historical, refreshed_history):
+            after = Snapshot(2, END, (closed, old))
+            self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.PROMOTION_ENDED])
+
+    def test_supplied_model_validity_correction_changes_evidence(self) -> None:
+        prior = model()
+        at = DURING + timedelta(seconds=1)
+        before = Snapshot(1, DURING, (prior,))
+        for validity in (Validity(LEARNED, at), Validity(at + timedelta(days=1))):
+            corrected = replace(prior, evidence=replace(prior.evidence, validity=validity))
+            after = Snapshot(2, at, (corrected,))
+            with self.subTest(validity=validity):
+                self.assertEqual(after.effective(), {})
+                self.assertEqual([c.kind for c in semantic_changes(before, after)], [ChangeKind.MODEL_EVIDENCE_CHANGED])
+        for source in (
+            replace(prior.evidence.source, source_id="unrelated"),
+            replace(prior.evidence.source, reference="fixture:unrelated"),
+            replace(prior.evidence.source, observed_at=DURING, retrieved_at=DURING),
+        ):
+            unrelated = replace(prior, evidence=replace(prior.evidence, source=source, validity=Validity(LEARNED, at)))
+            self.assertEqual(semantic_changes(before, Snapshot(2, at, (unrelated,))), ())
+        refreshed = replace(
+            prior, evidence=replace(prior.evidence, source=replace(prior.evidence.source, retrieved_at=DURING))
+        )
+        self.assertEqual(semantic_changes(before, Snapshot(2, at, (refreshed,))), ())
+
+    def test_new_offer_observation_with_unchanged_terms_is_silent(self) -> None:
+        prior = promotion()
+        observed = replace(
+            prior,
+            evidence=replace(
+                prior.evidence,
+                source=replace(prior.evidence.source, observed_at=DURING, retrieved_at=DURING),
+            ),
+        )
+        before = Snapshot(1, DURING, (prior,))
+        after = Snapshot(2, DURING + timedelta(seconds=1), (observed,))
+        self.assertEqual(semantic_changes(before, after), ())
