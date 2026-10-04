@@ -50,8 +50,7 @@ Target paths are Kernel -> harness adapter -> harness -> workspace, and harness
 inference -> Router gateway -> permitted source. MI publishes knowledge for Router;
 Kernel normally receives its reference indirectly through Router-backed evidence.
 All producers serve their own state/events to CLI/Console. These are target paths,
-not claims of delivered integration. `creatidy-router` was a typo for Scarcity
-Router, not Kernel; no repository or public identifier is renamed.
+not claims of delivered integration. No repository or public identifier is renamed.
 
 Public modules may depend on each other. They must not require private
 creatidy-onprem. Separate product ownership does not require four resident
