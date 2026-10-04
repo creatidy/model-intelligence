@@ -90,16 +90,17 @@ def offer(
             for claim in overrides
             if isinstance(claim.payload, Override) and _field(claim.payload.terms, field.name) is not None
         ]
-        candidates = overlay_values or baseline_values
-        values = {value for _, value in candidates if value is not None}
-        if len(values) > 1:
-            conflicts.append(
-                Conflict(
-                    ("offer", plan.plan_id, plan.provider_id, plan.generation),
-                    field.name,
-                    tuple(identity for identity, value in candidates if value is not None),
+        # An effective override does not resolve disagreement about baseline terms.
+        for candidates in (baseline_values, overlay_values):
+            if len({value for _, value in candidates if value is not None}) > 1:
+                conflicts.append(
+                    Conflict(
+                        ("offer", plan.plan_id, plan.provider_id, plan.generation),
+                        field.name,
+                        tuple(identity for identity, value in candidates if value is not None),
+                    )
                 )
-            )
+        values = {value for _, value in overlay_values or baseline_values if value is not None}
         value = next(iter(values)) if len(values) == 1 and field.name not in disputed else None
         effective = replace(effective, **{field.name: value})
     return OfferView(baselines, overrides, effective, tuple(conflicts))

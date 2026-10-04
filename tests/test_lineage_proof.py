@@ -371,6 +371,40 @@ class ConflictTests(unittest.TestCase):
         self.assertIsNone(offer(data, PLAN, T1).effective.price)
         self.assertEqual(len(offer(data, PLAN, T1).baselines), 2)
 
+    def test_override_does_not_resolve_baseline_conflict(self) -> None:
+        data = evidence(
+            baseline(),
+            baseline("b-base", terms=replace(NORMAL, price=Money(Decimal("30"), "USD", "month"))),
+            promotion(),
+        )
+        baseline_conflicts = offer(data, PLAN, T0).conflicts
+        self.assertEqual(len(baseline_conflicts), 1)
+        self.assertEqual(baseline_conflicts[0].claim_ids, ("b-base", "base"))
+        for at, price in ((T0, None), (T1, SALE.price), (T3, None)):
+            with self.subTest(at=at):
+                view = offer(data, PLAN, at)
+                self.assertEqual(view.effective, replace(NORMAL, price=price))
+                self.assertEqual(view.conflicts, baseline_conflicts)
+                self.assertEqual(conflicts(data, at), baseline_conflicts)
+        for start, end in ((T0, T1), (T2, T3)):
+            with self.subTest(start=start, end=end):
+                events = kinds(data, data, start, end)
+                self.assertIn(ChangeKind.EFFECTIVE_OFFER_CHANGED, events)
+                self.assertNotIn(ChangeKind.CONFLICT_RESOLVED, events)
+                self.assertNotIn(ChangeKind.CONFLICT_DETECTED, events)
+
+    def test_baseline_and_override_conflicts_remain_separate(self) -> None:
+        data = evidence(
+            baseline(),
+            baseline("b-base", terms=replace(NORMAL, price=Money(Decimal("30"), "USD", "month"))),
+            promotion(),
+            promotion("b-promo", campaign="other", terms=Terms(price=Money(Decimal("7"), "USD", "month"))),
+        )
+        view = offer(data, PLAN, T1)
+        self.assertIsNone(view.effective.price)
+        self.assertEqual([item.claim_ids for item in view.conflicts], [("b-base", "base"), ("b-promo", "promo")])
+        self.assertEqual(conflicts(data, T1), view.conflicts)
+
     def test_unknown_does_not_conflict_with_false(self) -> None:
         a = model_claim("unknown", Capability("tools", None))
         b = model_claim("b-false", Capability("tools", False))
