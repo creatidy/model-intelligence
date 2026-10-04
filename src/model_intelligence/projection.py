@@ -105,23 +105,16 @@ def effective_at(evidence: Evidence, at: datetime, *, conditions: frozenset[str]
             for item in all_conflicts
             if item.subject == ("offer", plan.plan_id, plan.provider_id, plan.generation, "baseline")
         ]
-        disputed: set[str] = set()
+        alternatives: list[tuple[OverrideClaim, ...]] = []
         for campaign_id in sorted({claim.campaign_id for claim in campaigns}):
             participants = tuple(claim for claim in campaigns if claim.campaign_id == campaign_id)
             if not any(claim in active for claim in participants):
                 continue
+            alternatives.append(participants)
             key = dimension(participants[0])
             boundaries = {(claim.period, claim.conditions, claim.window, claim.terms is None) for claim in participants}
             if len(boundaries) > 1:
                 diagnostics.append(Conflict(key, "applicability", tuple(claim.claim_id for claim in participants)))
-                if not all(claim in active for claim in participants):
-                    disputed.update(
-                        field.name
-                        for claim in participants
-                        if claim.terms is not None
-                        for field in fields(Terms)
-                        if getattr(claim.terms, field.name) is not None
-                    )
             parents = {roots[claim.claim_id] for claim in participants}
             for parent in sorted(parents):
                 ids = tuple(claim.claim_id for claim in participants if roots[claim.claim_id] == parent)
@@ -130,22 +123,46 @@ def effective_at(evidence: Evidence, at: datetime, *, conditions: frozenset[str]
         terms = Terms()
         for field in fields(Terms):
             normal = [(claim.claim_id, getattr(claim.terms, field.name)) for claim in baselines]
-            overlay = [
-                (claim.claim_id, getattr(claim.terms, field.name))
-                for claim in active
-                if claim.terms is not None and getattr(claim.terms, field.name) is not None
+            # Versions of ONE campaign are alternatives; different campaigns compose.
+            # None is an inheritance outcome, not a field to drop before comparison.
+            options = [
+                {
+                    getattr(claim.terms, field.name) if claim in active and claim.terms is not None else None
+                    for claim in participants
+                }
+                for participants in alternatives
             ]
-            for label, candidates in (("baseline", normal), ("override", overlay)):
-                if len({value for _, value in candidates if value is not None}) > 1:
-                    diagnostics.append(
-                        Conflict(
-                            ("offer", plan.plan_id, plan.provider_id, plan.generation, label),
-                            field.name,
-                            tuple(identity for identity, value in candidates if value is not None),
-                        )
+            inherits = all(None in candidates for candidates in options)
+            normal_values = {value for _, value in normal if value is not None}
+            if len(normal_values) > 1:
+                diagnostics.append(
+                    Conflict(
+                        ("offer", plan.plan_id, plan.provider_id, plan.generation, "baseline"),
+                        field.name,
+                        tuple(identity for identity, value in normal if value is not None),
                     )
-            field_values = {value for _, value in overlay or normal if value is not None}
-            value = next(iter(field_values)) if len(field_values) == 1 and field.name not in disputed else None
+                )
+            overlay_values = {value for candidates in options for value in candidates if value is not None}
+            field_values: set[object] = set(overlay_values)
+            if inherits:
+                field_values.update(normal_values or {None})
+            if overlay_values and len(field_values) > 1:
+                identities = {
+                    claim.claim_id
+                    for participants, candidates in zip(alternatives, options, strict=True)
+                    if candidates != {None}
+                    for claim in participants
+                }
+                if inherits:
+                    identities.update(claim.claim_id for claim in baselines)
+                diagnostics.append(
+                    Conflict(
+                        ("offer", plan.plan_id, plan.provider_id, plan.generation, "override"),
+                        field.name,
+                        tuple(sorted(identities)),
+                    )
+                )
+            value = next(iter(field_values)) if len(field_values) == 1 else None
             terms = replace(terms, **{field.name: value})
         if baselines or active or diagnostics:
             offers.append(OfferView(plan, baselines, active, terms, tuple(diagnostics)))

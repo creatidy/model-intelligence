@@ -312,6 +312,38 @@ class OverrideLifecycleTests(unittest.TestCase):
 
 
 class ConflictAndPredecessorTests(unittest.TestCase):
+    def test_sibling_omissions_are_alternatives_not_composable_campaigns(self) -> None:
+        quota = Quota(Decimal("200"), "public-units", "5 hours")
+        r = promo("r", version=OCT, revises="p", terms=Terms(price=SALE))
+        s = promo("s", version=OCT, revises="p", terms=Terms(quota=quota))
+        data = evidence(base(), promo(), r, s)
+        view = offer(data)
+        self.assertIsNone(view.terms.price)
+        self.assertIsNone(view.terms.quota)
+        self.assertEqual(view.terms.rules, NORMAL.rules)
+        self.assertTrue(view.terms.available)
+        self.assertEqual({item.field for item in view.conflicts}, {"lineage", "price", "quota"})
+        shared = replace(s, terms=Terms(price=SALE, quota=quota))
+        view = offer(evidence(base(), promo(), r, shared))
+        self.assertEqual(view.terms.price, SALE)
+        self.assertIsNone(view.terms.quota)
+
+    def test_independent_campaign_can_mask_applicability_uncertainty(self) -> None:
+        long = promo(end=DEC)
+        short = promo("short", end=NOW)
+        for price in (SALE, NEXT):
+            with self.subTest(price=price):
+                independent = promo("independent", campaign="independent", end=DEC, terms=Terms(price=price))
+                data = evidence(base(), long, short, independent)
+                view = offer(data)
+                self.assertEqual(view.terms.price, SALE if price == SALE else None)
+                self.assertIn("applicability", {item.field for item in view.conflicts})
+                self.assertEqual({item.claim_id for item in view.overrides}, {"p", "independent"})
+                before = evidence(base(), long, independent)
+                changed = projection_delta(effective_at(before, NOW), effective_at(data, NOW)).offers[0]
+                assert changed.before is not None and changed.after is not None
+                self.assertEqual(changed.before.terms, changed.after.terms)
+
     def test_baseline_conflict_survives_override_masking_pr8(self) -> None:
         data = evidence(base(), base("b-base", NEXT), promo())
         diagnostic = offer(data, JAN).conflicts
@@ -361,7 +393,7 @@ class ConflictAndPredecessorTests(unittest.TestCase):
         data = evidence(base(), promo(), withdraw("w", at=NOW), promo("r", version=NOW, revises="p", end=DEC))
         self.assertIsNone(offer(data).terms.price)
         self.assertEqual(offer(data).overrides[0].claim_id, "r")
-        self.assertEqual({item.field for item in offer(data).conflicts}, {"lineage", "applicability"})
+        self.assertEqual({item.field for item in offer(data).conflicts}, {"lineage", "applicability", "price"})
 
     def test_cross_source_matches_do_not_suppress_explicit_revision_pr4(self) -> None:
         a = model("a", PRICE)

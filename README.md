@@ -28,6 +28,9 @@ diagnostics can cite inactive participants without applying their terms; irrelev
 expired/future campaigns do not clutter current results. Model benchmarks retain
 context; execution evidence keeps advertised/observed/selectable/enforceable separate.
 Unknown is not false and provider-managed execution need not assert a physical model.
+Versions of one campaign are alternatives, including omitted-field inheritance;
+different campaigns compose. A guaranteed independent replacement can mask another
+campaign's uncertain participation without hiding its boundary diagnostic.
 
 `evidence_delta()` returns new observation/claim identities, including every supplied
 revision/withdrawal announcement in a batch. Retrieval-only refresh is silent and
