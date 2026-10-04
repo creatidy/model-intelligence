@@ -1,1 +1,1 @@
-"""Public AI ecosystem intelligence; currently a repository foundation only."""
+"""Public AI ecosystem intelligence; separated knowledge/effective-state M0 proof."""
