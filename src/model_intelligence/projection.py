@@ -267,6 +267,11 @@ def changes(
                             *following.overrides,
                         )
                     }
+                    | {
+                        identity
+                        for conflict in (*previous.conflicts, *following.conflicts)
+                        for identity in conflict.claim_ids
+                    }
                 )
             )
             result.add(

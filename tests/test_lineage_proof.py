@@ -364,6 +364,22 @@ class ConflictTests(unittest.TestCase):
         self.assertIn(ChangeKind.CONFLICT_RESOLVED, kinds(before, after, T2, T2))
         self.assertIn(ChangeKind.OVERRIDE_REVISED, kinds(before, after, T2, T2))
 
+    def test_effective_change_cites_inactive_boundary_evidence(self) -> None:
+        before = evidence(baseline(), promotion())
+        boundary = promotion("b-boundary", end=T2)
+        after = before.extend(observations=(observation("b-boundary", "b"),), claims=(boundary,))
+        self.assertEqual(offer(before, PLAN, T2).effective.price, SALE.price)
+        view = offer(after, PLAN, T2)
+        self.assertIsNone(view.effective.price)
+        self.assertEqual(view.overrides, (promotion(),))
+        self.assertEqual(after.status("b-boundary", T2), "expired")
+        events = changes(before, after, T2, T2)
+        effective = tuple(item for item in events if item.kind == ChangeKind.EFFECTIVE_OFFER_CHANGED)
+        self.assertEqual(len(effective), 1)
+        self.assertEqual(effective[0].claim_ids, ("b-boundary", "base", "promo"))
+        self.assertIn(ChangeKind.CONFLICT_DETECTED, {item.kind for item in events})
+        self.assertEqual(changes(after, after, T2, T2), ())
+
     def test_conflicting_baselines_have_no_winner(self) -> None:
         data = evidence(
             baseline(), baseline("b-base", terms=replace(NORMAL, price=Money(Decimal("30"), "USD", "month")))
