@@ -220,20 +220,23 @@ def changes(
             elif isinstance(claim.payload, Override) and claim.revises:
                 kind = ChangeKind.OVERRIDE_WITHDRAWN if claim.payload.withdrawn else ChangeKind.OVERRIDE_REVISED
                 result.add(Change(kind, key, (claim.revises, claim.claim_id)))
-            if claim.revises:
-                previous = next(item for item in after.claims if item.claim_id == claim.revises)
+            # Follow only new links leading to this head, stopping at known history.
+            revision = claim
+            while revision.claim_id not in old and revision.revises is not None:
+                previous = next(item for item in after.claims if item.claim_id == revision.revises)
                 old_price = (
                     previous.payload
                     if isinstance(previous.payload, Money)
                     else (previous.payload.price if isinstance(previous.payload, Terms) else None)
                 )
                 new_price = (
-                    claim.payload
-                    if isinstance(claim.payload, Money)
-                    else (claim.payload.price if isinstance(claim.payload, Terms) else None)
+                    revision.payload
+                    if isinstance(revision.payload, Money)
+                    else (revision.payload.price if isinstance(revision.payload, Terms) else None)
                 )
                 if old_price != new_price:
-                    result.add(Change(ChangeKind.PRICE_CHANGED, key, (claim.revises, claim.claim_id)))
+                    result.add(Change(ChangeKind.PRICE_CHANGED, key, (previous.claim_id, revision.claim_id)))
+                revision = previous
         if isinstance(claim, OfferClaim) and isinstance(claim.payload, Override):
             was_active = (
                 claim.claim_id in old and old[claim.claim_id] in before.heads() and claim.active(before_at, conditions)

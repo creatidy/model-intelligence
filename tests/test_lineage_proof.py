@@ -504,6 +504,34 @@ class ABCProofTests(unittest.TestCase):
 
 
 class PredecessorAdversarialTests(unittest.TestCase):
+    def test_batched_price_revisions_preserve_explicit_changes(self) -> None:
+        assert SALE.price is not None
+        for family in ("model", "baseline"):
+            with self.subTest(family=family):
+                original = model_claim("a", PRICE) if family == "model" else baseline("a", terms=Terms(price=PRICE))
+                middle = (
+                    model_claim("b", SALE.price, revises="a")
+                    if family == "model"
+                    else baseline("b", terms=SALE, revises="a")
+                )
+                terminal = replace(middle, claim_id="c", observation_id="c", revises="b")
+                before = evidence(original)
+                intermediate = before.extend(observations=(observation("b"),), claims=(middle,))
+                after = intermediate.extend(observations=(observation("c"),), claims=(terminal,))
+                batched = before.extend(observations=(observation("b"), observation("c")), claims=(middle, terminal))
+                self.assertEqual(after, batched)
+                expected = tuple(
+                    item for item in changes(before, intermediate, T1, T1) if item.kind == ChangeKind.PRICE_CHANGED
+                )
+                self.assertEqual(len(expected), 1)
+                self.assertEqual(expected[0].claim_ids, ("a", "b"))
+                self.assertEqual(
+                    tuple(item for item in changes(before, batched, T1, T1) if item.kind == ChangeKind.PRICE_CHANGED),
+                    expected,
+                )
+                self.assertNotIn(ChangeKind.PRICE_CHANGED, kinds(intermediate, after))
+                self.assertEqual(changes(after, after, T1, T1), ())
+
     def test_model_activation_and_expiry_come_from_own_applicability(self) -> None:
         claim = replace(model_claim("model", Capability("tools", True)), applicability=Period(T1, T2))
         data = evidence(claim)
