@@ -10,6 +10,7 @@
   edits applied. Read further only when context or diagnosis requires it.
 - For sufficiently complex work keep short acceptance/decision/command/result/
   blocker state in `.task_progress.md`. Before creation add it to the repository's
-  `.git/info/exclude` (resolve the shared Git path in worktrees with
-  `git rev-parse --git-path info/exclude`). Never commit it or add it to .gitignore.
+  Git's local exclude file (`git rev-parse --git-path info/exclude`). If already
+  excluded, verify with `git check-ignore -v .task_progress.md` rather than editing
+  the exclusion again. Never commit it or add it to .gitignore.
   Local notes and conversation memory do not select or authorize future issues.

@@ -39,3 +39,5 @@
   finite blocker. Never weaken requirements or claim unobserved success.
 - Report material new problems rather than expanding scope. Follow-ups must be
   durable, distinct, actionable and verifiable; do not create them automatically.
+- STOP_REVISE preserves an experiment as evidence, not authorization for more
+  patches or implicit code reuse. Resuming it requires an explicit owner decision.

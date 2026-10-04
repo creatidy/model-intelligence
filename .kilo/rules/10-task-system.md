@@ -8,10 +8,13 @@
   create more issues without explicit authorization. No Program Execution Mode,
   controller, execution graph, autonomous issue selection or planning framework.
 - Verify the canonical remote, fetch current `develop`, record its exact SHA and
-  inspect files/status/worktrees. Demonstrate access by successful operations.
-  Preserve unrelated changes and worktrees; never stash/reset others' work.
-- Create an isolated worktree and new branch from that recorded fetched SHA, both
-  named `issue-<number>-<short-topic>`. Use normal Git transport. Never implement
+  inspect files/status/branches. Demonstrate access by successful operations.
+  Use one normal checkout, never `git worktree` or alternate checkout management
+  unless Adrian explicitly re-enables it. Preserve unrelated changes/branches;
+  never stash/reset others' work. If unrelated changes prevent safe switching,
+  stop with a precise blocker.
+- Create an ordinary branch named `issue-<number>-<short-topic>` from that recorded
+  fetched SHA in this checkout. Use normal Git transport. Never implement
   directly on `develop`; never target, modify, merge into or promote `main`.
 - Confirm accepted scope, implement the smallest coherent change, run checks,
   inspect status/full base delta, commit only intended files, push to canonical
@@ -20,3 +23,11 @@
   as part of implementation/review. Keep the issue open at handoff; use `Refs #N`,
   not automatic closing keywords. Report issue/PR, base/head SHAs, validation and
   genuine blockers; READY_FOR_REVIEW means implemented and verified, not approved.
+- `/finish-pr` selects an existing PR and authorizes only its linked issue's
+  accepted-scope remediation. Use a fresh foreground `pr-reviewer` native `task`
+  for each frozen whole-PR review; consume its result without owner relaying.
+  At most three remediation rounds per invocation; never reset the count by
+  restarting a session. Current APPROVE yields READY_TO_MERGE, never a merge.
+  At the bound return STOP_REVISE with new defects versus incomplete fixes and
+  recurring architectural/semantic patterns. Material scope/architecture decisions
+  yield OWNER_DECISION_NEEDED; unavailable tools yield a precise finite BLOCKED.
