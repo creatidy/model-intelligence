@@ -129,32 +129,31 @@ telemetry; an MI outage alone must not stop an ongoing authorized Attempt. New u
 depends on consumer policy, with critical withdrawal distinct from a missing new
 price. MI must expose those meanings, not impose a universal undocumented TTL.
 
-The actual inspected Router seam at local revision
-`8d9d4b04bcb23fe19ff702b6209fbcb1537cdf1b` loads configured catalog/policy JSON
-through `scarcity_router/selection_app.py`, not MI snapshots. Its
-`docs/selection-policy.md` treats external evidence as offline/periodic input.
-`selection_types.py` already owns evidenced, confidence/date/rationale-bearing
-capability assessments, human overrides, opaque variants and explicit effort;
-`tests/test_model_calibration.py` rejects external metrics used as internal ratings.
-These local source observations are not live service verification or approval to
-redistribute curated data. The exact MI consumer contract is still To Prove.
+The read-only planning audit examined the Router's local artifact/calibration seam,
+but external checkout reads are outside the native reviewer's permissions. This
+PR therefore does not publish those sibling-code assertions as independently
+Verified contracts. Existing Router task records and the new [consumer #176][router-mi]
+define obligations to inspect against frozen producer/consumer source in
+[#13][publication]/[#14][semantics]: admitted offline evidence, explicit identity
+and effort, reviewed calibration, provenance, compatibility and safe migration.
+Issue records are contract evidence, not substitute source/test/live evidence or
+permission to redistribute curated data. The MI consumer contract is still To Prove.
 
 | Contract | Producer / consumer owner | Required receipt | Registered work |
 | --- | --- | --- | --- |
-| Knowledge publication/adoption | MI / Router | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and frozen version explanation. | [MI #13][publication], production [#15][acquisition], [Router #176][router-mi] |
-| Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Small versioned language with negative/unknown cases; no automatic transfer of existing calibration or third scale. | [MI #14][semantics], [Router #175][router-requirements], [Kernel #49][kernel-intake] |
-| Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator] |
-| Optional operational evidence | Kernel/Router local export / MI only after separate approval | Consent/minimization/provenance and cautious inference; denial/withdrawal leaves core operation intact. | [MI #17][feedback] |
-| Installation/updates and composed receipt | MI public artifact / Router, indirect Kernel evidence | Installed compatible versions, migrations/recovery, outage and operator acceptance. | [MI #18][distribution], [#19][acceptance] |
+| Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | [MI #13][publication], production [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
+| Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Small versioned language with negative/unknown cases; no automatic transfer of existing calibration or third scale. | [MI #14][semantics], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
+| Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator], separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
+| Optional operational evidence | Kernel/Router local export / MI only after separate approval | Consent/minimization/provenance and cautious inference; denial/withdrawal leaves core operation intact. | [MI #17][feedback], local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
+| Installation/updates and composed receipt | MI public artifact / Router, indirect Kernel evidence | Installed compatible versions, migrations/recovery, outage and operator acceptance. | [MI #18][distribution]/[#19][acceptance], [Kernel #62][kernel-migration]/[#60][kernel-acceptance] |
 
-The final counterpart reread found registered Router consumer [#176][router-mi],
-requirements [#175][router-requirements], local outcomes [#177][router-feedback]
-and state/events [#183][router-events], plus Kernel intake [#49][kernel-intake].
-These are planned work, not integrated contracts. Kernel MI-reference retention
-remains under [#46][kernel]; a dedicated child was not identified. A Console
-consumer counterpart was not identified; [MI #16][operator] records its expected
-owner/contract without designing Console. [ROADMAP.md](ROADMAP.md) gives the
-other identity/gateway/isolation matches and their narrower acceptance boundaries.
+Review caught incomplete discovery during concurrent task registration. The
+corrected registry links the actual Kernel children above, rather than leaving
+known reference/export/state/migration consumers only under planning parent
+[#46][kernel]. These are planned work, not integrated contracts. A Console consumer
+counterpart was not identified; [MI #16][operator] records its expected owner/contract
+without designing Console. [ROADMAP.md](ROADMAP.md) gives the complete received
+requirements/gateway/budget/concurrency/compatibility matches and their scope.
 
 No endpoint, payload, CLI flag, protocol version, global ontology, PKI or broker is
 approved by this table. [#13][publication] and [#14][semantics] are bounded contract
@@ -248,3 +247,9 @@ APPROVE leaves the [functional roadmap](ROADMAP.md) open and is never
 [router-feedback]: https://forgejo.creatidy.com/BioMedical-IT/scarcity-router/issues/177
 [router-events]: https://forgejo.creatidy.com/BioMedical-IT/scarcity-router/issues/183
 [kernel-intake]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/49
+[kernel-requirements]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/51
+[kernel-knowledge]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/55
+[kernel-events]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/57
+[kernel-outcomes]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/58
+[kernel-acceptance]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/60
+[kernel-migration]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/62
