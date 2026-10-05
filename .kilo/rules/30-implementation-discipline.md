@@ -40,9 +40,10 @@
   architecture, material scope, incompatible acceptance, irreversible/destructive
   action, meaningful cost or external credential/access decisions.
 - Every retry needs a diagnosis and changed hypothesis, input, state or strategy.
-  Normally make one corrected retry. A new session, timeout or model alone is not
-  diagnosis. If attempts add no durable state, stop that operation and report a
-  finite blocker. Never weaken requirements or claim unobserved success.
+  Apply rule 50's bounded technical remediation before escalation; one failed
+  approach is not exhaustion. A new session, timeout or model alone is not
+  diagnosis. Never repeat unchanged failures, weaken requirements or claim
+  unobserved success.
 - Report material new problems rather than expanding scope. Follow-ups must be
   durable, distinct, actionable and verifiable; do not create them automatically.
 - STOP_REVISE preserves an experiment as evidence, not authorization for more

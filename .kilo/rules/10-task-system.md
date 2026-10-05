@@ -22,10 +22,11 @@
   No issue registration is authorized merely to keep `/loop` running.
 - Verify the canonical remote, fetch current `develop`, record its exact SHA and
   inspect files/status/branches. Demonstrate access by successful operations.
-  Use one normal checkout, never `git worktree` or alternate checkout management
-  and only one mutator at a time. Preserve unrelated changes/branches;
+  Default to one normal checkout; explicitly authorized delivery worktrees and
+  bounded temporary review checkouts follow rule 50. Only one mutator per delivery
+  checkout is allowed. Preserve unrelated changes/branches;
   never stash/reset others' work. If unrelated changes prevent safe switching,
-  stop with a precise blocker.
+  diagnose and attempt safe isolation under rule 50 before reporting a blocker.
 - Create an ordinary branch named `issue-<number>-<short-topic>` from that recorded
   fetched SHA in this checkout. Use normal Git transport. Never implement
   directly on `develop`; never target, modify, merge into or promote `main`.
@@ -49,5 +50,6 @@
   may continue through its separate merge/completion gates.
   At the bound return STOP_REVISE with new defects versus incomplete fixes and
   recurring architectural/semantic patterns. Material scope/architecture decisions
-  yield OWNER_DECISION_NEEDED; unavailable tools yield a precise finite BLOCKED.
+  yield OWNER_DECISION_NEEDED; unavailable tools require bounded technical
+  self-remediation under rule 50 before a precise finite BLOCKED.
   In `/loop` map OWNER_DECISION_NEEDED to STOP_AND_ASK; stop, never skip selected work.

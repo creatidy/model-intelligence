@@ -18,6 +18,9 @@
   ID where applicable, issue/PR/branch, frozen base/HEAD, ordinal reserved BEFORE
   dispatch, result, commits/checks and terminal state. Recover it across reentry or
   model/session changes; never reset a counter or erase earlier delivery history.
-  Missing/ambiguous recovery is BLOCKED. This bounds operation, not issue authority:
+  Record rule 50 blocker classes, technical attempt ordinals/changed conditions and
+  escalation evidence in the same ledger; preserve them across checkout/reentry.
+  Missing/ambiguous recovery requires safe recovery attempts, then BLOCKED without
+  inventing/resetting counts. This bounds operation, not issue authority:
   eligibility/priority/dependencies/acceptance/current state come from refreshed
   canonical evidence, never from the ledger. Do not introduce a controller database.
