@@ -41,6 +41,17 @@ class SourceReviewTests(unittest.TestCase):
                 self.assertIn("(SOURCE_VALUE_REVIEW.md)", (ROOT / name).read_text())
         self.assertIn("partial/unmet criteria; no product GO", (ROOT / "ROADMAP.md").read_text())
 
+    def test_external_findings_are_not_promoted_to_verified_facts(self) -> None:
+        packet = " ".join(PACKET.read_text().split())
+        self.assertIn("UNVERIFIED RESEARCH REPORT", packet)
+        self.assertIn("not independently verified upstream facts", packet)
+        self.assertIn("not independently verified license/terms coverage or legal clearance", packet)
+        self.assertNotIn("P1 verifies", packet)
+        self.assertNotIn("P3 verifies", packet)
+        for name in ("README.md", "ROADMAP.md"):
+            with self.subTest(index=name):
+                self.assertIn("unverified", (ROOT / name).read_text())
+
 
 if __name__ == "__main__":
     unittest.main()
