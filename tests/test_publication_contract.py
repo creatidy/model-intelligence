@@ -33,10 +33,13 @@ SCOPE = "synthetic/pro:fixture-api:unknown-effort"
 BOUND = 64 * 1024
 
 
-def record(value: object) -> dict[str, object]:
+def record(value: object, keys: set[str] | None = None) -> dict[str, object]:
     if not isinstance(value, dict):
         raise ValueError("fixture-object")
-    return cast(dict[str, object], value)
+    result = cast(dict[str, object], value)
+    if keys is not None and set(result) != keys:
+        raise ValueError("fixture-record-shape")
+    return result
 
 
 def text(value: object) -> str:
@@ -72,17 +75,17 @@ def timestamp(value: object) -> datetime:
 def money(value: object) -> Money | None:
     if value is None:
         return None
-    item = record(value)
+    item = record(value, {"amount", "currency", "unit"})
     return Money(Decimal(text(item["amount"])), text(item["currency"]), text(item["unit"]))
 
 
 def terms(value: object) -> Terms:
-    item = record(value)
+    item = record(value, {"price", "quota", "available", "rules"})
     available = item["available"]
     if available is not None and type(available) is not bool:
         raise ValueError("fixture-availability")
     quota, rules = item["quota"], item["rules"]
-    q = record(quota) if quota is not None else None
+    q = record(quota, {"amount", "unit", "period"}) if quota is not None else None
     return Terms(
         money(item["price"]),
         None if q is None else Quota(Decimal(text(q["amount"])), text(q["unit"]), text(q["period"])),
@@ -95,12 +98,29 @@ def decode_fixture(publication: Publication) -> Evidence:
     """This offer-only proof codec is NOT the proposed permanent evidence wire API."""
     if publication.scope != SCOPE:
         raise ValueError("fixture-scope")
-    payload = record(json.loads(publication.payload))
-    if set(payload) != {"plan", "observations", "claims"} or payload["plan"] != asdict(PLAN):
+    payload = record(json.loads(publication.payload, parse_float=Decimal))
+    if set(payload) != {"plan", "observations", "claims"}:
         raise ValueError("fixture-payload-shape")
+    if record(payload["plan"], {"plan_id", "provider_id", "generation"}) != asdict(PLAN):
+        raise ValueError("fixture-subject")
     observations: list[Observation] = []
     for raw in rows(payload["observations"]):
-        item = record(raw)
+        item = record(
+            raw,
+            {
+                "observation_id",
+                "source_id",
+                "authority",
+                "source_type",
+                "reference",
+                "retrieved_at",
+                "distribution",
+                "license",
+                "observed_at",
+                "published_at",
+                "fresh_until",
+            },
+        )
         # The owned fixture codec deliberately fixes these provenance classifications.
         if (item["authority"], item["source_type"], item["distribution"], item["license"]) != (
             "official",
@@ -126,13 +146,18 @@ def decode_fixture(publication: Publication) -> Evidence:
         )
     claims: list[BaselineClaim | OverrideClaim] = []
     for raw in rows(payload["claims"]):
-        entry = record(raw)
-        item = record(entry["value"])
+        entry = record(raw, {"kind", "value"})
+        fields = {"subject", "terms", "claim_id", "observation_id", "effective_from", "revises"}
+        if entry["kind"] == "override":
+            fields.update({"campaign_id", "period", "conditions", "window"})
+        elif entry["kind"] != "baseline":
+            raise ValueError("unsupported-fixture-payload")
+        item = record(entry["value"], fields)
         claim_id = text(item["claim_id"])
         observation_id = text(item["observation_id"])
         effective_from = timestamp(item["effective_from"])
         revises = None if item["revises"] is None else text(item["revises"])
-        if item["subject"] != asdict(PLAN):
+        if record(item["subject"], {"plan_id", "provider_id", "generation"}) != asdict(PLAN):
             raise ValueError("fixture-subject")
         if entry["kind"] == "baseline":
             claims.append(
@@ -146,7 +171,7 @@ def decode_fixture(publication: Publication) -> Evidence:
                 )
             )
         elif entry["kind"] == "override" and item["window"] is None:
-            period = None if item["period"] is None else record(item["period"])
+            period = None if item["period"] is None else record(item["period"], {"start", "end"})
             claims.append(
                 OverrideClaim(
                     PLAN,
@@ -268,6 +293,79 @@ class ConsumerFixture:
 
 
 class PublicationContractTests(unittest.TestCase):
+    def test_framing_preserves_exact_decimal_payload_bytes(self) -> None:
+        payload = b'{"limit":9007199254740993.0,"fraction":0.12345678901234567890,"tiny":1e-400}'
+        data, reference = encode_cut(
+            payload, payload_schema="precision/1", produced_at=T, scope="synthetic", members=(), sources=()
+        )
+        cut = decode_cut(data, reference, supported_payload_schemas=frozenset({"precision/1"}), max_bytes=BOUND)
+        self.assertEqual(cut.payload, payload)
+        self.assertEqual(record(json.loads(cut.payload, parse_float=Decimal))["limit"], Decimal("9007199254740993.0"))
+        self.assertEqual(record(json.loads(cut.payload, parse_float=Decimal))["tiny"], Decimal("1e-400"))
+
+    def test_object_payload_is_not_silently_normalized_by_decoder(self) -> None:
+        data, _ = publish(BASE)
+        frame = record(json.loads(data))
+        frame["payload"] = {"limit": 0.1}
+        raw = dump(frame)
+        with self.assertRaises(ValueError):
+            decode_cut(
+                raw,
+                CutReference(1, SCHEMA, hashlib.sha256(raw).hexdigest()),
+                supported_payload_schemas=frozenset({SCHEMA}),
+                max_bytes=BOUND,
+            )
+
+    def test_nested_unknown_and_missing_fields_reject_without_activation(self) -> None:
+        rich = BASE.extend(
+            observations=(observation("sale"),),
+            claims=(
+                replace(
+                    PROMO,
+                    terms=Terms(
+                        PROMO.terms.price if PROMO.terms else None,
+                        Quota(Decimal("10"), "public-unit", "day"),
+                        True,
+                        ("public rule",),
+                    ),
+                ),
+            ),
+        )
+        original = publish(rich)
+        consumer = ConsumerFixture()
+        consumer.adopt(*original)
+        paths: tuple[tuple[str | int, ...], ...] = (
+            ("observations", 0),
+            ("claims", 0),
+            ("claims", 0, "value"),
+            ("claims", 0, "value", "subject"),
+            ("claims", 0, "value", "terms"),
+            ("claims", 0, "value", "terms", "price"),
+            ("claims", 1, "value"),
+            ("claims", 1, "value", "terms", "quota"),
+            ("claims", 1, "value", "period"),
+        )
+        for path in paths:
+            for mutation in ("unknown", "missing"):
+                frame = record(json.loads(original[0]))
+                payload = record(json.loads(text(frame["payload"])))
+                node: object = payload
+                for part in path:
+                    node = record(node)[part] if isinstance(part, str) else rows(node)[part]
+                item = record(node)
+                if mutation == "unknown":
+                    item["critical_revocation"] = {"notice": "synthetic"}
+                else:
+                    del item[next(iter(item))]
+                frame["payload"] = dump(payload).decode()
+                raw = dump(frame)
+                with (
+                    self.subTest(path=path, mutation=mutation),
+                    self.assertRaisesRegex(ValueError, "fixture-record-shape"),
+                ):
+                    consumer.adopt(raw, CutReference(1, SCHEMA, hashlib.sha256(raw).hexdigest()))
+                self.assertEqual(consumer.admitted, original)
+
     def test_complete_cut_and_reference_are_deterministic(self) -> None:
         data, reference = publish(BASE)
         self.assertEqual(publish(BASE), (data, reference))
@@ -303,7 +401,9 @@ class PublicationContractTests(unittest.TestCase):
         original = publish(BASE)
         consumer.adopt(*original)
         frame = record(json.loads(original[0]))
-        record(frame["payload"])["critical_revocation"] = {"source_notice": "synthetic-critical-notice"}
+        payload = record(json.loads(text(frame["payload"])))
+        payload["critical_revocation"] = {"source_notice": "synthetic-critical-notice"}
+        frame["payload"] = dump(payload).decode()
         candidate = dump(frame)
         with self.assertRaisesRegex(ValueError, "fixture-payload-shape"):
             consumer.adopt(candidate, CutReference(1, SCHEMA, hashlib.sha256(candidate).hexdigest()))

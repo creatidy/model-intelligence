@@ -4,6 +4,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from typing import cast
 
 from model_intelligence.evidence import instant
@@ -36,8 +37,10 @@ def _constant(value: str) -> object:
 
 def _load(data: bytes) -> dict[str, object]:
     try:
-        return _object(json.loads(data.decode("utf-8"), object_pairs_hook=_pairs, parse_constant=_constant))
-    except (UnicodeDecodeError, RecursionError) as error:
+        return _object(
+            json.loads(data.decode("utf-8"), object_pairs_hook=_pairs, parse_constant=_constant, parse_float=Decimal)
+        )
+    except (UnicodeDecodeError, RecursionError, InvalidOperation) as error:
         raise ValueError("invalid-json") from error
 
 
@@ -97,6 +100,7 @@ def encode_cut(
         raise ValueError("invalid-membership")
     if len(set(sources)) != len(sources):
         raise ValueError("duplicate-source-revision")
+    _load(payload)
     data = _dump(
         {
             "format_version": 1,
@@ -108,7 +112,7 @@ def encode_cut(
                 {"source_id": item.source_id, "reference": item.reference, "revision": item.revision}
                 for item in sorted(sources, key=lambda item: (item.source_id, item.reference, item.revision or ""))
             ],
-            "payload": _load(payload),
+            "payload": payload.decode("utf-8"),
         }
     )
     return data, CutReference(1, payload_schema, hashlib.sha256(data).hexdigest())
@@ -150,11 +154,13 @@ def decode_cut(
         sources.append(SourceRevision(_text(source["source_id"]), _text(source["reference"]), revision))
     if len(set(members)) != len(members) or len(set(sources)) != len(sources):
         raise ValueError("duplicate-membership")
+    payload = _text(value["payload"]).encode("utf-8")
+    _load(payload)
     return Publication(
         expected,
         instant(datetime.fromisoformat(_text(value["produced_at"]))),
         _text(value["scope"]),
         members,
         tuple(sources),
-        _dump(_object(value["payload"])),
+        payload,
     )

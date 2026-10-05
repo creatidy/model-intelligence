@@ -49,7 +49,7 @@ fields, no permissive extra fields:
 | `scope` | Declared public interpretation scope; not ecosystem completeness, account applicability or a private task. |
 | `members` | Unique explicit identities in this frozen cut, including retained historical membership. The payload validator must verify these against the actual content. |
 | `sources` | Source ID, reference and supplied revision, including explicit unknown revision `null`. Pins identify evidence, not physical runtime or authority. |
-| `payload` | JSON object interpreted only by its separately supported payload grammar. No Python deserialization, executable source instructions or automatic calibration. |
+| `payload` | Original UTF-8 JSON-object text carried in a JSON string. The reader returns those exact bytes to the registered payload validator, without number or whitespace normalization. No Python deserialization, executable instructions or automatic calibration. |
 
 The external reference is `(format_version, payload_schema, SHA-256(exact bytes))`.
 Readers require an independently supplied expected reference and supported payload
@@ -60,8 +60,12 @@ future release trust and distribution remain separately accepted scope.
 Serialization sorts producer keys/membership/source references; it makes repeated
 owned inputs deterministic, not a claim of a general cross-language canonical JSON
 standard. Consumers hash received bytes before parsing, not their own reserialization.
-The verified reference remains tied to the received artifact even when its payload
-is returned as deterministic JSON bytes for the local validator.
+The verified reference remains tied to the received artifact; the payload validator
+receives the original payload bytes. Syntax validation parses fractional numbers
+with exact Decimal handling and never serializes the parsed payload. Large or tiny
+decimal values are preserved or explicitly rejected, never rounded through floats.
+Earlier unmerged proposal frames with an object-valued payload are rejected; no
+production consumer or approved wire ABI is migrated or given compatibility code.
 
 `decode_cut` checks caller-chosen positive byte bounds, format/payload versions,
 expected digest, strict UTF-8 JSON, duplicate keys/nonfinite values, closed frame
@@ -108,7 +112,10 @@ explicitly NOT a permanent public payload or Router implementation. It fixes own
 provenance categories and includes a synthetic plan/serving/configuration scope,
 observation acquisition/publication/freshness, claim effective intervals, native
 money/quota units, public conditions and retained lineage. Unsupported fixture
-features are rejected rather than projected or treated as compatible.
+features are rejected rather than projected or treated as compatible. Each fixture
+record has a closed required shape, including observations, claim entries/values,
+subjects, terms, money, quota and periods; unknown or missing nested fields cannot
+be discarded before reconstruction or activation.
 
 The fixture validates membership/source association and R2 invariants before one
 admitted-reference assignment. Forward updates reject identity rewriting/history
