@@ -7,6 +7,9 @@
 - The one-time issue #1 bootstrap creation/selection exception has expired. Do not
   create more issues without explicit authorization. No Program Execution Mode,
   controller, execution graph, autonomous issue selection or planning framework.
+  An explicit owner documentation/planning mandate can authorize deduplicated
+  registration of its main/gap issues; it does not authorize implementing the
+  registered features. Record the actual mandate and use returned Forgejo IDs.
 - Verify the canonical remote, fetch current `develop`, record its exact SHA and
   inspect files/status/branches. Demonstrate access by successful operations.
   Use one normal checkout, never `git worktree` or alternate checkout management

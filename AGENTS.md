@@ -1,7 +1,9 @@
 # Repository Guidance
 
-Model Intelligence is a public/shared AI ecosystem intelligence project, currently
-bootstrap/M0. Read README.md and the following rules before work; do not rely on
+Model Intelligence is a public/shared AI ecosystem evidence project with an
+integrated synthetic A/B/C architecture proof, not a live intelligence service.
+Read README.md, ARCHITECTURE.md (ownership/decision authority), ROADMAP.md
+(evidence and registered gaps), and the following rules before work; do not rely on
 automatic discovery of nested rule files:
 
 - `.kilo/rules/10-task-system.md`: owner selection, branch and delivery gates.
@@ -20,6 +22,11 @@ remediation rounds. `/review-pr` is standalone read-only review using the same
 context satisfies independence; implementation self-review and resumed reviewers
 do not. Every changed HEAD/base requires a fresh whole-PR review. Forgejo review
 publication is optional, never orchestration state. No external controller exists.
+
+An explicit owner documentation/planning mandate may authorize issue registration;
+it does not select those functional issues for implementation. Preserve the frozen
+A/B/C value gate and historical STOP_REVISE decisions. Documentation approval is
+not product GO, verified consumer integration or READY_FOR_LIVE_TASK.
 
 Use one normal checkout and ordinary issue branches. Do not use `git worktree`
 or alternate checkout management unless Adrian explicitly re-enables it. Review

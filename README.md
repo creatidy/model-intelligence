@@ -4,16 +4,34 @@ Intended as a public/shared intelligence layer about the external AI ecosystem:
 model identity, capability evidence, public pricing/plans/promotions, execution
 surfaces, provenance, freshness, disagreement and semantic snapshot changes.
 
-Currently at M0: [M0-01R2](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/9)
-is a deterministic synthetic architecture proof, not a service or live market claim.
-The unmerged [PR #4](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/4)
-and [PR #8](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/8) ended
-STOP_REVISE. Their behavioral evidence informs this fresh proof, not their projection
-implementation. The [frozen A/B/C contract](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/1)
-still does not establish a product GO decision; STOP remains valid.
+At the audited `develop` revision `fb7299810fdc4612d4e0559465faef571662c6ef`,
+[M0-01R2](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/9) is
+integrated through [PR #10](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/10).
+It is a deterministic synthetic architecture proof, not a service, real-source
+value proof, published knowledge artifact or verified Router integration.
+The [frozen A/B/C contract](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/1)
+and unbiased owner STOP/GO decision remain outstanding. Full professional product
+requirements are registered even where their implementation depends on that proof.
+
+## Documentation
+
+- [Architecture](ARCHITECTURE.md): shared ownership, delivered semantics, evidence
+  limits, integration requirements, security/reuse and decision history.
+- [Roadmap and gap matrix](ROADMAP.md): G01-G13, actual Forgejo tasks, priorities,
+  cross-product dependencies and measurable acceptance sequence.
+- [Agent guidance](AGENTS.md): owner-selected work and native bounded PR review.
+
+The target is a local-first, open and observable system optimizing accepted work,
+including cost, quota, time, remediation, review and owner attention, not cheapest
+tokens. MI supplies public evidence; Router chooses/adopts knowledge, Kernel owns
+task authority and outcomes, and Console presents owner-served state. This is a
+target architecture, not a claim that these integrations already work.
+
+## Delivered Proof
 
 `evidence.py` retains explicit observations, typed claims and supplied revision links.
-`knowledge()` exposes historical/latest-known/future versions and stale observations.
+`knowledge()` exposes retained/latest-known/future versions and stale observations
+within its supplied evidence set, not a historical acquisition-time cutoff.
 `effective_at()` independently selects versions whose explicit `effective_from` has
 arrived, then excludes replaced ancestors. Revision boundaries cannot precede their
 predecessors; equal boundaries permit explicit corrections. Baselines are durable,
@@ -42,7 +60,8 @@ only at its effective boundary. Same-term version changes retain participant ide
 without inventing a price change.
 
 Reuse candidates remain models.dev, AI Model Watch, Model Price Watch, genai-prices
-and codingplan: upstream catalogs/pricing are not recreated. No third-party code or
+and codingplan, with producer/benchmark sources including Artificial Analysis:
+upstream catalogs/pricing are not recreated. No third-party code or
 data is copied or redistributed; URLs and fixtures are synthetic. No upstream license
 endorsement, official-source accuracy or product GO is asserted by this proof.
 
@@ -51,6 +70,8 @@ held reset credits/cards, authenticated runtime state, private workspaces, local
 GPUs, preferences or task-specific final routing decisions. It is not a downstream
 decision engine. Reuse existing open components only where semantics and licenses
 permit; do not construct another generic model catalog.
+Public module dependencies are allowed; private creatidy-onprem is not required.
+No MI runtime CLI, Console feed or snapshot API is documented as delivered.
 
 [Forgejo](https://forgejo.creatidy.com/Creatidy/model-intelligence) is canonical for
 source, issues, PRs, reviews and integration history.
