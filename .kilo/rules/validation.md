@@ -16,9 +16,10 @@
 - Handoff includes issue/PR URLs, exact base/head SHAs, substantive files, exact
   executed validation/results and genuine unresolved decisions/blockers. No claim
   of passing checks, push or PR creation without successful evidence.
-- Parent uses the current normal checkout on the exact clean PR HEAD and prepares
-  its offline locked development environment before invoking a reviewer. No
-  additional checkout or branch switching during review. Reviewer verifies HEAD
+- Parent uses the prepared delivery/review checkout on the exact clean PR HEAD and prepares
+  its offline locked development environment before invoking a reviewer. Apply
+  rule 50 for sanitized/isolated execution and bounded environment failover. No
+  candidate edits or branch switching during review. Reviewer verifies HEAD
   and clean status before/after checks and inspects frozen Git objects/full base
   delta. Ignored validation artifacts are allowed; tracked-file edits and
   Git/Forgejo mutations are not. Read checks before running them; permission

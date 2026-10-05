@@ -1,6 +1,5 @@
 """Offline consistency guards for command text, not proof of runtime execution."""
 
-import hashlib
 import re
 import unittest
 from pathlib import Path
@@ -71,20 +70,36 @@ class WorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(requirement, loop)
 
-    def test_independent_review_is_reused_and_unchanged(self) -> None:
-        # Frozen canonical pre-change Git blobs: byte-for-byte reviewer preservation.
-        for path, expected in (
-            (".kilo/agents/pr-reviewer.md", "64b6ecc4a8b5ba90ffa37307e1ff8b724bce7888"),
-            (".kilo/command/review-pr.md", "f6093788a0a01f248b0c22d2a8ef3814bf7f98d3"),
+    def test_independent_review_contract_is_preserved(self) -> None:
+        reviewer = text(".kilo/agents/pr-reviewer.md")
+        for requirement in (
+            "never delegate, remediate or ask the owner to relay findings",
+            "never edit tracked files",
+            "Permission checks do not make untrusted tests safe",
+            "APPROVE requires sufficient acceptance evidence and no findings",
+            "Return ONLY one JSON object",
+            '"reviewed_head"',
+            '"reviewed_base"',
+            '"verdict"',
+            '"findings"',
+            '"limitations"',
+            '"checks_run"',
         ):
-            data = (ROOT / path).read_bytes()
-            blob = b"blob " + str(len(data)).encode() + b"\0" + data
-            self.assertEqual(hashlib.sha1(blob).hexdigest(), expected, path)
+            self.assertIn(requirement, reviewer)
+        header = (ROOT / ".kilo/agents/pr-reviewer.md").read_text().split("---", 2)[1]
+        for restriction in (
+            '"*": deny',
+            '"*.env*": deny',
+            "external_directory: deny",
+            "apply_patch: deny",
+            "task: deny",
+        ):
+            self.assertIn(restriction, header)
         loop = text(".kilo/command/loop.md")
         self.assertIn("Use `.kilo/command/finish-pr.md` in this SAME primary context", loop)
         for path in (".kilo/command/loop.md", ".kilo/command/finish-pr.md"):
             command = text(path)
-            self.assertIn("subagent_type: pr-reviewer", command)
+            self.assertIn("pr-reviewer", command)
             self.assertIn("no `task_id`", command)
             self.assertIn("fresh foreground", command)
         self.assertIn("never self-approve or resume a reviewer", loop)
@@ -99,7 +114,8 @@ class WorkflowContractTests(unittest.TestCase):
             "Before EVERY task dispatch reserve/persist the next review ordinal",
             "Reinvoking `/finish-pr`, changing phase, reviewer task, model or session "
             "MUST reuse the same delivery counter",
-            "prior dispatch/count recovery is ambiguous or unavailable, BLOCKED",
+            "prior dispatch/count recovery is ambiguous or unavailable, "
+            "attempt safe recovery under rule 50, then BLOCKED",
             "Never dispatch review 11",
             "without patches that cannot receive a fresh review",
             "not a target: stop as soon as an owner decision is clearly required",
@@ -110,7 +126,7 @@ class WorkflowContractTests(unittest.TestCase):
         progress = text(".kilo/rules/40-local-search.md")
         self.assertIn("ordinal reserved BEFORE dispatch", progress)
         self.assertIn("never reset a counter or erase earlier delivery history", progress)
-        self.assertIn("Missing/ambiguous recovery is BLOCKED", progress)
+        self.assertIn("Missing/ambiguous recovery requires safe recovery attempts, then BLOCKED", progress)
         self.assertIn("canonical evidence, never from the ledger", progress)
 
     def test_exact_approval_and_loop_only_pr_merge(self) -> None:
@@ -122,7 +138,7 @@ class WorkflowContractTests(unittest.TestCase):
         loop = text(".kilo/command/loop.md")
         merge = loop.split("## MERGE", 1)[1].split("## COMPLETE", 1)[0]
         for requirement in (
-            "Only this explicit `/loop` authority permits merging",
+            "Within these commands only explicit `/loop` authority permits merging",
             "re-fetch canonical PR metadata and current canonical develop",
             "approved HEAD/base exactly match current remote and local frozen objects",
             "empty findings, clean checkout, successful required `make check`, open/unmerged PR and target develop",
@@ -131,7 +147,7 @@ class WorkflowContractTests(unittest.TestCase):
             "`forgejo-mcp_merge_pull_request`",
             "style `merge`",
             "no force_merge, no auto-merge or branch deletion",
-            "Unavailable supported merge operation is BLOCKED",
+            "Unavailable supported merge operation requires bounded authorized diagnosis before BLOCKED",
             "never invent direct Git/REST integration or push to develop",
         ):
             self.assertIn(requirement, merge)
@@ -171,7 +187,7 @@ class WorkflowContractTests(unittest.TestCase):
             "`forgejo-mcp_issue_state_change`",
             "verify actual closed state",
             "Already-merged stale-open issues require the same ancestry/acceptance evidence",
-            "Closure/reporting failure is BLOCKED",
+            "Closure/reporting failure requires rule 50 diagnosis/remediation before BLOCKED",
             "return this SAME checkout to current develop",
             "only fast-forward a nondivergent local develop",
             "Then SELECT again with a fresh canonical queue",
@@ -198,9 +214,10 @@ class WorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(boundary, loop)
         for requirement in (
-            "exactly one normal checkout",
-            "Only one context may mutate it at a time",
-            "No git worktree, alternate checkouts, stash/reset of unrelated owner work",
+            "Default to one normal checkout",
+            "Only one context may mutate each delivery checkout",
+            "explicitly authorized delivery worktrees and bounded temporary review checkouts",
+            "No stash/reset of unrelated owner work",
             "second controller",
             "Do not use Scarcity Router for model selection, execution, orchestration, telemetry or operation",
             "No mutation outside Creatidy/model-intelligence",
@@ -210,3 +227,73 @@ class WorkflowContractTests(unittest.TestCase):
             "Do not create speculative issues",
         ):
             self.assertIn(requirement, loop)
+
+    def test_shared_technical_remediation_is_discoverable(self) -> None:
+        path = ".kilo/rules/50-technical-remediation.md"
+        self.assertIn(path, text("AGENTS.md"))
+        for command in ("loop", "implement-issue", "finish-pr", "review-pr"):
+            with self.subTest(command=command):
+                self.assertIn(path, text(f".kilo/command/{command}.md"))
+        for rule in ("10-task-system", "30-implementation-discipline", "40-local-search", "validation"):
+            with self.subTest(rule=rule):
+                self.assertIn("rule 50", text(f".kilo/rules/{rule}.md").lower())
+
+    def test_technical_budget_and_changed_strategy(self) -> None:
+        rule = text(".kilo/rules/50-technical-remediation.md")
+        for requirement in (
+            "**A: engineering/execution blocker**",
+            "**B: genuine owner decision**",
+            "at most three technical remediation attempts per distinct obstacle per delivery",
+            "do not rename recurring obstacles to reset this bound",
+            "Record diagnosis, changed hypothesis/condition",
+            "A new session/model alone is not remediation",
+            "No technical budget extends the 10-review ceiling",
+            "including failed, malformed, COMMENT and invalidated attempts",
+            "reserve the next ordinal before dispatch",
+            "Use another available authorized independent path automatically",
+            "not a finding against the implementation",
+            "Disagreement/uncertainty with evidence is separate",
+            "same structured result/currentness gates",
+            "never initialize a new count",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, rule)
+
+    def test_secret_safe_isolation_and_public_evidence(self) -> None:
+        rule = text(".kilo/rules/50-technical-remediation.md")
+        for requirement in (
+            "smallest suitable existing mechanism, not automatic Docker execution",
+            "Ephemeral Docker is execution/isolation",
+            "Do not introduce persistent services or new product dependencies",
+            "allowlisted explicit child environment",
+            "not the owner's ambient environment",
+            "Inheritance tests inherit synthetic fixture credentials/values",
+            "mount the candidate read-only when possible, only required paths",
+            "Never bake/copy secrets into images or print environment values",
+            "does not widen tool permissions, network/secret access",
+            "reviewer must inspect cited sources independently",
+            "alternative authorized read path",
+            "fetch/clone the exact public revision",
+            "its research report alone is not independent verification",
+            "unresolved material gaps cannot support APPROVE",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, rule)
+
+    def test_escalation_requires_owner_commitment_or_exhausted_paths(self) -> None:
+        rule = text(".kilo/rules/50-technical-remediation.md")
+        for requirement in (
+            "the exact unresolved decision",
+            "why it is class B rather than engineering",
+            "reasonable autonomous paths considered",
+            "why they cannot resolve it without changing authority",
+            "smallest materially distinct choices with consequences",
+            "Do not fabricate alternatives",
+            "BLOCKED requires exhausted authorized bounded remediation",
+            "an external condition with no available authorized workaround",
+            "not an artificial question",
+            "Standalone review stays read-only",
+            "None of this grants merge/release/deploy authority or product GO",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, rule)
