@@ -67,13 +67,13 @@ responsible even where a consumer link has not yet been identified.
 | G03 Review/remediation | Kernel product; MI development workflow locally | [#5][workflow]/merged PR #6 deliver native fresh frozen-PR review with three-round bound, not Kernel runtime review orchestration. | Local development fulfilled; product [Kernel #54][kernel-review], no duplicate MI review service. |
 | G04 Gateway integration | Router producer; Kernel/harness consumer | [Kernel #11][allocator] is recommendation-only; neither MI proof nor Router harness architecture [#146][harness] proves gateway integration. | [Router #174][router-pin]/[#178][router-narrowing], [Kernel #52][kernel-routing] after #47 proof; no MI gateway task. |
 | G05 Task requirements / semantic boundary | Kernel requirements, Router matching/calibration, MI raw evidence | R2 `Capability`/`Benchmark` preserve context; existing Router effort/calibration contracts do not specify an MI mapping. | [#14][semantics], [Router #175][router-requirements]/[Kernel #51][kernel-requirements] after #49 intake; To Prove small versioned language. |
-| G06 MI and integration | MI publication, Router consumption, Kernel utilized reference | [#9][r2]/merged PR #10 deliver temporal proof. Synthetic fixtures do not prove real-source value, rights, complete artifact or consumption. | [#12][value]/[#13][publication]/[#15][acquisition]/[#19][acceptance], [Router #176][router-mi], [Kernel #55][kernel-knowledge]; not another temporal proof. |
+| G06 MI and integration | MI publication, Router consumption, Kernel utilized reference | [#9][r2]/merged PR #10 deliver synthetic temporal proof; closed [#12][value]/merged PR #23 deliver the accepted narrow ADAPT analysis, not full A/B/C or installed acceptance. | Remaining [#13][publication]/[#15][acquisition]/[#19][acceptance], [Router #176][router-mi], [Kernel #55][kernel-knowledge]; not reopening #12 or another temporal proof. |
 | G07 Outcome feedback | Kernel/Router local export/analysis; MI optional acceptance | No MI outcome-sharing contract; scoped tests/APPROVE are not model-quality ground truth. | [#17][feedback] opt-in decision; local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback], no mandatory receive API. |
 | G08 Observability | MI own state/events; Console views; others own theirs | `evidence_delta`/`projection_delta` compare evidence/endpoints, not a reconnectable event feed. No MI status/inspect/Console export delivered. | [#16][operator]; separate [Kernel #57][kernel-events]/[Router #183][router-events]. Console counterpart not identified. |
 | G09 Isolation | Kernel workspace/harness; Router call execution | MI has no sandbox. Its separate acquisition/parser threat model is prospective, not evidence of an existing fetch vulnerability. | [Kernel #50][kernel-isolation]/[Router #180][router-workspace]; MI retrieval safety combined in [#15][acquisition], not a sandbox duplicate. |
 | G10 Identity/protocol evidence | MI public evidence; Router live inventory/admission; Kernel runtime identity | R2 `Model`, `Surface`, nullable assertion dimensions exist; alias/channel/config mapping and shared version compatibility are not complete. | [#14][semantics]/[#13][publication]/[#15][acquisition], [Kernel #52][kernel-routing]/[Router #179][router-identity]/[#181][router-protocol]; no entitlement attestation. |
 | G11 Multiple tasks/concurrency | Kernel task scheduling; Router admission | No MI task scheduler; snapshot publication must still reject incomplete mixed updates. | [Kernel #59][kernel-concurrency]/[#61][kernel-cache]; MI completeness in [#13][publication]/[#15][acquisition], no task concurrency machinery. |
-| G12 End-to-end budget / public conditions | MI public rules; Router private accounting; Kernel whole-task budget | R2 `Money`, `Quota`, `Period`, `DailyWindow` and lifecycle tests prove synthetic terms/expiry, not account balance or guaranteed task cost. | MI [#12][value]/[#15][acquisition]/[#13][publication]; [Router #184][router-economics]/[Kernel #56][kernel-budget] own accounting; #48 is lifetime only. |
+| G12 End-to-end budget / public conditions | MI public rules; Router private accounting; Kernel whole-task budget | R2 proves synthetic terms/expiry; closed [#12][value] supplies the public-condition/economic-basis analysis, not account balance or guaranteed task cost. | Remaining MI [#15][acquisition]/[#13][publication]; [Router #184][router-economics]/[Kernel #56][kernel-budget] own accounting; #48 is lifetime only. |
 | G13 Versioning/distribution | Each producer/consumer owns its lifecycle | Typed Python wheel foundation exists; no MI data artifact schema, compatibility, source/config migration or installed integration receipt. | [#13][publication]/[#18][distribution]/[#19][acceptance], [Router #185][router-migration]/[#186][router-distribution], [Kernel #62][kernel-migration]/[#60][kernel-acceptance]; no private onprem. |
 
 ## Requirement Coverage
@@ -84,12 +84,12 @@ does not mark its broader G gap complete.
 | Available requirement | Evidence / missing outcome | Documents corrected | Disposition |
 | --- | --- | --- | --- |
 | Brief 1-2: source statuses, roles, local-first target, public dependencies | Earlier README/rules lacked shared boundaries; no independent public MI service claimed. | README, ARCHITECTURE, AGENTS, discipline/task rules | Documentation [#11][alignment]; known product gaps below remain open. |
-| Brief 3-5: real value, source/reuse/license proof and A/B/C | Synthetic `tests/test_separated_proof.py` plus #1; previous source-shape investigation is not current rights evidence. | Architecture proof/reuse/history, this roadmap | New [#12][value], preserving #1 and delivered #9. |
+| Brief 3-5: real value, source/reuse/license proof and A/B/C | Closed #12/merged PR #23 provide accepted ADAPT source comparison; synthetic tests and #1 are not full real-source proof. | Architecture proof/reuse/history, this roadmap | Preserve completed [#12][value], #1 and delivered #9; future implementation/receipts stay in the backlog. |
 | Brief 4: lineage, applicability, withdrawal, conflicts, expiry | `Evidence.extend`, `knowledge`, `effective_at`; future baseline, branch, zoned lifecycle and predecessor regression tests. | README proof, architecture verified semantics | Already fulfilled synthetic slice by [#9][r2]; producer meaning/conformance in [#13][publication]/[#15][acquisition]. |
 | Brief 4: identity, public capabilities/limits, benchmark context and calibration ownership | `Model`, boolean `Capability`, `Benchmark`, `SurfaceEvidence`; no alias/channel/config or public numeric-limit mapping; Router calibration remains separately owned. | Architecture evidence/integration | New [#14][semantics]/[#15][acquisition], native units and unknown-limit tests, not automatic migration of Router calibration. |
 | Brief 4: recognizable snapshot, validity/conflicts/change, complete publication | In-memory `Evidence`/deltas, no serialized artifact/version/manifest/publisher; `knowledge(..., at)` is not knowledge-at-T replay. | Architecture integration/limits | New [#13][publication] contract and evidence-cut tests; [#15][acquisition] producer; [#18][distribution] updates. |
 | Brief 4: failure, freshness, critical revocation, offline consumer policy | `knowledge` flags stale; `effective_at` does not exclude stale; absent freshness is not affirmative validity. | Architecture limits/outage | New [#13][publication], production [#15][acquisition], exercised [#19][acceptance]; Router owns fallback/TTL/admission. |
-| Brief 4-5: public plans/prices/promotions and untrusted source normalization | Synthetic terms/windows; no verified real source or fetch/parser. | Architecture security/reuse | New [#12][value]/[#15][acquisition]; public-read rights, unknown terms and failure safety tested. |
+| Brief 4-5: public plans/prices/promotions and untrusted source normalization | Closed #12 independently reviewed public-source analysis; no production fetch/parser or installed receipt. | Architecture security/reuse | Remaining [#15][acquisition]: actual source-use/copying rights, unknown terms and failure safety; no new public-fact legal gate or reopening [#12][value]. |
 | Brief 4-5: opt-in feedback with minimization/consent and confounding | No MI sharing contract, no unbiased ground truth from operational results. | Architecture privacy | New [#17][feedback]; decision/return criterion, no required central API/training. |
 | Brief 4-5: operator CLI/status/inspect, semantic vs transport change, Console events | Deltas not history feed; no MI operational command/export. | Architecture operator/integration | New [#16][operator], including authority, reconnect/dedup/version/history gaps. |
 | Brief 5-6: professional security, migrations, public install/maintenance and receipt | Python foundation exists, not data update/recovery or installed producer-consumer acceptance. | Architecture security, roadmap gates | New [#15][acquisition]/[#18][distribution]/[#19][acceptance], dependencies recorded rather than requirements omitted. |
@@ -105,10 +105,10 @@ requirements. Dependency comments complement its acceptance body.
 
 | Issue | Priority and independent result | Dependencies / receipt boundary |
 | --- | --- | --- |
-| [#12: Licensed real-source A/B/C value][value] | P1: pinned rights/semantics/upstream comparison, limited reproducible artifacts and owner decision packet. | Reuse #1/#9 and prior source research; no predetermined GO or inference. |
+| [#12: Product-value analysis][value] | Completed/closed through merged PR #23: accepted ADAPT to a thin upstream-backed public-evidence and selected-history layer. | Reuses #1/#9 and pinned source research; not product GO, full A/B/C proof or installed MI-Router acceptance. |
 | [#13: Snapshot publication contract][publication] | P1: agreed minimal representation/update/integrity semantics and producer-consumer conformance, including frozen evidence-cut. | Inspect Router seam and #14; actual production publication in #15, consumer implementation owned by Router. |
 | [#14: Capability identity/calibration boundary][semantics] | P1: small versioned mapping/ownership agreement and negative fixtures, no third scale. | Existing Router assessments/effort and Kernel requirements; #12 evidence, #13 publication. |
-| [#15: Permitted-source acquisition/refresh][acquisition] | P2: normalized evidence and complete production publication with rights gates, safe parsing, preserved history and failed-refresh recovery. | Accepted value/rights #12 and contracts #13/#14 precede implementation. |
+| [#15: Permitted-source acquisition/refresh][acquisition] | P2: normalized evidence and complete production publication with rights gates, safe parsing, preserved history and failed-refresh recovery. | Use the accepted narrow scope from closed #12; contracts #13/#14 and rights for actual source use/copying precede implementation. |
 | [#16: MI operator status/Console events][operator] | P2: consistent diagnosable facts plus versioned correlation/reconnect/dedup/history contract. | #13/#15; Console remains consumer, no parallel UI or generic scheduler. |
 | [#17: Optional outcome sharing decision][feedback] | P2: benefit/privacy/measurement packet, owner acceptance/rejection or concrete reconsideration trigger. | Kernel/Router local export and #13/#14; not a prerequisite forcing optional sharing into the core. |
 | [#18: Public install/update/migrations][distribution] | P2: installed public package/artifact compatibility, update/rollback and recovery without history loss. | #12-#16; only actual existing config/data formats require migration, no guessed backward-compatibility layer. |
@@ -116,22 +116,24 @@ requirements. Dependency comments complement its acceptance body.
 
 ## First-Priority Deviations
 
-The revised issue #12 [product-value analysis](SOURCE_VALUE_REVIEW.md) recommends
+Issue #12 is completed/closed through [merged PR #23][value-pr]. Its independently
+reviewed [product-value analysis](SOURCE_VALUE_REVIEW.md) has the accepted outcome
 ADAPT to a thin upstream-backed public-evidence/applicability and selected-history
 layer, not a replacement catalog, calculator or resident service. Direct upstream
 use plus Router-local adapters is an explicit STOP alternative. The owner's
 clarification treats unknown campaign boundaries and conflicts as normal states,
 not research failures; an artificial benchmark/price conflict is not a viability
 gate. Dataset-copying rights apply to an actual copying route, not to ordinary
-public-fact citations. No owner GO, full-proof/installed receipt, downstream gate,
-functional selection or merge follows from this recommendation. Issue #12 is open.
+public-fact citations. No owner GO, full A/B/C proof, installed MI-Router acceptance
+or functional selection follows from accepted ADAPT. Future implementation and
+receipts belong to the remaining backlog, not to reopening #12.
 
 These are current limits or incomplete target contracts, not hidden by a possible
 documentation APPROVE. No routine temporal proof defect is asserted here.
 
 | Verified fact | User/integration consequence and urgency | Closure condition |
 | --- | --- | --- |
-| R2 remains synthetic; #12's real-source comparison recommends only shared public meaning/applicability and selected annotation history, with Router-only as the alternative. | Most catalog/pricing/history data should remain upstream; scale and installed consumer benefit are not proved by the recommendation. | [#12][value] independently review product analysis and obtain owner scope decision; no invented conflict/date/legal gate on public-fact research. Actual copying and installed delivery need their own receipts. |
+| R2 remains synthetic; closed #12/merged PR #23 establish accepted ADAPT to shared public meaning/applicability and selected annotation history, with Router-only as the alternative. | Most catalog/pricing/history data stays upstream; scale and installed consumer benefit are not proved by accepted ADAPT. | Remaining contracts/implementation [#13][publication]-[#19][acceptance] and actual copying/installed receipts; do not repeat the completed [#12][value] analysis or settled ADAPT decision. |
 | Only in-memory evidence/views/deltas exist; no complete recognizable consumer artifact. | Router cannot cite/admit an MI version or reject incompatible/incomplete publication. | [#13][publication] agreed negative-tested contract, [#15][acquisition] production publication and [#19][acceptance] actual consumption. |
 | `knowledge` has no acquisition cutoff; absent freshness yields no stale flag; effective projection does not enforce freshness. | Consumer could mistake supplied current knowledge for historical replay or freshness approval. | [#13][publication] explicit frozen-input/evaluation/validity semantics and negative tests; Router owns freshness policy. Preserve #9 API unless separately authorized. |
 | Boolean/contextual MI evidence and separately owned Router calibration have no shared mapping contract. | Automatic benchmark-to-rating, variant-to-effort or cross-channel assumptions could weaken requirements. | [#14][semantics] approved ownership/mapping with unknown/conflict/incompatibility tests. |
@@ -145,9 +147,9 @@ Missing an implementation solution is not a reason to erase known work.
 
 1. Preserve the integrated R2 proof and its completed review; do not reopen stopped
    experiments or reset any prior remediation budget.
-2. Complete #12 real-source/value/rights evidence and obtain the owner STOP/GO or
-   adaptation decision. #13/#14 may inspect/agree contracts in parallel, without
-   deploying a product or assuming the outcome.
+2. Preserve completed/closed #12 and merged PR #23 with accepted thin-layer ADAPT.
+   #13/#14 may inspect/agree the remaining contracts within that scope; this does
+   not deploy a product or claim full A/B/C or installed acceptance.
 3. Accept producer/consumer semantics and conformance; Router owns adoption, Kernel
    owns reference retention/authority. Then separately select #15 production work.
 4. Deliver #16 operator facts and #18 public install/update/migration. Event/history,
@@ -157,7 +159,7 @@ Missing an implementation solution is not a reason to erase known work.
    effectful task occurs without separate permission. #17 remains an explicit
    optional decision, not mandatory telemetry collection.
 
-Owner decisions actually required are the unbiased product/value outcome (#12),
+The ADAPT outcome for #12 is settled; remaining owner-reserved decisions concern
 contested evidence-to-calibration ownership if unresolved (#14), concrete contract
 acceptance (#13) and optional data-sharing consent/benefit (#17). Paid/service/data,
 inference or effect access is separately authorized when a future receipt needs it.
@@ -181,6 +183,7 @@ these functional gaps; only explicit `/loop` adds verified develop integration.
 [first-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/4
 [second-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/8
 [value]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/12
+[value-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/23
 [publication]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
 [semantics]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/14
 [acquisition]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15

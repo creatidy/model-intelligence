@@ -9,9 +9,13 @@ At the audited `develop` revision `fb7299810fdc4612d4e0559465faef571662c6ef`,
 integrated through [PR #10](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/10).
 It is a deterministic synthetic architecture proof, not a service, real-source
 value proof, published knowledge artifact or verified Router integration.
-The [frozen A/B/C contract](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/1)
-and unbiased owner STOP/GO decision remain outstanding. Full professional product
-requirements are registered even where their implementation depends on that proof.
+The full [frozen A/B/C proof](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/1)
+remains undelivered. [Issue #12](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/12)
+is completed/closed through [merged PR #23](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/23).
+The accepted outcome is ADAPT to a thin upstream-backed public-evidence and
+selected-history layer, not product GO, full A/B/C proof or installed MI-Router
+acceptance. Future implementation and receipts belong to the remaining backlog,
+not to reopening #12.
 
 ## Documentation
 
@@ -20,7 +24,7 @@ requirements are registered even where their implementation depends on that proo
 - [Roadmap and gap matrix](ROADMAP.md): G01-G13, actual Forgejo tasks, priorities,
   cross-product dependencies and measurable acceptance sequence.
 - [Product-value analysis](SOURCE_VALUE_REVIEW.md): issue #12 upstream/Router
-  comparison, real cases and narrow public-evidence ADAPT recommendation; not owner GO.
+  comparison, real cases and accepted narrow public-evidence ADAPT outcome; not product GO.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
