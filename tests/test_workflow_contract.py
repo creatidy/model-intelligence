@@ -136,6 +136,30 @@ class WorkflowContractTests(unittest.TestCase):
         ):
             self.assertIn(requirement, merge)
 
+    def test_pre_merge_label_exclusion_returns_to_selection_without_termination(self) -> None:
+        loop = text(".kilo/command/loop.md")
+        select_filter = loop.split("1. Mandatory label exclusion:", 1)[1].split("2. Read", 1)[0]
+        merge = loop.split("## MERGE", 1)[1].split("## COMPLETE", 1)[0]
+        exclusion = merge.split("Pre-merge exclusion:", 1)[1].split("For nonexcluded issues,", 1)[0]
+        self.assertEqual(re.findall(r"`([^`]+)`", exclusion), re.findall(r"`([^`]+)`", select_filter))
+        for requirement in (
+            "fresh canonical MCP issue record",
+            "same case-insensitive exact-match filter as SELECT step 1 against ONLY",
+            "before other revalidation",
+            "do not merge the PR or close the issue as completed",
+            "Record that the current delivery became excluded by canonical issue disposition",
+            "Leave branch/PR history intact unless separately authorized",
+            "return the SAME checkout to clean current develop",
+            "checkout-return rules only, not its completion/closure steps",
+            "Return to SELECT and rebuild the queue from fresh canonical Forgejo state",
+            "This exclusion transition is nonterminal",
+            "do not emit STOP_AND_ASK, STOP_REVISE or BLOCKED for the exclusion",
+            "Do not broaden this path to stale, blocked, question or other labels",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, exclusion)
+        self.assertLess(merge.index("Pre-merge exclusion:"), merge.index("verify approved HEAD/base"))
+
     def test_completion_follows_verified_merge_and_acceptance(self) -> None:
         complete = text(".kilo/command/loop.md").split("## COMPLETE", 1)[1].split("## Terminal Reporting", 1)[0]
         for requirement in (

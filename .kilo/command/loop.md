@@ -117,13 +117,27 @@ defects STOP_REVISE. No review 11 or unreviewable further patches.
 ## MERGE
 
 Only this explicit `/loop` authority permits merging. Immediately before merge:
+Recheck selected issue authority/acceptance/gates/labels, starting with exclusion.
+
+Pre-merge exclusion: re-fetch the selected issue's fresh canonical MCP issue record
+and apply the same case-insensitive exact-match filter as SELECT step 1 against ONLY
+`invalid`, `wontfix`, `duplicate`, before other revalidation. If any matches,
+do not merge the PR or close the issue as completed. Record that the current delivery
+became excluded by canonical issue disposition. Leave branch/PR history intact unless
+separately authorized. Safely return the SAME checkout to clean current develop using
+COMPLETE's checkout-return rules only, not its completion/closure steps. Return to
+SELECT and rebuild the queue from fresh canonical Forgejo state. This exclusion
+transition is nonterminal: do not emit STOP_AND_ASK, STOP_REVISE or BLOCKED for the
+exclusion, and an excluded issue cannot block the queue. Do not broaden this path
+to stale, blocked, question or other labels.
+
+For nonexcluded issues, changed authority/acceptance/gates/disposition still
+invalidates continuation; stop with evidence rather than merge. Otherwise
 re-fetch canonical PR metadata and current canonical develop through normal Git;
 verify approved HEAD/base exactly match current remote and local frozen objects,
 empty findings, clean checkout, successful required `make check`, open/unmerged PR
 and target develop. A changed HEAD/base invalidates APPROVE: return to FINISH with
 the SAME counter (or terminate at the bound); never merge stale approval.
-Recheck selected issue authority/acceptance/gates/labels before integration too;
-changed disposition invalidates continuation, stop with evidence rather than merge.
 
 Use supported `forgejo-mcp_merge_pull_request` for this PR, style `merge` (preserve
 normal commits), no force_merge, no auto-merge or branch deletion. Respect protection
