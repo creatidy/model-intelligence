@@ -7,6 +7,7 @@ import json
 import re
 import unicodedata
 import unittest
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
@@ -41,7 +42,7 @@ from model_intelligence.evidence import (
 )
 from model_intelligence.projection import effective_at
 from model_intelligence.publication import CutReference
-from model_intelligence.utilization import decode_utilization, encode_utilization
+from model_intelligence.utilization import decode_decision_utilization, decode_utilization, encode_utilization
 
 T = datetime(2026, 1, 1, 12, 0, 0, 123456, tzinfo=UTC)
 DAY = timedelta(days=1)
@@ -99,7 +100,7 @@ def requirement() -> dict[str, object]:
     return {"task_level": "L0", "capability_minima": {}, "hard_constraints": {}}
 
 
-def router_decision(at: datetime, *, effort: str | None = "none") -> dict[str, object]:
+def router_decision(at: datetime, *, effort: str | None = "none", public_input: str | None = None) -> dict[str, object]:
     """Original fixture shaped like the pinned to_dict output, not a routing invocation."""
     evaluated = at.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     selected = {
@@ -110,6 +111,8 @@ def router_decision(at: datetime, *, effort: str | None = "none") -> dict[str, o
         "degraded": False,
         "capability_margin": 0,
     }
+    if public_input is not None:
+        selected["display_name"] = public_input
     return {
         "evaluated_at": evaluated,
         "requirement": requirement(),
@@ -153,6 +156,90 @@ def evidence_ref(value: object) -> dict[str, str]:
 
 
 @dataclass(frozen=True)
+class EvaluationInput:
+    cut_bytes: bytes
+    cut_reference: CutReference
+    public: PublicEvidence
+    at: datetime
+    kernel_context: bytes
+    conditions: frozenset[str]
+    effort: str | None
+    evaluation_context: bytes
+
+    def context_bytes(self) -> bytes:
+        return self.evaluation_context
+
+    def explanation(self) -> str:
+        offer = next(
+            item
+            for item in effective_at(self.public.evidence, self.at, conditions=self.conditions).offers
+            if item.plan == PLAN
+        )
+        price = offer.terms.price
+        return (
+            "Public input price unknown"
+            if price is None
+            else f"Public input price {price.amount} {price.currency}/{price.unit}"
+        )
+
+
+@dataclass(frozen=True)
+class DecisionUse:
+    inputs: EvaluationInput
+    decision_bytes: bytes
+    utilization_bytes: bytes
+    utilization_reference: tuple[tuple[str, str], ...]
+
+    def verify(self) -> None:
+        if (
+            decode_public_evidence(self.inputs.cut_bytes, self.inputs.cut_reference, max_bytes=BOUND)
+            != self.inputs.public
+        ):
+            raise ValueError("evaluation-cut-mismatch")
+        decision = cast(dict[str, object], json.loads(self.decision_bytes))
+        selected = cast(dict[str, object], decision["selected"])
+        if selected.get("display_name") != self.inputs.explanation():
+            raise ValueError("decision-public-input-mismatch")
+        basis = cast(dict[str, object], json.loads(self.inputs.evaluation_context))
+        if (
+            set(basis)
+            != {
+                "kernel_context_sha256",
+                "public_conditions",
+                "reasoning_effort",
+                "requirement",
+                "catalog_version",
+                "resource_policy_version",
+                "selector_mode",
+            }
+            or basis["kernel_context_sha256"] != hashlib.sha256(self.inputs.kernel_context).hexdigest()
+            or basis["public_conditions"] != sorted(self.inputs.conditions)
+            or basis["reasoning_effort"] != self.inputs.effort
+        ):
+            raise ValueError("evaluation-context-capture-mismatch")
+        if selected.get("reasoning_effort") != self.inputs.effort or any(
+            decision.get(key) != basis[key]
+            for key in ("requirement", "catalog_version", "resource_policy_version", "selector_mode")
+        ):
+            raise ValueError("decision-evaluation-context-mismatch")
+        utilized = decode_utilization(
+            self.utilization_bytes,
+            dict(self.utilization_reference),
+            evaluated_at=self.inputs.at,
+            decision=self.decision_bytes,
+            context=self.inputs.context_bytes(),
+            max_bytes=BOUND,
+        )
+        if utilized.cut != self.inputs.cut_reference:
+            raise ValueError("decision-utilized-cut-mismatch")
+
+
+def fixture_decision(inputs: EvaluationInput) -> dict[str, object]:
+    """Render public facts in an owned pre-authorized choice, without routing/admission."""
+    return router_decision(inputs.at, effort=inputs.effort, public_input=inputs.explanation())
+
+
+@dataclass(frozen=True)
 class AttemptFixture:
     """A retention/lifecycle trace; no actual Kernel authority or runtime side effect."""
 
@@ -169,9 +256,21 @@ class AttemptFixture:
     decision_bytes: bytes
     evaluated_at: datetime
     spec_bytes: bytes
+    use: DecisionUse
     state: str = "authorized"
 
     def restore(self) -> None:
+        self.use.verify()
+        if (
+            self.cut_bytes != self.use.inputs.cut_bytes
+            or self.cut_reference != self.use.inputs.cut_reference
+            or self.context != self.use.inputs.kernel_context
+            or self.decision_bytes != self.use.decision_bytes
+            or self.evaluated_at != self.use.inputs.at
+            or self.utilization_bytes != self.use.utilization_bytes
+            or self.utilization_reference != self.use.utilization_reference
+        ):
+            raise ValueError("attempt-decision-use-mismatch")
         if (
             "sha256:" + hashlib.sha256(self.allocation).hexdigest() != self.allocation_reference
             or "sha256:" + hashlib.sha256(self.context).hexdigest() != self.context_reference
@@ -189,14 +288,15 @@ class AttemptFixture:
         provenance = cast(dict[str, object], json.loads(provenance_text))
         if canonical(provenance["decision"]) != self.decision_bytes:
             raise ValueError("attempt-decision-mismatch")
-        if provenance["mi_utilization"] != dict(self.utilization_reference):
+        if provenance.get("mi_utilization") != dict(self.utilization_reference):
             raise ValueError("attempt-utilization-mismatch")
-        utilized = decode_utilization(
+        utilized = decode_decision_utilization(
             self.utilization_bytes,
-            dict(self.utilization_reference),
+            response=provenance_text.encode(),
+            expected_cut=self.cut_reference,
             evaluated_at=self.evaluated_at,
             decision=self.decision_bytes,
-            context=self.context,
+            context=self.use.inputs.context_bytes(),
             max_bytes=BOUND,
         )
         if utilized.cut != self.cut_reference:
@@ -220,21 +320,49 @@ class RouterConsumerFixture:
             self.current[2].check_update(candidate)
         self.current = data, reference, candidate
 
-    def preserve_authorized(
-        self, *, attempt_id: str, at: datetime, context: bytes, decision: dict[str, object]
-    ) -> AttemptFixture:
+    def evaluate(
+        self,
+        *,
+        at: datetime,
+        context: bytes,
+        decide: Callable[[EvaluationInput], dict[str, object]] = fixture_decision,
+        conditions: frozenset[str] = frozenset(),
+        effort: str | None = "none",
+    ) -> DecisionUse:
         if self.current is None:
             raise ValueError("no-validated-public-cut")
         if at.tzinfo is None or at.utcoffset() is None:
             raise ValueError("decision-evaluation-time-mismatch")
+        evaluation_context = canonical(
+            {
+                "kernel_context_sha256": hashlib.sha256(context).hexdigest(),
+                "public_conditions": sorted(conditions),
+                "reasoning_effort": effort,
+                "requirement": requirement(),
+                "catalog_version": 5,
+                "resource_policy_version": 9,
+                "selector_mode": "balanced",
+            }
+        )
+        inputs = EvaluationInput(*self.current, at, context, conditions, effort, evaluation_context)
+        decision = decide(inputs)
         expected_time = at.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
         if decision.get("evaluated_at") != expected_time:
             raise ValueError("decision-evaluation-time-mismatch")
-        # The fixture receives an already authorized decision; it has no admission rule.
         decision_bytes = canonical(decision)
         manifest, manifest_ref = encode_utilization(
-            self.current[1], evaluated_at=at, decision=decision_bytes, context=context
+            inputs.cut_reference, evaluated_at=at, decision=decision_bytes, context=inputs.context_bytes()
         )
+        result = DecisionUse(inputs, decision_bytes, manifest, tuple(sorted(evidence_ref(manifest_ref).items())))
+        result.verify()
+        return result
+
+    def preserve_authorized(self, *, attempt_id: str, use: DecisionUse) -> AttemptFixture:
+        # Retain the receipt emitted by the evaluation path, never sample a later current cut.
+        use.verify()
+        at, context, decision_bytes = use.inputs.at, use.inputs.kernel_context, use.decision_bytes
+        decision = cast(dict[str, object], json.loads(decision_bytes))
+        manifest, manifest_ref = use.utilization_bytes, dict(use.utilization_reference)
         shaped_ref = evidence_ref(manifest_ref)
         response = {"schema_version": 1, "decision": decision, "mi_utilization": shaped_ref}
         # This explicit extension is a proposal, not an existing Router output field.
@@ -291,13 +419,14 @@ class RouterConsumerFixture:
             context,
             context_ref,
             intent,
-            self.current[0],
-            self.current[1],
+            use.inputs.cut_bytes,
+            use.inputs.cut_reference,
             manifest,
             tuple(sorted(shaped_ref.items())),
             decision_bytes,
             at,
             spec,
+            use,
         )
         attempt.restore()
         self.attempts.append(attempt)
@@ -305,6 +434,158 @@ class RouterConsumerFixture:
 
 
 class RouterConformanceTests(unittest.TestCase):
+    def test_refresh_after_decision_cannot_relabel_the_utilized_cut(self) -> None:
+        consumer = RouterConsumerFixture()
+        original, used_reference = encode_public_evidence(base(), produced_at=T)
+        consumer.adopt(original, used_reference)
+        newer = augment(
+            base(),
+            observed=(replace(observation("later"), retrieved_at=T + DAY),),
+            claims=(
+                BaselineClaim(
+                    PLAN,
+                    Terms(price=Money(Decimal("9"), "USD", "month")),
+                    claim_id="later",
+                    observation_id="later",
+                    effective_from=T,
+                    revises="base",
+                ),
+            ),
+        )
+
+        def decision_path(inputs: EvaluationInput) -> dict[str, object]:
+            decision = fixture_decision(inputs)
+            consumer.adopt(*encode_public_evidence(newer, produced_at=T + DAY))
+            return decision
+
+        use = consumer.evaluate(at=T, context=canonical([]), decide=decision_path)
+        result = consumer.preserve_authorized(attempt_id="owned-attempt", use=use)
+        self.assertEqual(result.cut_reference, used_reference)
+        self.assertEqual(result.cut_bytes, original)
+        self.assertNotEqual(consumer.current[1] if consumer.current else None, used_reference)
+        result.restore()
+
+    def test_public_input_change_changes_the_actual_shaped_decision_path(self) -> None:
+        consumer = RouterConsumerFixture()
+        consumer.adopt(*encode_public_evidence(base(), produced_at=T))
+        first = consumer.evaluate(at=T, context=canonical([]))
+        newer = augment(
+            base(),
+            observed=(observation("later"),),
+            claims=(
+                BaselineClaim(
+                    PLAN,
+                    Terms(price=Money(Decimal("9"), "USD", "month")),
+                    claim_id="later",
+                    observation_id="later",
+                    effective_from=T,
+                    revises="base",
+                ),
+            ),
+        )
+        consumer.adopt(*encode_public_evidence(newer, produced_at=T))
+        second = consumer.evaluate(at=T, context=canonical([]))
+        self.assertNotEqual(first.inputs.cut_reference, second.inputs.cut_reference)
+        self.assertNotEqual(first.decision_bytes, second.decision_bytes)
+        self.assertNotEqual(first.utilization_reference, second.utilization_reference)
+        first.verify()
+        second.verify()
+        with self.assertRaises(ValueError):
+            replace(
+                first,
+                decision_bytes=second.decision_bytes,
+                utilization_bytes=second.utilization_bytes,
+                utilization_reference=second.utilization_reference,
+            ).verify()
+
+    def test_evaluation_conditions_are_captured_not_posthoc_context(self) -> None:
+        promo = OverrideClaim(
+            PLAN,
+            "owned-campaign",
+            Terms(price=Money(Decimal("9"), "USD", "month")),
+            Period(T, T + DAY),
+            frozenset({"owned-client"}),
+            claim_id="sale",
+            observation_id="sale",
+            effective_from=T,
+        )
+        cut = augment(base(), observed=(observation("sale"),), claims=(promo,))
+        consumer = RouterConsumerFixture()
+        consumer.adopt(*encode_public_evidence(cut, produced_at=T))
+        without = consumer.evaluate(at=T, context=canonical([]))
+        with_client = consumer.evaluate(at=T, context=canonical([]), conditions=frozenset({"owned-client"}))
+        self.assertEqual(without.inputs.cut_reference, with_client.inputs.cut_reference)
+        self.assertNotEqual(without.inputs.context_bytes(), with_client.inputs.context_bytes())
+        self.assertNotEqual(without.decision_bytes, with_client.decision_bytes)
+        self.assertNotEqual(without.utilization_reference, with_client.utilization_reference)
+        with self.assertRaises(ValueError):
+            replace(without, inputs=replace(without.inputs, conditions=frozenset({"owned-client"}))).verify()
+
+    def test_context_only_link_outside_retained_decision_path_is_insufficient(self) -> None:
+        consumer = RouterConsumerFixture()
+        consumer.adopt(*encode_public_evidence(base(), produced_at=T))
+        use = consumer.evaluate(at=T, context=canonical([]))
+        attempt = consumer.preserve_authorized(attempt_id="owned-attempt", use=use)
+        root = cast(dict[str, object], json.loads(attempt.allocation))
+        allocation = cast(dict[str, object], root["allocation"])
+        provenance = cast(dict[str, object], json.loads(cast(str, allocation["decision_provenance"])))
+        del provenance["mi_utilization"]
+        allocation["decision_provenance"] = canonical(provenance).decode()
+        unrelated_allocation = canonical(root)
+        intent = cast(dict[str, object], json.loads(attempt.intent))
+        intent["allocation"] = unrelated_allocation.decode()
+        forged = replace(
+            attempt,
+            allocation=unrelated_allocation,
+            allocation_reference="sha256:" + hashlib.sha256(unrelated_allocation).hexdigest(),
+            intent=canonical(intent),
+        )
+        with self.assertRaisesRegex(ValueError, "attempt-utilization-mismatch"):
+            forged.restore()
+
+    def test_context_swapping_after_receipt_is_rejected(self) -> None:
+        consumer = RouterConsumerFixture()
+        consumer.adopt(*encode_public_evidence(base(), produced_at=T))
+        use = consumer.evaluate(at=T, context=canonical([]))
+        with self.assertRaisesRegex(ValueError, "evaluation-context-capture-mismatch"):
+            replace(use, inputs=replace(use.inputs, kernel_context=canonical({"different": "context"}))).verify()
+
+    def test_production_relationship_verifier_requires_same_decision_path_reference(self) -> None:
+        consumer = RouterConsumerFixture()
+        consumer.adopt(*encode_public_evidence(base(), produced_at=T))
+        use = consumer.evaluate(at=T, context=canonical([]))
+        decision = cast(dict[str, object], json.loads(use.decision_bytes))
+        envelope = {"schema_version": 1, "decision": decision, "mi_utilization": dict(use.utilization_reference)}
+
+        def verify(response: bytes, cut: CutReference | None = use.inputs.cut_reference) -> None:
+            result = decode_decision_utilization(
+                use.utilization_bytes,
+                response=response,
+                expected_cut=cut,
+                evaluated_at=T,
+                decision=use.decision_bytes,
+                context=use.inputs.context_bytes(),
+                max_bytes=BOUND,
+            )
+            self.assertEqual(result.cut, use.inputs.cut_reference)
+
+        verify(canonical(envelope))
+        bad_decision = cast(dict[str, object], json.loads(use.decision_bytes))
+        cast(dict[str, object], bad_decision["selected"])["display_name"] = "unrelated decision"
+        wrong_type = cast(dict[str, object], json.loads(use.decision_bytes))
+        cast(dict[str, object], wrong_type["selected"])["eligible"] = 1
+        for response in (
+            canonical({"schema_version": 1, "decision": decision}),
+            canonical({**envelope, "decision": bad_decision}),
+            canonical({**envelope, "decision": wrong_type}),
+            canonical({**envelope, "mi_utilization": {"source": "model_intelligence", "identifier": "missing"}}),
+            canonical({**envelope, "schema_version": True}),
+        ):
+            with self.subTest(response=response), self.assertRaises(ValueError):
+                verify(response)
+        with self.assertRaisesRegex(ValueError, "decision-binding-cut-mismatch"):
+            verify(canonical(envelope), None)
+
     def test_all_native_families_roundtrip_without_a_new_calibration_scale(self) -> None:
         model = Model("owned-model", "zai", "owned-request")
         surface = Surface("owned-surface", "zai", "owned-build")
@@ -371,7 +652,7 @@ class RouterConformanceTests(unittest.TestCase):
         reader = RouterConsumerFixture()
         reader.adopt(*encode_public_evidence(base(), produced_at=T))
         attempt = reader.preserve_authorized(
-            attempt_id="owned-attempt", at=T, context=canonical([]), decision=router_decision(T)
+            attempt_id="owned-attempt", use=reader.evaluate(at=T, context=canonical([]))
         )
         notice = SourceNotice("source-critical", "critical", frozenset({"statement:base"}), T + DAY, "revocation", True)
         cut = augment(base(), observed=(observation("critical"),), notices=(notice,))
@@ -393,7 +674,7 @@ class RouterConformanceTests(unittest.TestCase):
         data, reference = encode_public_evidence(base(), produced_at=T)
         reader.adopt(data, reference)
         attempt = reader.preserve_authorized(
-            attempt_id="owned-attempt", at=T, context=canonical([]), decision=router_decision(T)
+            attempt_id="owned-attempt", use=reader.evaluate(at=T, context=canonical([]))
         )
         for invalid, ref in (
             (data[:-10], reference),
@@ -456,7 +737,7 @@ class RouterConformanceTests(unittest.TestCase):
         consumer = RouterConsumerFixture()
         consumer.adopt(*encode_public_evidence(base(), produced_at=T))
         attempt = consumer.preserve_authorized(
-            attempt_id="owned-attempt", at=T, context=canonical([]), decision=router_decision(T)
+            attempt_id="owned-attempt", use=consumer.evaluate(at=T, context=canonical([]))
         )
         bad_intent = cast(dict[str, object], json.loads(attempt.intent))
         bad_intent["attempt"] = "different-spec-digest"
@@ -474,8 +755,10 @@ class RouterConformanceTests(unittest.TestCase):
         consumer = RouterConsumerFixture()
         consumer.adopt(*encode_public_evidence(base(), produced_at=T))
         with self.assertRaisesRegex(ValueError, "decision-evaluation-time-mismatch"):
-            consumer.preserve_authorized(
-                attempt_id="owned-attempt", at=T + DAY, context=canonical([]), decision=router_decision(T)
+            consumer.evaluate(
+                at=T + DAY,
+                context=canonical([]),
+                decide=lambda inputs: router_decision(T, public_input=inputs.explanation()),
             )
         self.assertEqual(consumer.attempts, [])
 

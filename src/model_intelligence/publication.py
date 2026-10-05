@@ -35,7 +35,8 @@ def _constant(value: str) -> object:
     raise ValueError(f"nonfinite-number:{value}")
 
 
-def _load(data: bytes) -> dict[str, object]:
+def decode_json_object(data: bytes) -> dict[str, object]:
+    """Strict object syntax with exact decimal parsing, without serialization."""
     try:
         return _object(
             json.loads(data.decode("utf-8"), object_pairs_hook=_pairs, parse_constant=_constant, parse_float=Decimal)
@@ -100,7 +101,7 @@ def encode_cut(
         raise ValueError("invalid-membership")
     if len(set(sources)) != len(sources):
         raise ValueError("duplicate-source-revision")
-    _load(payload)
+    decode_json_object(payload)
     data = _dump(
         {
             "format_version": 1,
@@ -134,7 +135,7 @@ def decode_cut(
         raise ValueError("unsupported-version")
     if hashlib.sha256(data).hexdigest() != expected.sha256:
         raise ValueError("digest-mismatch")
-    value = _load(data)
+    value = decode_json_object(data)
     if set(value) != {"format_version", "payload_schema", "produced_at", "scope", "members", "sources", "payload"}:
         raise ValueError("invalid-frame-shape")
     if type(value["format_version"]) is not int or value["format_version"] != expected.format_version:
@@ -155,7 +156,7 @@ def decode_cut(
     if len(set(members)) != len(members) or len(set(sources)) != len(sources):
         raise ValueError("duplicate-membership")
     payload = _text(value["payload"]).encode("utf-8")
-    _load(payload)
+    decode_json_object(payload)
     return Publication(
         expected,
         instant(datetime.fromisoformat(_text(value["produced_at"]))),

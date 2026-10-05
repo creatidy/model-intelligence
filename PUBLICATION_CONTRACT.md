@@ -5,9 +5,11 @@
 This is the bounded [issue #13][issue] artifact/conformance work after the accepted
 thin-layer ADAPT outcome in closed #12/merged PR #23. The owner accepted framing and
 immutable reference mechanics as the working baseline on 2026-10-05 ([receipt][working]).
-That is not approval of a final public wire ABI, permanent payload, Router admission,
-production publisher, installed MI-Router acceptance, Kernel authority or product GO.
-All #13 criteria remain, and incompatible baseline choices can be revised.
+The expanded payload, source-critical semantics and versioned utilization/envelope
+binding were then accepted as the minimum coordinated contract ([acceptance][accepted]).
+Neither decision approves a permanent public wire ABI, production publisher,
+private admission/cancellation, installed MI-Router acceptance, release or product GO.
+All #13 criteria and downstream gates remain; incompatibilities require revision.
 
 The candidate uses original standard-library code and owned synthetic fixtures.
 No upstream code/data/fixtures, private accounts, calibration ratings or consumer
@@ -127,9 +129,38 @@ microsecond changes this reference even when Router's decision timestamp is equa
 The owned fixtures propose a `mi_utilization` reference beside `decision` in the
 machine envelope, never extra fields inside the closed EvidenceRef or actual
 decision. The pinned Kernel parser preserves that extra envelope member in its
-opaque provenance, and allocation encoding preserves it. That permissive behavior
-is **not** an approved Router emission ABI: Router at this pin does not emit it or
-validate the manifest. Future #176/Kernel acceptance must settle that transport.
+opaque provenance, and allocation encoding preserves it. The minimum versioned
+binding/envelope contract is accepted, but that permissive behavior is not installed
+Router emission: Router at this pin does not emit it or validate the manifest.
+Future #176/Kernel delivery must implement the accepted relationship and preserve
+remaining admission, compatibility and installed-acceptance gates.
+
+### Decision-Path Receipt
+
+A consumer freezes the admitted cut bytes/reference and evaluation context BEFORE
+invoking its evaluator. It emits the utilization manifest from those frozen inputs
+and the evaluator's actual returned decision, never samples the latest cut after
+the decision was created, and retains the envelope's MI reference with that same
+decision. Evaluation context includes public conditions, applicable configuration,
+requirement and local catalog/policy versions, separately from Kernel's resolved
+input-list bytes; a context hash is not an admission policy or privacy guarantee.
+
+`decode_decision_utilization` verifies the reference is present on that retained
+decision envelope, checks the decision against exact retained decision bytes and
+validates cut/time/evaluation-context hashes. A context-only link without the
+decision-path reference rejects. Hashing primitives alone cannot attest arbitrary
+consumer code behavior: the consumer adapter must implement this capture/evaluate/
+emit path, and conformance must inspect and exercise it.
+
+The owned fixture consumes the frozen public projection in its emitted decision's
+display metadata while retaining a caller-preselected, pre-authorized identity;
+it implements no selection/ranking/admission policy. The exact pinned Router
+CandidateEvaluation/SelectionDecision constructors serialize that public input.
+Changing the source value or applicable condition changes the actual emitted DTO
+and utilization reference. A refresh within that callback cannot relabel the old
+decision with the new cut. This is executable decision-path data-use conformance,
+not evidence that current installed Router routing uses MI or that a callback can
+be universally trusted without consumer review.
 
 Two cuts at the same effective time can differ because a past-effective claim was
 learned later. Replay uses the retained old cut, not today's store, so it cannot
@@ -155,7 +186,7 @@ lexical/recency winner. Source freshness and reported criticality are orthogonal
 an expired freshness deadline cannot erase a critical report or turn it into a
 missing price. Public views retain diagnostics; they do not resolve private policy.
 
-Uncertain campaign ends remain uncertain annotations in a future approved payload,
+Uncertain campaign ends remain uncertain annotations in this minimum contract,
 not fabricated `Period` values or silent R2 changes. #14 coordinates actual
 subject/channel/configuration/native-unit/assertion and mapping vocabulary; this
 framing does not create another ontology or scale or block parallel #14 research.
@@ -188,8 +219,9 @@ other fact families. This original framing proof is not the sole conformance rec
 
 `tests/test_router_conformance.py` adds original Router-shaped references and
 SelectionDecision output, the working public payload, scoped source notices and
-Kernel-shaped versioned allocation/original-input traces. It receives pre-authorized
-owned decisions rather than implementing selection/admission. Interrupted updates,
+Kernel-shaped versioned allocation/original-input traces. Its caller-owned decision
+callback consumes captured public inputs, without implementing selection/admission.
+Its accepted-input receipt is retained instead of attaching a current cut post-hoc. Interrupted updates,
 later evidence and critical reports do not rewrite retained cut/utilization/decision/
 allocation/context bytes. Context fixtures use the actual empty resolved-input-list
 shape; intent carries AttemptSpec digest, allocation/context references use `sha256:`.
@@ -241,14 +273,15 @@ producer-consumer parity and replacement acceptance. Preserve source provenance
 and rights of any actual distributed payload; the owned synthetic codec needs no
 third-party dataset copying and does not grant permission for future copies.
 
-Working-baseline acceptance permits this coordinated grammar/conformance work,
-not completion or final public ABI adoption. Critical source meaning is defined
-without inventing admission/cancellation authority; publisher authenticity,
-consumer migration, producer/consumer acceptance of the full candidate and installed
-behavior are not silently settled. Actual-shaped proof and independent review must
-assess all criteria; the earlier MI-local offer fixture alone cannot close #13.
+The expanded minimum producer-consumer contract is accepted. This does not grant
+permanent schema/ABI status, publisher authenticity, private admission/cancellation,
+product GO or installed behavior. Compatibility/migration and downstream gates
+remain. Completion still requires all #13 conformance criteria and fresh independent
+exact-candidate review, including the verifiable actual-use relationship; neither
+the earlier MI-local offer fixture nor context-only provenance can replace it.
 
 [issue]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
 [router]: https://forgejo.creatidy.com/BioMedical-IT/scarcity-router/issues/176
 [kernel]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/55
 [working]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-14882
+[accepted]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-15114

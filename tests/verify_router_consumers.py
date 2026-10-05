@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Protocol, cast
 
@@ -111,7 +112,6 @@ def main() -> None:
     allocations = importlib.import_module("creatidy_kernel.ports.allocation")
     domain = importlib.import_module("creatidy_kernel.core.domain")
     from model_intelligence.contract import encode_public_evidence
-    from model_intelligence.utilization import encode_utilization
 
     evidence_ref = types.EvidenceRef
     reference_error = cast(
@@ -123,31 +123,61 @@ def main() -> None:
     )
     passed = 0
     for effort in (None, "none"):
-        candidate = cast(Callable[..., object], selector.CandidateEvaluation)(
-            identity=identity,
-            display_name="Owned conformance model",
-            eligible=True,
-            reasoning_effort=effort,
-            capability_margin=0,
-        )
-        decision = cast(Callable[..., object], selector.SelectionDecision)(
-            evaluated_at=fixture.T,
-            requirement=requirement,
-            catalog_version=5,
-            catalog_updated_on="2026-01-01",
-            selector_mode="balanced",
-            resource_policy_version=9,
-            selected=candidate,
-            reason_codes=("selected_balanced",),
-        )
-        actual = method(decision, "to_dict")()
-        assert actual == fixture.router_decision(fixture.T, effort=effort)
-        decision_bytes = fixture.canonical(actual)
         context = fixture.canonical([])
-        _, cut_ref = encode_public_evidence(fixture.base(), produced_at=fixture.T)
-        manifest, reference = encode_utilization(
-            cut_ref, evaluated_at=fixture.T, decision=decision_bytes, context=context
+        cut = replace(
+            fixture.base(),
+            applicability=replace(fixture.SCOPE, configuration=(("effort", effort), ("physical-model", None))),
         )
+        consumer = fixture.RouterConsumerFixture(expected=cut.applicability)
+        consumer.adopt(*encode_public_evidence(cut, produced_at=fixture.T))
+        old_cut = consumer.current[1] if consumer.current else None
+        later_cut = fixture.augment(
+            cut,
+            observed=(fixture.observation("later"),),
+            claims=(
+                fixture.BaselineClaim(
+                    fixture.PLAN,
+                    fixture.Terms(price=fixture.Money(fixture.Decimal("9"), "USD", "month")),
+                    claim_id="later",
+                    observation_id="later",
+                    effective_from=fixture.T,
+                    revises="base",
+                ),
+            ),
+        )
+
+        def actual_decision_path(
+            inputs: fixture.EvaluationInput,
+            owner: fixture.RouterConsumerFixture = consumer,
+            refreshed: fixture.PublicEvidence = later_cut,
+        ) -> dict[str, object]:
+            candidate = cast(Callable[..., object], selector.CandidateEvaluation)(
+                identity=identity,
+                display_name=inputs.explanation(),
+                eligible=True,
+                reasoning_effort=inputs.effort,
+                capability_margin=0,
+            )
+            decision = cast(Callable[..., object], selector.SelectionDecision)(
+                evaluated_at=inputs.at,
+                requirement=requirement,
+                catalog_version=5,
+                catalog_updated_on="2026-01-01",
+                selector_mode="balanced",
+                resource_policy_version=9,
+                selected=candidate,
+                reason_codes=("selected_balanced",),
+            )
+            result = cast(dict[str, object], method(decision, "to_dict")())
+            assert result == fixture.fixture_decision(inputs)
+            owner.adopt(*encode_public_evidence(refreshed, produced_at=fixture.T))
+            return result
+
+        use = consumer.evaluate(at=fixture.T, context=context, decide=actual_decision_path, effort=effort)
+        actual = json.loads(use.decision_bytes)
+        cut_ref = use.inputs.cut_reference
+        assert cut_ref == old_cut and (consumer.current[1] if consumer.current else None) != cut_ref
+        manifest, reference = use.utilization_bytes, dict(use.utilization_reference)
         assert method(method(evidence_ref, "from_dict")(reference), "to_dict")() == reference
         response = {"schema_version": 1, "decision": actual, "mi_utilization": reference}
         raw = fixture.canonical(response)
@@ -190,11 +220,7 @@ def main() -> None:
         retained_digest = attempt_spec.digest
         assert attempt_spec.allocation_reference == allocation_ref
         assert attempt_spec.context_reference == context_ref
-        consumer = fixture.RouterConsumerFixture()
-        consumer.adopt(*encode_public_evidence(fixture.base(), produced_at=fixture.T))
-        retained = consumer.preserve_authorized(
-            attempt_id="owned-attempt", at=fixture.T, context=context, decision=cast(dict[str, object], actual)
-        )
+        retained = consumer.preserve_authorized(attempt_id="owned-attempt", use=use)
         assert retained.allocation == encoded
         assert json.loads(retained.intent)["attempt"] == retained_digest
         for broken in (b"MI unavailable", b"interrupted refresh"):
@@ -208,6 +234,11 @@ def main() -> None:
             assert attempt_spec.digest == retained_digest
             assert "sha256:" + hashlib.sha256(encoded).hexdigest() == allocation_ref
         assert manifest == retained.utilization_bytes
+        passed += 1
+        changed_use = consumer.evaluate(at=fixture.T, context=context, decide=actual_decision_path, effort=effort)
+        assert changed_use.decision_bytes != use.decision_bytes
+        assert changed_use.utilization_reference != use.utilization_reference
+        retained.restore()
         passed += 1
     for invalid in (
         {"source": "model_intelligence", "identifier": "x", "date": fixture.T.isoformat()},
