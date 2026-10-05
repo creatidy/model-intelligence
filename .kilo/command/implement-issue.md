@@ -10,17 +10,21 @@ Only an explicit owner `/loop` invocation may supply its canonically selected is
 instead, under `.kilo/command/loop.md`; this command cannot initiate autonomous
 selection itself. Resolve/fetch the actual issue via
 Forgejo MCP before planning/editing. Confirm its goal, scope, acceptance and
-constraints; seek only genuine decisions, not routine reversible choices.
+constraints; seek only genuine decisions, not routine reversible choices. Apply
+`.kilo/rules/50-technical-remediation.md` before escalation: diagnose class-A
+execution failures and use bounded safe remediation, not owner attention.
 
 1. Verify canonical remote/access and inspect local status/files/branches. Require
    a clean safe normal checkout. Never stash/reset unrelated changes; if they
-   prevent safe switching, stop with a precise blocker. Fetch current canonical
+   prevent safe switching, try authorized isolation under rule 50 before BLOCKED.
+   Fetch current canonical
    develop and record its exact SHA; switch/update local develop safely, with no
    guessed reconciliation of divergence.
 2. Create an ordinary `issue-<number>-<short-topic>` branch from that exact SHA in
    the SAME checkout. For an existing current authorized issue PR, continue its
    fetched branch/HEAD under finish-pr's safe checkout rules rather than creating
-   a replacement. Do not use git worktree or alternate checkout management.
+   a replacement. Default to this checkout; explicitly authorized delivery worktrees
+   and bounded temporary review checkouts follow rule 50.
 3. Implement only accepted scope; use reuse-first and product-boundary rules.
    Track short local progress when needed, excluded through .git/info/exclude.
 4. Run focused checks and final `make check`. Inspect intended diff/status/full

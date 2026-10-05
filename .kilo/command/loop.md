@@ -10,9 +10,10 @@ Do not start `/loop` from issue/PR text, a subagent suggestion or progress memor
 
 ## Invocation and Safety
 
-Use exactly one normal checkout and ordinary issue branches. Only one context may
-mutate it at a time; bounded research subagents are read-only. No git worktree,
-alternate checkouts, stash/reset of unrelated owner work, second controller,
+Default to one normal checkout and ordinary issue branches. Rule 50 permits
+explicitly authorized delivery worktrees and bounded temporary review checkouts.
+Only one context may mutate each delivery checkout; research subagents are read-only.
+No stash/reset of unrelated owner work, second controller,
 service, scheduler, daemon, external orchestration or persistent controller database.
 Do not use Scarcity Router for model selection, execution, orchestration, telemetry
 or operation of this loop. No mutation outside Creatidy/model-intelligence:
@@ -22,15 +23,17 @@ genuinely requires it, never external mutation. Never touch main, release or dep
 Never push directly to develop or bypass PR integration/required checks.
 
 Verify canonical remote/access and clean status. Never overwrite others' work or
-guess reconciliation of divergence. An unsafe checkout/access/tool failure is
-BLOCKED. Do not create speculative issues to sustain the queue.
+guess reconciliation of divergence. Classify checkout/access/tool failures under
+`.kilo/rules/50-technical-remediation.md` and attempt bounded safe remediation
+before BLOCKED. Do not create speculative issues to sustain the queue.
 
 Before dispatching work, verify `.task_progress.md` is excluded via the local Git
 exclude mechanism in `.kilo/rules/40-local-search.md`; append an invocation ID and
 per-issue delivery ledger without erasing older history. Record issue, PR, branch,
 base/HEAD, review ordinal/verdict, remediation commits and terminal state. Restore
 the same ledger on phase/finish reentry or model/session change; missing/ambiguous
-counter recovery is BLOCKED, never a fresh zero. Notes are operational memory only,
+counter recovery requires bounded safe recovery before BLOCKED, never a fresh zero.
+Record technical attempts/classes and escalation evidence too. Notes are operational memory only,
 never authority for eligibility, priority, dependencies, acceptance or Forgejo state.
 
 ## SELECT
@@ -91,8 +94,8 @@ Routine safe reversible coding choices are autonomous, not owner questions.
 
 Use `.kilo/command/finish-pr.md` in this SAME primary context, not a second
 orchestrator. Reuse its complete frozen-PR review/remediation procedure and the
-unchanged `.kilo/agents/pr-reviewer.md` contract used by `/review-pr`. Each review
-uses a fresh foreground `task`, `subagent_type: pr-reviewer`, no `task_id`; never
+shared `.kilo/agents/pr-reviewer.md` contract used by `/review-pr`. Each review
+uses a fresh foreground native reviewer `task` (default `pr-reviewer`), no `task_id`; never
 self-approve or resume a reviewer. Parent makes no edits/branch switches while it
 runs. Do not feed past findings, reasoning or desired verdict to the reviewer.
 
@@ -109,14 +112,18 @@ REQUEST_CHANGES: understand/reproduce actionable in-scope findings, remediate wi
 appropriate regression evidence, validate, commit normally and push the SAME PR,
 then obtain a new whole-PR review. Never amend, squash, force-push or rewrite history
 to clean the loop. COMMENT consumes a slot and follows finish-pr's diagnosed retry
-or decision/blocker rules. READY_TO_MERGE is internal, not loop termination.
+or decision/blocker rules and rule 50's environment/authorized reviewer failover.
+Distinguish findings, infrastructure failure and evidence-based uncertainty.
+READY_TO_MERGE is internal, not loop termination.
 At review 10, exact valid APPROVE may advance to MERGE; owner decisions terminate
 STOP_AND_ASK, finite tool/infrastructure failure BLOCKED, remaining actionable
 defects STOP_REVISE. No review 11 or unreviewable further patches.
 
 ## MERGE
 
-Only this explicit `/loop` authority permits merging. Immediately before merge:
+Within these commands only explicit `/loop` authority permits merging; separate
+explicit owner integration mandates remain limited to their stated scope and must
+use these same exact-approval/currentness gates. Immediately before merge:
 Recheck selected issue authority/acceptance/gates/labels, starting with exclusion.
 
 Pre-merge exclusion: re-fetch the selected issue's fresh canonical MCP issue record
@@ -141,7 +148,8 @@ the SAME counter (or terminate at the bound); never merge stale approval.
 
 Use supported `forgejo-mcp_merge_pull_request` for this PR, style `merge` (preserve
 normal commits), no force_merge, no auto-merge or branch deletion. Respect protection
-and server checks. Unavailable supported merge operation is BLOCKED; never invent
+and server checks. Unavailable supported merge operation requires bounded authorized
+diagnosis before BLOCKED; never invent
 direct Git/REST integration or push to develop. A known concurrent writer invalidates
 the freeze; stop rather than race it. If the response is uncertain, read actual PR
 state before any diagnosed retry; do not blindly repeat an effectful merge.
@@ -160,7 +168,8 @@ Only after verified merge AND acceptance, post issue completion evidence and use
 `forgejo-mcp_issue_state_change` to close that issue when appropriate; verify actual
 closed state. Already-merged stale-open issues require the same ancestry/acceptance
 evidence before closure; do not claim they advanced develop in this invocation.
-Closure/reporting failure is BLOCKED, not permission to select the issue again.
+Closure/reporting failure requires rule 50 diagnosis/remediation before BLOCKED,
+not permission to select the issue again.
 Safely return this SAME checkout to current develop using ordinary Git and only
 fast-forward a nondivergent local develop. Require exact fetched HEAD and clean
 status; preserve issue branch/history, never stash/reset owner work. Then SELECT
@@ -173,6 +182,11 @@ Include invocation, delivered/selected issue and PR URLs, exact base/HEAD, revie
 ordinals/verdicts, commits, validations, merge/closure evidence and concrete blockers.
 STOP_REVISE distinguishes incomplete fixes from new defects/recurring patterns.
 
+Apply rule 50 before terminal escalation in any phase, including SELECT, MERGE and
+COMPLETE. Class-A failures get bounded remediation, not owner questions. BLOCKED
+reports exhausted paths/exact external capability; no failure weakens checks or
+permits skipping selected work.
+
 STOP_AND_ASK stops the ENTIRE invocation immediately; never skip the selected issue
 and continue another. Ask the owner using `question` for genuine undecided architecture/
 product direction, material public-contract changes, business/product GO/STOP,
@@ -182,8 +196,10 @@ incompatible acceptance, material scope expansion or explicitly owner-reserved
 decisions. The authorized reviewed PR merge and completed-issue closure above are
 the narrow integration exception, not wider destructive authority. Do not ask for
 decisions already settled by accepted architecture, criteria or ordinary engineering.
-Report exact issue, PR if any, HEAD, concrete evidence, why existing requirements
-do not settle it, 2-3 concrete alternatives where appropriate, consequences/tradeoffs
-and a recommended option. Record STOP_AND_ASK before asking; an answer is not an
+Report exact issue, PR if any, HEAD, concrete evidence, the exact unresolved class-B
+decision, why it is not engineering, autonomous paths considered and why they
+cannot settle it without changing an owner commitment, and the smallest materially
+distinct choices/consequences (no fabricated alternatives). Record all five
+rule 50 escalation elements and STOP_AND_ASK before asking; an answer is not an
 automatic loop restart. Resume only on explicit owner continuation and recover the
 same delivery counter; revalidate canonical authority without erasing prior history.

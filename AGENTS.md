@@ -11,6 +11,8 @@ automatic discovery of nested rule files:
 - `.kilo/rules/30-implementation-discipline.md`: product, reuse and scope limits.
 - `.kilo/rules/40-local-search.md`: evidence and local working context.
 - `.kilo/rules/validation.md`: repository-owned checks and handoff evidence.
+- `.kilo/rules/50-technical-remediation.md`: blocker classification, bounded
+  self-remediation, secret-safe environments and independent reviewer failover.
 
 Commands: `/implement-issue <number|URL|unambiguous title>`,
 `/finish-pr <Forgejo PR number|URL>`, `/review-pr <Forgejo PR number|URL>` and `/loop`.
@@ -27,7 +29,7 @@ publication is optional, never orchestration state. No external controller exist
 
 Only an explicit owner `/loop` invocation delegates autonomous selection and
 approved PR merge to develop/completed-issue closure. Its primary context is the
-sole orchestrator, reusing implement-issue/finish-pr and the unchanged reviewer.
+sole orchestrator, reusing implement-issue/finish-pr and the shared reviewer contract.
 Read `.kilo/command/loop.md`: refresh all canonical open issues each cycle, exclude
 exact invalid/wontfix/duplicate labels case-insensitively, verify explicit gates,
 then order by explicit priority, required ordering and oldest registration.
@@ -42,15 +44,16 @@ it does not select those functional issues for implementation. Preserve the froz
 A/B/C value gate and historical STOP_REVISE decisions. Documentation approval is
 not product GO, verified consumer integration or READY_FOR_LIVE_TASK.
 
-Use one normal checkout and ordinary issue branches. Do not use `git worktree`
-or alternate checkout management. Only one context may mutate the checkout. Review
-the exact frozen Git objects/current clean PR branch read-only in this checkout;
-the parent must not edit or switch branches while the reviewer task is running.
+Default to one normal checkout and ordinary issue branches. An explicitly authorized
+isolated delivery worktree or bounded temporary review checkout is permitted under
+the technical-remediation rule; it is not another controller. Only one context may
+mutate each delivery checkout. Review the exact frozen Git objects/current clean PR
+branch read-only; the parent must not edit or switch that candidate while review runs.
 Never stash/reset unrelated changes to make branch switching possible.
 
 `.kilo/command/*` and `.kilo/agents/*` are loaded by the Kilo workspace runtime;
 availability is not dynamically guaranteed when files appear. After adding
 or changing commands, a VS Code/Kilo workspace reload may be required. The current
 repository checkout supplies its local commands/agents/rules. A missing native
-agent/task is a finite tool blocker, not permission to substitute parent self-review
-or external orchestration.
+agent/task is an engineering blocker requiring bounded authorized remediation, not
+permission to substitute parent self-review or external orchestration.

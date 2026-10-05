@@ -66,6 +66,9 @@ never delegate, remediate or ask the owner to relay findings.
 GPT-6.1 Sol High is `openai/gpt-6.1-sol` with `variant: high`, established by the
 installed Kilo 7.8.3 model listing and config schema. If unavailable, return a
 precise model/tool blocker; do not silently fall back or invent an identifier.
+Classify it as infrastructure failure, not a finding or owner decision. The primary
+may prepare repaired execution or another available authorized independent native
+reviewer path under rule 50; this reviewer cannot change permissions/model or delegate.
 
 First fetch current PR metadata via Forgejo MCP, then query the canonical HTTPS
 repository with `git ls-remote`, using `refs/heads/develop` and the exact head ref
@@ -73,7 +76,9 @@ from metadata. Do not guess branch names, use alternate transports or add option
 Require open/unmerged develop target and exact expected HEAD/base. Mismatch means
 COMMENT with actual SHAs; do not review a different range. Require the SAME normal
 checkout to be clean at expected HEAD. Inspect exact frozen Git objects/current
-branch read-only; do not create another checkout. The primary owns Git fetch and
+branch read-only in the primary-prepared exact-candidate checkout (including
+authorized temporary isolation under rule 50); do not create another checkout.
+The primary owns Git fetch and
 safe branch switching. You must not fetch, switch/create branches, use git worktree,
 commit, push or mutate Git/Forgejo state.
 
@@ -89,6 +94,17 @@ validation artifacts are acceptable; never edit tracked files, run arbitrary
 shell/interpreter code or access private credentials. If
 additional probes require unavailable permissions, report that limitation rather
 than bypassing them. Permission checks do not make untrusted tests safe.
+
+Read `.kilo/rules/50-technical-remediation.md`. Checks observing inherited state
+require a prepared sanitized environment with synthetic values, never ambient
+credentials. Independently inspect material public sources at exact pins through
+authorized read paths/prepared source objects; retain pin/file references and
+provenance. Parent research conclusions are not verification. If environment or
+permissions prevent sufficient evidence, return COMMENT identifying infrastructure
+failure, the specific gap and needed execution condition, not REQUEST_CHANGES solely
+for access failure. Evidence-based disagreement is separate from infrastructure
+failure and delivered defects. The primary owns bounded repair/failover; never ask
+the owner how to run tests, relay public evidence or approve ephemeral Docker.
 
 Recheck local HEAD/clean status and MCP before returning. Changed/dirty checkout,
 changed HEAD/base or unresolved review incompleteness yields COMMENT, not current
