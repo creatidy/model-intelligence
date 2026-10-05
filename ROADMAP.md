@@ -116,18 +116,22 @@ requirements. Dependency comments complement its acceptance body.
 
 ## First-Priority Deviations
 
-The owner-approved issue #12 [Citation-Only ADAPT packet](SOURCE_VALUE_REVIEW.md)
-records unverified source/rights research, not a completed real-source proof. Its
-acceptance matrix retains partial/unmet criteria; no product GO, source rights or
-downstream value gate is supplied. The original proof and subsequent gates below
-remain outstanding. No functional scope is selected by this packet.
+The revised issue #12 [product-value analysis](SOURCE_VALUE_REVIEW.md) recommends
+ADAPT to a thin upstream-backed public-evidence/applicability and selected-history
+layer, not a replacement catalog, calculator or resident service. Direct upstream
+use plus Router-local adapters is an explicit STOP alternative. The owner's
+clarification treats unknown campaign boundaries and conflicts as normal states,
+not research failures; an artificial benchmark/price conflict is not a viability
+gate. Dataset-copying rights apply to an actual copying route, not to ordinary
+public-fact citations. No owner GO, full-proof/installed receipt, downstream gate,
+functional selection or merge follows from this recommendation. Issue #12 is open.
 
 These are current limits or incomplete target contracts, not hidden by a possible
 documentation APPROVE. No routine temporal proof defect is asserted here.
 
 | Verified fact | User/integration consequence and urgency | Closure condition |
 | --- | --- | --- |
-| R2 fixtures use `example.invalid` and synthetic licenses; the citation-only #12 packet records unverified research pins and unresolved rights, not a redistributable real-source/value proof. | Separate-product usefulness and lawful distribution remain unproved; avoid committing to duplicated/impermissible data. | [#12][value] reproducible A/B/C, exact rights/upstream comparison and explicit owner decision. |
+| R2 remains synthetic; #12's real-source comparison recommends only shared public meaning/applicability and selected annotation history, with Router-only as the alternative. | Most catalog/pricing/history data should remain upstream; scale and installed consumer benefit are not proved by the recommendation. | [#12][value] independently review product analysis and obtain owner scope decision; no invented conflict/date/legal gate on public-fact research. Actual copying and installed delivery need their own receipts. |
 | Only in-memory evidence/views/deltas exist; no complete recognizable consumer artifact. | Router cannot cite/admit an MI version or reject incompatible/incomplete publication. | [#13][publication] agreed negative-tested contract, [#15][acquisition] production publication and [#19][acceptance] actual consumption. |
 | `knowledge` has no acquisition cutoff; absent freshness yields no stale flag; effective projection does not enforce freshness. | Consumer could mistake supplied current knowledge for historical replay or freshness approval. | [#13][publication] explicit frozen-input/evaluation/validity semantics and negative tests; Router owns freshness policy. Preserve #9 API unless separately authorized. |
 | Boolean/contextual MI evidence and separately owned Router calibration have no shared mapping contract. | Automatic benchmark-to-rating, variant-to-effort or cross-channel assumptions could weaken requirements. | [#14][semantics] approved ownership/mapping with unknown/conflict/incompatibility tests. |

@@ -1,4 +1,4 @@
-"""Offline packet consistency, not source truth, rights clearance or A/B/C proof."""
+"""Offline analysis structure, not external source truth or a product-value proof."""
 
 import re
 import unittest
@@ -9,48 +9,54 @@ PACKET = ROOT / "SOURCE_VALUE_REVIEW.md"
 
 
 class SourceReviewTests(unittest.TestCase):
-    def test_original_acceptance_remains_partial_or_unmet(self) -> None:
+    def test_product_question_cases_and_alternatives_are_present(self) -> None:
         packet = PACKET.read_text()
-        rows = re.findall(r"^\| AC([1-5]) [^|]+\| ([A-Z]+) \|", packet, re.MULTILINE)
-        self.assertEqual(rows, [("1", "PARTIAL"), ("2", "PARTIAL"), ("3", "PARTIAL"), ("4", "UNMET"), ("5", "PARTIAL")])
-        for boundary in (
-            "Citation-Only ADAPT",
-            "not a full A/B/C proof and not product",
-            "Unresolved redistribution rights remain",
-            "No contemporaneous same-context benchmark/price conflict was established",
-            "campaign terminal boundary remains uncertain",
-            "Keep issue #12 open and downstream value/rights gates unmet",
+        cases = re.findall(r"^### E([1-6]):", packet, re.MULTILINE)
+        self.assertEqual(cases, list("123456"))
+        recommendation = packet.split("## Recommendation\n", 1)[1]
+        self.assertRegex(recommendation.lstrip(), r"^\*\*(GO|ADAPT|STOP)\*\*:")
+        for responsibility in (
+            "Reference/fetch upstream",
+            "Normalize in thin MI",
+            "Preserve public history in MI",
+            "Own locally in Router",
+            "Direct upstream + Router adapters (STOP separate MI)",
+            "Thin reusable MI layer (ADAPT)",
+            "Broad separate MI service (GO)",
         ):
-            with self.subTest(boundary=boundary):
-                self.assertIn(boundary, " ".join(packet.split()))
+            with self.subTest(responsibility=responsibility):
+                self.assertIn(responsibility, packet)
 
     def test_citations_are_resolved_and_git_sources_are_pinned(self) -> None:
         packet = PACKET.read_text()
         definitions = dict(re.findall(r"^\[([^\]]+)\]: (https://\S+)$", packet, re.MULTILINE))
         references = re.findall(r"\[[^\]\n]+\]\[([^\]]+)\]", packet)
         self.assertEqual(set(references), set(definitions))
-        for name in ("models", "watch", "prices", "genai", "plans", "model-card", "zcode"):
+        for name in ("models", "watch", "prices", "genai", "plans", "zcode"):
             with self.subTest(source=name):
                 self.assertRegex(definitions[name], r"/(?:tree|blob)/[0-9a-f]{40}(?:/|$)")
-        self.assertIn("no retained durable capture", packet)
-        self.assertIn("no successful parent re-fetch is claimed", packet)
+        self.assertIn("no retained durable capture", " ".join(packet.split()))
+        self.assertRegex(definitions["router-source"], r"/src/commit/[0-9a-f]{40}$")
 
     def test_indices_preserve_the_limited_receipt(self) -> None:
         for name in ("README.md", "ROADMAP.md"):
             with self.subTest(index=name):
                 self.assertIn("(SOURCE_VALUE_REVIEW.md)", (ROOT / name).read_text())
-        self.assertIn("partial/unmet criteria; no product GO", (ROOT / "ROADMAP.md").read_text())
+        self.assertIn("No owner GO", (ROOT / "ROADMAP.md").read_text())
 
-    def test_external_findings_are_not_promoted_to_verified_facts(self) -> None:
+    def test_analysis_does_not_reintroduce_false_viability_gates(self) -> None:
         packet = " ".join(PACKET.read_text().split())
-        self.assertIn("UNVERIFIED RESEARCH REPORT", packet)
-        self.assertIn("not independently verified upstream facts", packet)
-        self.assertIn("not independently verified license/terms coverage or legal clearance", packet)
-        self.assertNotIn("P1 verifies", packet)
-        self.assertNotIn("P3 verifies", packet)
-        for name in ("README.md", "ROADMAP.md"):
-            with self.subTest(index=name):
-                self.assertIn("unverified", (ROOT / name).read_text())
+        for boundary in (
+            "A same-context benchmark/price conflict is not a viability prerequisite",
+            "Unknown campaign boundaries and conflicting claims are normal domain states",
+            "no generalized dataset-redistribution gate",
+            "not independently reproduced consumer receipts",
+            "not authorization for GO",
+            "Keep issue #12 open and PR #23 unmerged",
+        ):
+            with self.subTest(boundary=boundary):
+                self.assertIn(boundary, packet)
+        self.assertNotIn("## Original Acceptance Disposition", packet)
 
 
 if __name__ == "__main__":
