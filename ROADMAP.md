@@ -158,9 +158,11 @@ architecture decisions.
 The documentation gate is `make check`, full-base scope/whitespace and link/index/
 decision consistency inspection, followed by a fresh native whole-PR reviewer that
 also reads this matrix and linked issue acceptance. Exact clean HEAD/base and
-Forgejo currentness are required; maximum three remediation rounds. Native
-APPROVE is distinct from a formal Forgejo review. Neither means product GO,
-`READY_FOR_LIVE_TASK`, merge or completion of these functional gaps.
+Forgejo currentness are required. That alignment delivery used the historical
+maximum three remediation rounds; current development follows [AGENTS.md](AGENTS.md)
+and its issue-delivery review bound. Native APPROVE is distinct from a formal
+Forgejo review. Neither means product GO, `READY_FOR_LIVE_TASK` or completion of
+these functional gaps; only explicit `/loop` adds verified develop integration.
 
 [alignment]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/11
 [abc]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/1
