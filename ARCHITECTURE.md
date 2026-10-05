@@ -62,8 +62,12 @@ contracts must be inspected before proposing new interfaces.
 The integrated [R2 issue #9][r2] and [tests](tests/test_separated_proof.py) use
 synthetic identities, `example.invalid` references and synthetic licenses. Their
 coverage is semantic evidence, not verified manufacturer facts, redistribution
-rights or a product GO. The original [A/B/C contract #1][abc] remains the real-source
-value/rights and unbiased STOP/GO gate; [#12][value] supplies the missing research.
+rights or a product GO. The original [A/B/C contract #1][abc] remains binding;
+its full real-source proof remains unclaimed. Completed/closed [#12][value] and [merged PR #23][value-pr]
+deliver independently reviewed source comparison and accepted ADAPT to a thin
+upstream-backed public-evidence and selected-history layer, not product GO,
+full A/B/C proof or installed MI-Router acceptance. Future implementation and
+receipts belong to the remaining backlog, not to reopening #12.
 
 | Existing implementation | Delivered meaning and representative proof |
 | --- | --- |
@@ -128,10 +132,11 @@ telemetry; an MI outage alone must not stop an ongoing authorized Attempt. New u
 depends on consumer policy, with critical withdrawal distinct from a missing new
 price. MI must expose those meanings, not impose a universal undocumented TTL.
 
-The read-only planning audit examined the Router's local artifact/calibration seam,
-but external checkout reads are outside the native reviewer's permissions. This
-PR therefore does not publish those sibling-code assertions as independently
-Verified contracts. Existing Router task records and the new [consumer #176][router-mi]
+The historical #11 planning audit examined the Router's artifact/calibration seam
+without an independently verified sibling-source receipt. Completed #12/merged
+PR #23 subsequently supplied independently reviewed committed-source observations
+through an authorized read-only path, not producer-consumer contract conformance.
+Existing Router task records and [consumer #176][router-mi]
 define obligations to inspect against frozen producer/consumer source in
 [#13][publication]/[#14][semantics]: admitted offline evidence, explicit identity
 and effort, reviewed calibration, provenance, compatibility and safe migration.
@@ -183,8 +188,11 @@ Earlier source-shape investigations in [#3][first] are evidence to revisit, not
 current approval. No material is newly copied by this alignment. Exact source
 revision/files, semantic fit, negative tests, safety, dependencies/maintenance and
 separate code/data/API/attribution/redistribution/commercial rights must be verified
-in [#12][value] before material use. Unknown rights block publication; public read
-is not blanket permission. Record NOTICE/provenance when material first lands.
+for actual future material use under [#15][acquisition]/[#18][distribution], using
+the completed [#12][value] analysis rather than reopening it. Unknown copying
+rights block that copying/publication route, not ordinary observed/cited public
+facts. Public read is not blanket redistribution permission; record NOTICE and
+provenance when material first lands.
 
 Imported data/text is untrusted content, never executable instructions or a
 permission change. [#15][acquisition] must prove safe retrieval/parsing and recovery
@@ -206,6 +214,7 @@ the decisions in their canonical issues/PRs rather than rewriting them.
 | [#7][second] / [PR #8][second-pr] | Unmerged STOP_REVISE at `c70bbd380a0728bad04112f1c02f076fb94ee1e4`; latest-known heads and effective applicability plus causal deltas required separation. Budget/history retained. |
 | [#9][r2], merged [PR #10][r2-pr] | R2 separation delivered; final native APPROVE at `177471b7bc083e796d03096382740d1b2d80d676` is synthetic-proof approval, not live accuracy or final GO. |
 | [#11][alignment], current owner direction | Shared target and full known professional scope replace a bootstrap-only prohibition on public-module dependencies. Private onprem dependence remains disallowed. Registered gaps do not authorize feature implementation. |
+| Completed/closed [#12][value], merged [PR #23][value-pr] | Accepted ADAPT to a thin upstream-backed public-evidence and selected-history layer. Not product GO, full A/B/C proof or installed MI-Router acceptance; unresolved implementation belongs to the remaining backlog. |
 
 Proposed Clarification: use frozen evidence-cut references and explicit per-class
 validity diagnostics rather than treating an effective-time query as historical
@@ -213,8 +222,9 @@ acquisition replay. Rationale: current R2 deliberately separates supplied knowle
 from applicability. Approve the actual contract through [#13][publication], not
 by silently changing the proof API in this documentation PR.
 
-To Prove/decide: lawful added value and owner STOP/GO ([#12][value]); precise
-publication/update/completeness mechanism and consumer policies ([#13][publication]);
+The ADAPT outcome and analysis delivery for #12 are settled. Still To Prove/decide:
+full A/B/C receipt ([#1][abc]), precise publication/update/completeness mechanism
+and consumer policies ([#13][publication]);
 raw-evidence versus derived-calibration ownership if contested ([#14][semantics]);
 optional feedback benefit/privacy approval or explicit return criterion
 ([#17][feedback]). No invented numeric cost/quality/time threshold settles these.
@@ -232,6 +242,7 @@ APPROVE leaves the [functional roadmap](ROADMAP.md) open and is never
 [r2]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/9
 [r2-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/10
 [value]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/12
+[value-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/23
 [publication]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
 [semantics]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/14
 [acquisition]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15

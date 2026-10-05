@@ -14,7 +14,7 @@ class SourceReviewTests(unittest.TestCase):
         cases = re.findall(r"^### E([1-6]):", packet, re.MULTILINE)
         self.assertEqual(cases, list("123456"))
         recommendation = packet.split("## Recommendation\n", 1)[1]
-        self.assertRegex(recommendation.lstrip(), r"^\*\*(GO|ADAPT|STOP)\*\*:")
+        self.assertRegex(recommendation.lstrip(), r"^\*\*ADAPT\*\*: the accepted outcome")
         for responsibility in (
             "Reference/fetch upstream",
             "Normalize in thin MI",
@@ -52,11 +52,21 @@ class SourceReviewTests(unittest.TestCase):
             "no generalized dataset-redistribution gate",
             "not independently reproduced consumer receipts",
             "not authorization for GO",
-            "Keep issue #12 open and PR #23 unmerged",
+            "Issue #12 is completed/closed; PR #23 is merged",
         ):
             with self.subTest(boundary=boundary):
                 self.assertIn(boundary, packet)
         self.assertNotIn("## Original Acceptance Disposition", packet)
+        self.assertNotIn("Keep issue #12 open", packet)
+        self.assertNotIn("PR #23 unmerged", packet)
+        for name in ("README.md", "ROADMAP.md", "ARCHITECTURE.md"):
+            with self.subTest(document=name):
+                text = " ".join((ROOT / name).read_text().split())
+                self.assertIn("ADAPT", text)
+                self.assertIn("completed/closed", text.lower())
+                self.assertIn("not product go", text.lower())
+                self.assertNotIn("Issue #12 is open", text)
+                self.assertNotIn("Complete #12", text)
 
 
 if __name__ == "__main__":
