@@ -11,6 +11,11 @@ Neither decision approves a permanent public wire ABI, production publisher,
 private admission/cancellation, installed MI-Router acceptance, release or product GO.
 All #13 criteria and downstream gates remain; incompatibilities require revision.
 
+Issue #13 is completed/closed through [merged PR #26][delivery]. The [completion
+receipt][completion] records exact independent approval, integrated acceptance and
+conformance evidence. Remaining production/adoption/installed work stays in the
+backlog; this does not grant product GO or permanent schema/ABI status.
+
 The candidate uses original standard-library code and owned synthetic fixtures.
 No upstream code/data/fixtures, private accounts, calibration ratings or consumer
 product functions are copied or implemented. No source acquisition, service, CLI,
@@ -285,3 +290,5 @@ the earlier MI-local offer fixture nor context-only provenance can replace it.
 [kernel]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/55
 [working]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-14882
 [accepted]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-15114
+[delivery]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/26
+[completion]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-15216
