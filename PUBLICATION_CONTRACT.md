@@ -2,11 +2,12 @@
 
 ## Status and Boundaries
 
-This is the bounded [issue #13][issue] artifact/conformance proposal after the
-accepted thin-layer ADAPT outcome in closed #12/merged PR #23. It is not an approved
-cross-product wire contract, a production publisher, installed Router consumption,
-Kernel acceptance or product GO. Producer/consumer acceptance is explicitly reserved
-by #13; executable local conformance does not invent that agreement.
+This is the bounded [issue #13][issue] artifact/conformance work after the accepted
+thin-layer ADAPT outcome in closed #12/merged PR #23. The owner accepted framing and
+immutable reference mechanics as the working baseline on 2026-10-05 ([receipt][working]).
+That is not approval of a final public wire ABI, permanent payload, Router admission,
+production publisher, installed MI-Router acceptance, Kernel authority or product GO.
+All #13 criteria remain, and incompatible baseline choices can be revised.
 
 The candidate uses original standard-library code and owned synthetic fixtures.
 No upstream code/data/fixtures, private accounts, calibration ratings or consumer
@@ -27,7 +28,7 @@ working files or an installed execution:
 
 | Consumer | Frozen source | Actual mechanism and limit |
 | --- | --- | --- |
-| [Router #176][router] | `6c337a400b4cdc28ded543d2ae8ccf3749d79cb7` | `selection_app.py:107-151` strict JSON loading; `selection_types.py:244-274` closed shapes, `958-1004` evidence references, `1458-1523` catalog version/date; `selector.py:1515-1555` decision metadata. These are not MI adoption or a complete utilized-reference digest. |
+| [Router #176][router] | `6c337a400b4cdc28ded543d2ae8ccf3749d79cb7` | `selection_types.py:958-1004` validates four-field `EvidenceRef`; `selector.py:1515-1758` serializes `SelectionDecision` without an MI reference/extension slot. `selection_app.py` is not imported: it probes artifact paths. These are not MI adoption or a complete utilized-reference digest. |
 | Router calibration | Same committed pin | `CapabilityAssessment` requires reviewed evidence/confidence/date/rationale for ratings; unknown assessments cannot carry partial provenance. Raw MI uncertainty must not be forced into that calibration shape. Derived inventory projections can retain base catalog version/date, so those alone are not a complete utilized cut. |
 | [Kernel #55][kernel] | `5048c5cef95e546377d5e20baeae16b99b1bd088` | `core/context.py` sources/digests, `ports/allocation.py` original allocation/context hash checks, `ports/application.py` preparation/restart, `adapters/sqlite_store.py:691-766` content-addressed immutable artifacts. These retain references but do not implement MI reference validation. |
 
@@ -57,6 +58,34 @@ allowlist. A digest inside the same untrusted artifact cannot authenticate a
 publisher. Local pinned references suffice for this offline integrity proof;
 future release trust and distribution remain separately accepted scope.
 
+## Working Public Payload
+
+`mi.public-evidence-working/1` is a candidate grammar, not a permanent ABI or a
+serialization of Python class names. `contract.py` names explicit JSON fields and
+validates closed shapes throughout:
+
+| Root | Contents and checked meaning |
+| --- | --- |
+| `applicability` | Scope ID, declared source roster, public channel and native configuration. `null` channel/configuration or parameter is unknown, never a wildcard. Known effort string `none` remains distinct from unknown/unconfigured. Scope/roster changes require consumer review. |
+| `observations` | ID/source/authority/type/reference/revision, rights metadata and separate acquisition/observation/publication/freshness instants. Declared sources must be covered, revisions must cover every observation, and frame pins must match. No fixed TTL, authority winner or license grant inferred. |
+| `statements` | Explicit subject and tagged model capability/benchmark/price, plan baseline/campaign, and surface assertions; source ID linkage, effective time and supplied comparable replacement. All current R2 families round-trip; decimal values have native unit/currency/method/configuration context and are not calibrated ratings. |
+| `notices` | Attributed source revocation/retraction, affected member IDs, effective time, reported criticality (`true`/`false`/unknown) and explicit lineage. No synthetic admission/cancellation or producer-issued authority. |
+| `uncertain_campaigns` | Retained reported terms and unknown start/end boundaries with source/context/conditions. They do not construct an invented R2 `Period` or an active discount; consumer-required uncertainty remains visible. |
+
+Membership covers observations/statements/notices/uncertain annotations, not just
+current effective values. Source-roster, history, nested field and identity failures
+reject before activation. A producer cannot self-shrink a registered consumer scope
+and call it compatible. Completeness means this explicit supplied scope, not all
+ecosystem sources or a claim that every source was freshly fetched. Retained stale
+records are complete-but-stale, never fresh merely because publication occurred.
+Source metadata and public factual citations do not create a generalized legal gate;
+actual copied/distributed payload rights are separately required when applicable.
+
+R2 `Evidence`, temporal evaluation and deltas remain unchanged. Supplementary source
+notices and uncertain campaigns are separate from that proof's payload classes.
+Unsupported fields/kinds reject; this work does not invent numeric-limit/calibration
+mapping belonging to #14 or promise active prices from unknown interval bounds.
+
 Serialization sorts producer keys/membership/source references; it makes repeated
 owned inputs deterministic, not a claim of a general cross-language canonical JSON
 standard. Consumers hash received bytes before parsing, not their own reserialization.
@@ -82,6 +111,26 @@ the applicable input context. The owned fixture uses a public synthetic client
 condition; private inventory/account/calibration/admission inputs remain local to
 Router/Kernel. MI does not receive them or own final new-use admission.
 
+The actual `EvidenceRef` has `source`, `identifier`, optional `version` and optional
+calendar `date`; it rejects extra keys and nested identifiers. A date is not an
+evaluation instant. Actual `SelectionDecision.to_dict` rounds its timestamp to
+milliseconds and has no metadata/provenance/evidence-reference extension field.
+Catalog version/date and a selected identity cannot reconstruct a utilized MI cut.
+
+`utilization.py` therefore binds a separate working utilization artifact: full cut
+reference (or explicit unknown), exact UTC evaluation instant, hash of the exact
+caller-retained decision bytes and context bytes. Its reference fits the inspected
+EvidenceRef shape with a digest URI/version and no calendar date. The manifest and
+any private context stay local to the consumer/Kernel, not a public MI feed. One
+microsecond changes this reference even when Router's decision timestamp is equal.
+
+The owned fixtures propose a `mi_utilization` reference beside `decision` in the
+machine envelope, never extra fields inside the closed EvidenceRef or actual
+decision. The pinned Kernel parser preserves that extra envelope member in its
+opaque provenance, and allocation encoding preserves it. That permissive behavior
+is **not** an approved Router emission ABI: Router at this pin does not emit it or
+validate the manifest. Future #176/Kernel acceptance must settle that transport.
+
 Two cuts at the same effective time can differ because a past-effective claim was
 learned later. Replay uses the retained old cut, not today's store, so it cannot
 invent historical acquisition lineage. An evidence addition may change reference
@@ -97,7 +146,14 @@ evidence. Retrieval-only changes never renew `fresh_until` or infer lineage.
 | Conflict | Preserve comparable disagreeing claims and participants. No authority, source recency, retrieval time or lexical winner. Different economic bases are not automatically comparable. |
 | Correction / future revision | Supplied links and effective boundary control replacement; source retrieval or equal values cannot infer correction. Known future evidence can be retained before becoming effective. |
 | Expiry / withdrawal / disappearance | A bounded campaign expires at its supplied boundary offline; an explicit withdrawal references its predecessor. Missing rows or refresh failure do not erase history or withdraw facts. |
-| Critical revocation | Not synonymous with campaign withdrawal, stale price or parser failure. R2 has no general criticality classifier. Classification/authority and effects on new use or active Attempts require the relevant producer/consumer acceptance; no cancellation policy is invented by the frame. |
+| Critical revocation | A source-reported critical assertion with targets, provenance and effective time, distinct from an ordinary source revocation, campaign withdrawal, stale price or parser failure. Unknown reported criticality is not false. Explicit same-source/target retraction preserves the original notice. Source assertion is not MI-issued admission denial or cancellation authority; consumer/Kernel policy owns effects. |
+
+Known future notices stay inactive until their effective boundary. Explicit notice
+lineage must retain comparable targets/source and monotone time, with no cycles or
+inferred replacement. Independent or sibling notices remain visible: there is no
+lexical/recency winner. Source freshness and reported criticality are orthogonal;
+an expired freshness deadline cannot erase a critical report or turn it into a
+missing price. Public views retain diagnostics; they do not resolve private policy.
 
 Uncertain campaign ends remain uncertain annotations in a future approved payload,
 not fabricated `Period` values or silent R2 changes. #14 coordinates actual
@@ -128,8 +184,45 @@ local reference mechanism, not actual Router/Kernel lifecycle behavior.
 The proof also exercises unknown/stale price, conflict, future withdrawal, offline
 expiry, two evidence cuts at one evaluation time, acquisition-only reference change
 and separate evidence/projection deltas. Existing R2 tests cover daily windows and
-other fact families. They do not prove an agreed production mapping or critical
-revocation policy; those receipts are not claimed by green tests.
+other fact families. This original framing proof is not the sole conformance receipt.
+
+`tests/test_router_conformance.py` adds original Router-shaped references and
+SelectionDecision output, the working public payload, scoped source notices and
+Kernel-shaped versioned allocation/original-input traces. It receives pre-authorized
+owned decisions rather than implementing selection/admission. Interrupted updates,
+later evidence and critical reports do not rewrite retained cut/utilization/decision/
+allocation/context bytes. Context fixtures use the actual empty resolved-input-list
+shape; intent carries AttemptSpec digest, allocation/context references use `sha256:`.
+
+`tests/verify_router_consumers.py` separately executes only inspected pure parsers,
+constructors and serializers at the exact pins above. Git blob identity is checked
+for all archived package files before import; sources are read-only, bytecode is
+disabled, environment is empty/allowlisted, explicit source/runtime read roots and network/subprocess/write audit guards
+apply after source verification. No selector, allocator, runtime, journal/database,
+application advancement or provider operation is invoked. No foreign code/fixture
+is vendored or made a product dependency; temporary exports retain LICENSE/NOTICE.
+
+Supplemental reproduction after exporting the exact package objects with `git archive`
+and retaining the licenses (no checkout of dirty sibling files):
+
+```bash
+env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=/tmp/kilo/mi13-check-home \
+  PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -I -S -B tests/verify_router_consumers.py \
+  <router-archive> <router-object-repo> <kernel-archive> <kernel-object-repo>
+```
+
+Use a deliberately synthetic writable HOME outside source trees. The script checks
+the full archived package's Git blob IDs at the pins above before import. It requires
+read-only Git access to those objects, not installed package dependencies. It is
+supplemental to required `make check`, not a skip or substitute for that gate.
+
+It checks owned results against actual EvidenceRef and SelectionDecision types,
+Kernel response validation/canonical provenance/allocation encode-decode and
+AttemptSpec reference/digest shapes, including known `none` versus unconfigured
+`null`. Actual-shaped retained input bytes remain unchanged under MI failure.
+This is exact-pin offline code conformance, not an installed consumer or execution
+receipt. Its output explicitly marks installed acceptance and Router emission of
+the proposed MI extension false. Green tests do not authorize critical-event policy.
 
 ## Acceptance, Migration and Operator Guidance
 
@@ -148,13 +241,14 @@ producer-consumer parity and replacement acceptance. Preserve source provenance
 and rights of any actual distributed payload; the owned synthetic codec needs no
 third-party dataset copying and does not grant permission for future copies.
 
-Owner acceptance outstanding under #13 is the precise public framing/reference/
-completeness/compatibility contract and associated payload/admission boundaries,
-not permission to choose ordinary JSON, hashing or test mechanics. Criticality,
-publisher authenticity, consumer migration and installed behavior are not silently
-settled. This proposal plus executable local proof is evidence for that agreement,
-not authority to invent it or close #13 as completed.
+Working-baseline acceptance permits this coordinated grammar/conformance work,
+not completion or final public ABI adoption. Critical source meaning is defined
+without inventing admission/cancellation authority; publisher authenticity,
+consumer migration, producer/consumer acceptance of the full candidate and installed
+behavior are not silently settled. Actual-shaped proof and independent review must
+assess all criteria; the earlier MI-local offer fixture alone cannot close #13.
 
 [issue]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
 [router]: https://forgejo.creatidy.com/BioMedical-IT/scarcity-router/issues/176
 [kernel]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/55
+[working]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13#issuecomment-14882
