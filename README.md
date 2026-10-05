@@ -19,6 +19,8 @@ requirements are registered even where their implementation depends on that proo
   limits, integration requirements, security/reuse and decision history.
 - [Roadmap and gap matrix](ROADMAP.md): G01-G13, actual Forgejo tasks, priorities,
   cross-product dependencies and measurable acceptance sequence.
+- [Citation-only source review](SOURCE_VALUE_REVIEW.md): issue #12 evidence,
+  conditional reuse recommendations and unmet full-proof criteria; not product GO.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
