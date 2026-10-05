@@ -25,8 +25,9 @@ not to reopening #12.
   cross-product dependencies and measurable acceptance sequence.
 - [Product-value analysis](SOURCE_VALUE_REVIEW.md): issue #12 upstream/Router
   comparison, real cases and accepted narrow public-evidence ADAPT outcome; not product GO.
-- [Publication framing candidate](PUBLICATION_CONTRACT.md): issue #13 reference,
-  integrity and synthetic conformance proposal, not an agreed consumer wire API.
+- [Minimum publication contract](PUBLICATION_CONTRACT.md): completed/closed #13,
+  merged PR #26, accepted payload/reference/critical semantics and exact-pin
+  decision-bound conformance; not a permanent ABI or installed consumer acceptance.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,

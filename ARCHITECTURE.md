@@ -91,10 +91,12 @@ learned; it is not a historical "what was known at T" query. Replay needs a froz
 input evidence set/reference. `effective_at()` does not enforce freshness policy;
 `fresh_until=None` means no stale flag, not affirmative freshness. `Observation`
 license/distribution strings are declarations, not an enforced publication gate.
-There is no integrated snapshot serializer/version/manifest, persisted-history
-contract, publisher, source client, MI CLI or consumer loader. [#13][publication]
-must settle evidence-cut/validity semantics; [#15][acquisition] delivers the
-permitted-source producer, not this documentation task.
+Completed/closed [#13][publication] and merged [PR #26][publication-pr] deliver the
+accepted minimum framing/payload/reference contract, critical-source semantics and
+offline decision-bound conformance. Production publisher/source client/MI CLI,
+consumer loader, distribution and installed acceptance remain undelivered under
+[#15][acquisition]/[#18][distribution]/[#19][acceptance]. The contract is not product
+GO or a permanent public ABI; source/projection temporal APIs remain unchanged.
 
 ## Agreed Evidence Requirements
 
@@ -111,8 +113,8 @@ without treating unknown as unlimited or weakening consumer requirements.
 
 Each material observation needs source and revision/reference, subject, acquisition
 time and applicability conditions/time. Public known/unknown/stale/conflicting/
-withdrawn meanings must be explicit in [#13][publication]; no new status enum is
-approved here. Correction/revocation cannot erase earlier evidence. Source failure
+withdrawn meanings are explicit in completed [#13][publication]'s minimum contract,
+without a universal status enum or authority winner. Correction/revocation cannot erase earlier evidence. Source failure
 or disappearance cannot extend promotion validity or turn missing price into free
 access. Promotions may depend on dates, timezone, plan, model, access channel and
 harness; applicable conflict, missing data, changed terms and expiry stay distinct.
@@ -141,11 +143,14 @@ define obligations to inspect against frozen producer/consumer source in
 [#13][publication]/[#14][semantics]: admitted offline evidence, explicit identity
 and effort, reviewed calibration, provenance, compatibility and safe migration.
 Issue records are contract evidence, not substitute source/test/live evidence or
-permission to redistribute curated data. The MI consumer contract is still To Prove.
+permission to redistribute curated data. Completed #13/merged PR #26 supplies
+source-verified pure-code producer/consumer conformance and accepted minimum
+utilization/envelope binding. Router at the inspected pin does not emit that binding;
+installed use is unverified, with consumer delivery/receipts in #176/#55/#19.
 
 | Contract | Producer / consumer owner | Required receipt | Registered work |
 | --- | --- | --- | --- |
-| Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | [MI #13][publication], production [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
+| Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | Completed [MI #13][publication] minimum contract; remaining [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
 | Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Small versioned language with negative/unknown cases; no automatic transfer of existing calibration or third scale. | [MI #14][semantics], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
 | Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator], separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
 | Optional operational evidence | Kernel/Router local export / MI only after separate approval | Consent/minimization/provenance and cautious inference; denial/withdrawal leaves core operation intact. | [MI #17][feedback], local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
@@ -159,10 +164,11 @@ counterpart was not identified; [MI #16][operator] records its expected owner/co
 without designing Console. [ROADMAP.md](ROADMAP.md) gives the complete received
 requirements/gateway/budget/concurrency/compatibility matches and their scope.
 
-No endpoint, payload, CLI flag, protocol version, global ontology, PKI or broker is
-approved by this table. [#13][publication] and [#14][semantics] are bounded contract
-research/conformance tasks. Their proposed choices require owner acceptance and
-producer-consumer tests before a separately selected functional delivery. Optional
+This table itself does not approve an endpoint, permanent ABI, CLI, global ontology,
+PKI or broker. Completed #13 has its separately accepted minimum payload/reference
+contract and negative conformance; remaining [#14][semantics] mapping choices need
+their own accepted evidence. Production acquisition/distribution/consumer adoption
+remain separately selected deliveries. Optional
 Kernel queries for versioned harness/interface evidence cannot create a second
 ranker or replace adapter tests. Router ZCode support is not Kernel ZCode runtime.
 
@@ -215,16 +221,18 @@ the decisions in their canonical issues/PRs rather than rewriting them.
 | [#9][r2], merged [PR #10][r2-pr] | R2 separation delivered; final native APPROVE at `177471b7bc083e796d03096382740d1b2d80d676` is synthetic-proof approval, not live accuracy or final GO. |
 | [#11][alignment], current owner direction | Shared target and full known professional scope replace a bootstrap-only prohibition on public-module dependencies. Private onprem dependence remains disallowed. Registered gaps do not authorize feature implementation. |
 | Completed/closed [#12][value], merged [PR #23][value-pr] | Accepted ADAPT to a thin upstream-backed public-evidence and selected-history layer. Not product GO, full A/B/C proof or installed MI-Router acceptance; unresolved implementation belongs to the remaining backlog. |
+| Completed/closed [#13][publication], merged [PR #26][publication-pr] | Accepted minimum public payload, critical-source semantics, immutable cut/evaluation/decision binding and pinned-code offline conformance. Not permanent ABI, private admission/cancellation, product GO or installed acceptance; remaining implementation belongs to #14-#19 and actual consumers. |
 
-Proposed Clarification: use frozen evidence-cut references and explicit per-class
+Agreed minimum #13 contract: use frozen evidence-cut references and explicit per-class
 validity diagnostics rather than treating an effective-time query as historical
 acquisition replay. Rationale: current R2 deliberately separates supplied knowledge
-from applicability. Approve the actual contract through [#13][publication], not
-by silently changing the proof API in this documentation PR.
+from applicability. Completed #13 supplies the accepted contract and verifiable
+capture/use/emit fixture without silently changing the proof API.
 
 The ADAPT outcome and analysis delivery for #12 are settled. Still To Prove/decide:
-full A/B/C receipt ([#1][abc]), precise publication/update/completeness mechanism
-and consumer policies ([#13][publication]);
+full A/B/C receipt ([#1][abc]), production acquisition/publication ([#15][acquisition]),
+distribution/migration ([#18][distribution]) and installed consumer policies/receipt
+([#19][acceptance]); do not repeat settled #13 contract acceptance;
 raw-evidence versus derived-calibration ownership if contested ([#14][semantics]);
 optional feedback benefit/privacy approval or explicit return criterion
 ([#17][feedback]). No invented numeric cost/quality/time threshold settles these.
@@ -244,6 +252,7 @@ APPROVE leaves the [functional roadmap](ROADMAP.md) open and is never
 [value]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/12
 [value-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/23
 [publication]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
+[publication-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/26
 [semantics]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/14
 [acquisition]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15
 [operator]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/16

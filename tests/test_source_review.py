@@ -68,6 +68,19 @@ class SourceReviewTests(unittest.TestCase):
                 self.assertNotIn("Issue #12 is open", text)
                 self.assertNotIn("Complete #12", text)
 
+    def test_completed_publication_contract_is_not_documented_as_missing(self) -> None:
+        for name in ("README.md", "ROADMAP.md", "ARCHITECTURE.md", "PUBLICATION_CONTRACT.md"):
+            with self.subTest(document=name):
+                text = " ".join((ROOT / name).read_text().split())
+                self.assertIn("#13", text)
+                self.assertIn("completed/closed", text.lower())
+                self.assertIn("PR #26", text)
+                self.assertIn("permanent", text)
+                self.assertNotIn("not an agreed consumer wire API", text)
+                self.assertNotIn("consumer contract is still To Prove", text)
+                self.assertNotIn("Only in-memory evidence/views/deltas exist", text)
+                self.assertNotIn("Approve the actual contract through", text)
+
 
 if __name__ == "__main__":
     unittest.main()
