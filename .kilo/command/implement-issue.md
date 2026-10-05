@@ -4,8 +4,11 @@ description: Implement one Adrian-selected Forgejo issue through an unmerged dev
 
 Implement the single owner-selected issue: $ARGUMENTS
 
-Read AGENTS.md and its listed rules. Do not choose another issue. An explicit
-number, URL or unambiguous title is required; resolve/fetch the actual issue via
+Read AGENTS.md and its listed rules. Standalone invocation requires an explicit
+owner-selected number, URL or unambiguous title; do not choose another issue.
+Only an explicit owner `/loop` invocation may supply its canonically selected issue
+instead, under `.kilo/command/loop.md`; this command cannot initiate autonomous
+selection itself. Resolve/fetch the actual issue via
 Forgejo MCP before planning/editing. Confirm its goal, scope, acceptance and
 constraints; seek only genuine decisions, not routine reversible choices.
 
@@ -15,7 +18,9 @@ constraints; seek only genuine decisions, not routine reversible choices.
    develop and record its exact SHA; switch/update local develop safely, with no
    guessed reconciliation of divergence.
 2. Create an ordinary `issue-<number>-<short-topic>` branch from that exact SHA in
-   the SAME checkout. Do not use git worktree or alternate checkout management.
+   the SAME checkout. For an existing current authorized issue PR, continue its
+   fetched branch/HEAD under finish-pr's safe checkout rules rather than creating
+   a replacement. Do not use git worktree or alternate checkout management.
 3. Implement only accepted scope; use reuse-first and product-boundary rules.
    Track short local progress when needed, excluded through .git/info/exclude.
 4. Run focused checks and final `make check`. Inspect intended diff/status/full
@@ -24,10 +29,11 @@ constraints; seek only genuine decisions, not routine reversible choices.
    coherent, reviewable commits as needed, including remediation commits; commit
    count is not acceptance. Follow the history-safety rule in
    `.kilo/rules/30-implementation-discipline.md`. Push via normal Git.
-6. Create one Forgejo MCP PR targeting develop with `Refs #N`, scope, acceptance
+6. Create/reuse one Forgejo MCP PR targeting develop with `Refs #N`, scope, acceptance
    evidence, exact base/head SHAs, checks/results and limitations. Keep issue open.
 7. Post a concise issue update with PR and validation. Continue through the native
    `/finish-pr` workflow on that PR until its bounded terminal outcome; consume
    reviewer task results directly, with no owner relaying. The implementation
-   context is not an independent reviewer. Never merge/auto-merge, touch main,
-   release or deploy.
+   context is not an independent reviewer. Standalone implementation never merges;
+   only the explicit `/loop` orchestrator may proceed after exact approval through
+   loop.md's merge/completion gates. Never auto-merge, touch main, release or deploy.

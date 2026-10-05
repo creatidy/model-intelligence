@@ -19,7 +19,7 @@ requirements are registered even where their implementation depends on that proo
   limits, integration requirements, security/reuse and decision history.
 - [Roadmap and gap matrix](ROADMAP.md): G01-G13, actual Forgejo tasks, priorities,
   cross-product dependencies and measurable acceptance sequence.
-- [Agent guidance](AGENTS.md): owner-selected work and native bounded PR review.
+- [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
 including cost, quota, time, remediation, review and owner attention, not cheapest
@@ -89,6 +89,9 @@ uv build
 
 `make check` owns locked synchronization, Ruff lint/format, basedpyright, local
 standard-library tests and Git whitespace checks. Tests use no live services.
-Development starts from an explicitly Adrian-selected Forgejo issue; see
-[AGENTS.md](AGENTS.md). PRs target `develop`; merge, `main` promotion and releases
-remain human-controlled. Licensed under [Apache-2.0](LICENSE).
+Standalone development starts from an explicitly Adrian-selected Forgejo issue;
+see [AGENTS.md](AGENTS.md). Only an explicit owner `/loop` delegates successive
+canonical issue selection, exact independently approved PR merge to `develop` and
+verified completed-issue closure. Standalone finishing stops at READY_TO_MERGE;
+`main` promotion, releases and deployment are not authorized by these commands.
+Licensed under [Apache-2.0](LICENSE).
