@@ -81,6 +81,19 @@ class SourceReviewTests(unittest.TestCase):
                 self.assertNotIn("Only in-memory evidence/views/deltas exist", text)
                 self.assertNotIn("Approve the actual contract through", text)
 
+    def test_completed_capability_research_is_not_production_mapping_approval(self) -> None:
+        for name in ("README.md", "ROADMAP.md", "ARCHITECTURE.md"):
+            with self.subTest(document=name):
+                text = " ".join((ROOT / name).read_text().split())
+                self.assertIn("#14", text)
+                self.assertIn("PR #31", text)
+                self.assertIn("completed/closed", text.lower())
+                self.assertIn("production mapping", text)
+                self.assertIn("installed acceptance", text)
+                self.assertNotIn("To Prove small versioned language", text)
+                self.assertNotIn("remaining #14 mapping", text)
+                self.assertNotIn("#14 mapping remains", text)
+
 
 if __name__ == "__main__":
     unittest.main()
