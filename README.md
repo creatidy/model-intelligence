@@ -31,6 +31,9 @@ not to reopening #12.
 - [Capability boundary record](ARCHITECTURE.md#capability-boundary-record):
   completed/closed #14, merged PR #31, versioned ownership research and guarded
   offline mapping fixtures; not production mapping approval or installed acceptance.
+- [Optional operational sharing packet](OPERATIONAL_SHARING_REVIEW.md): #17
+  research and original synthetic examples, explicit owner decision pending;
+  no receiving format, collection, sharing authorization or automatic calibration.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
