@@ -125,6 +125,78 @@ No single intelligence score proves all usefulness, and a benchmark does not
 automatically imply `coding=5`. Kernel supplies task requirements; Router matches
 them. MI does not classify private tasks or establish entitlement.
 
+## Capability Boundary Record
+
+Record `mi.capability-boundary-research/1`, selected [#14][semantics]. Decision:
+retain the already agreed ownership, not move calibration or invent a third scale.
+This is a versioned research/fixture interpretation, not an approved production
+mapping schema, installed adoption or a change to #13's public payload grammar.
+Only separately accepted local contract implementation may add that production
+representation. The test-only `owned-capability-boundary/1` payload is not a new
+registered public wire format.
+
+Current read-only source cut, independently obtainable from canonical Git:
+
+| Owner / exact revision | Existing seam | Limit on the claim |
+| --- | --- | --- |
+| Router `1dae1948f372e0f1739896655bb7db97d6b08460` | `selection_types.py:319-384,500-697,832-948,1008-1134,1278-1340`; `selector.py:658-774`; catalog v5/policy v9/tracks v1. Exact identity/effort, explicit requirement ingestion, nullable input/output token properties and reviewed independent ratings. | No public alias-history/native-unit mapping artifact or MI loader; `machine_api.py:184-189` does not emit utilized MI references. Catalog version/date cannot identify an MI cut. |
+| Kernel `9dfa20931a46931d1e97d1f0efddcf2692afb7a7` | `core/resources.py:14-55`; `adapters/scarcity_router.py:230-270,412-465`; `ports/allocation.py:41-140`. Narrow reference/input-context translation, exact requirement echo and opaque retained provenance. | Translator actually emits L0/empty minima. No approved rich requirement producer, output/interface/harness/channel declaration or installed MI validation. This is not no-L0 rich requirement preservation. |
+
+Router paths are under `scarcity_router/`; Kernel paths are under
+`src/creatidy_kernel/`. Current code, not stale nearby docstrings, is authoritative:
+Router effort includes `ultra`, each candidate carries its explicit effort, and
+reviewed family-continuity floors may contain context/output assumptions. Those
+local assumptions are not public exact-model evidence. Kernel's approved richer
+translation follows semantic agreement (#51 comment 14074); requiring completed
+#51 before this bounded research would invert that ordering. The absent installed
+MI loader and rich producer constrain receipts, not this research's eligibility.
+
+| Meaning / approver | Bounded interpretation and refusal |
+| --- | --- |
+| Public subject, MI | Preserve requested alias, explicit physical model or unknown, model version, provider, channel, native parameters and surface/build version separately. No provider/model tuple, role label or opaque variant establishes physical execution or effort. Alias ambiguity retains all assertions, with no source-order winner. |
+| Public capability/limit, MI | Keep original source/reference/revision/time, native unit and meaning, exact channel/configuration and assertion strength. Input allowance is not total context; advertised output accommodation is not enforceable output control. Unknown, missing, stale, incompatible and conflicting remain distinct. |
+| Evidence adoption/projection, Router | A reviewed adapter can map an exact compatible input/output token allowance into existing hard properties. Unresolved applicability, units, freshness or conflicting values yield non-mapping, not unlimited/zero/free. Requirement bytes are never lowered. Public evidence alone is not local adapter proof or entitlement. |
+| Derived calibration, Router | Existing reviewable assessment evidence/date/confidence/rationale and configuration-specific ratings remain local. Raw contextual benchmarks never create a quality vector or private task minima. Unknown public evidence retains its provenance outside Router's provenance-free unknown assessment shape. |
+| Requirements and execution proof, Kernel | Kernel approves task meaning and preserves supported constraints through its adapter. Unsupported rich declarations must fail explicitly; do not put them through the current L0 reference subset or repurpose an input-context field. ZCode public evidence/Router support is not a Kernel runtime adapter. |
+
+Original executable research is in `tests/test_capability_boundary.py`: explicit
+subjects, managed unknown identity, ambiguity, channel/configuration/version changes,
+native limits, unknown/stale/conflicting evidence, incomparable benchmarks and
+advertised versus local support. Its comparison helper is test-only, neither a
+consumer implementation nor another ranker. The frame/decision relationship reuses
+the accepted #13 mechanics; typed evidence and R2 semantics are unchanged.
+
+`tests/verify_capability_consumers.py` separately checks exact pinned package Git
+blobs before importing inspected pure constructors/parsers/hard-constraint and
+capability-sufficiency functions. It exercises the current narrow reference shape,
+supported/insufficient/unknown input limits, explicit null/none/ultra effort, unchanged
+quality unknowns, decision-bound utilization and Kernel allocation retention. It
+never calls the selector/ranker, gateway, provider, allocator HTTP exchange or runtime.
+The actual Kernel reference translator is exercised with an owned in-memory exchange
+substituted before its call; no network transport or live allocation is performed.
+The caller-preauthorized synthetic candidate is not a private admission decision.
+The same read-only exports, synthetic environment and audit guard described in
+[PUBLICATION_CONTRACT.md](PUBLICATION_CONTRACT.md#executable-conformance-and-its-limits)
+apply, using the current pins above instead of #13's historical pins:
+
+```bash
+env -i PATH=/usr/local/bin:/usr/bin:/bin HOME=/tmp/kilo/mi12-r4-validation/home \
+  PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -I -S -B tests/verify_capability_consumers.py \
+  <router-archive> <router-object-repo> <kernel-archive> <kernel-object-repo>
+```
+
+Capture the admitted bytes/cut, interpretation version, exact requirement and local
+calibration/configuration BEFORE evaluation; retain the returned decision with
+#13's utilization reference. Original records and unresolved evidence survive a
+changed alias, channel or interpretation. Unsupported versions reject, retaining
+the prior bytes without making them fresh/admissible. A future persisted production
+mapping requires an explicit reviewed migration and new decision context; it must
+not rewrite earlier receipts or silently reuse calibration across configurations.
+No persisted production mapping exists here, so no guessed migration is implemented.
+Remaining acceptance is separately approved production mapping, rich Kernel producer
+translation, actual Router adoption/emission, local adapter proof and installed
+consumer receipt. Green offline fixtures grant none of those or product GO.
+
 ## Integration Contracts
 
 Agreed primary output is recognizable versioned knowledge with provenance,
