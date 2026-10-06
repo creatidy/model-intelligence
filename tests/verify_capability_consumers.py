@@ -66,6 +66,19 @@ def main() -> None:
         ((), "missing-compatible-evidence"),
         ((replace(fixture.INPUT, amount=None),), "unknown-limit"),
         (
+            (
+                replace(
+                    fixture.INPUT,
+                    observation=replace(
+                        fixture.INPUT.observation,
+                        retrieved_at=fixture.T + fixture.DAY,
+                        fresh_until=fixture.T + 2 * fixture.DAY,
+                    ),
+                ),
+            ),
+            "future-acquisition",
+        ),
+        (
             (replace(fixture.INPUT, observation=replace(fixture.INPUT.observation, fresh_until=None)),),
             "unknown-freshness",
         ),

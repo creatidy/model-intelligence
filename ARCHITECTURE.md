@@ -168,7 +168,8 @@ the accepted #13 mechanics; typed evidence and R2 semantics are unchanged.
 The research artifact embeds #13's validated public-evidence cut and associates
 each native limit with its retained observation ID/revision/assertion. Decoder
 metadata comes from that cut, not fixture-global defaults; outer scope, membership
-and source pins must agree. Serialized missing/unknown/stale/conflicting inputs
+and source pins must agree. Surface identity includes its provider, not just ID/build.
+Serialized missing/unknown/stale/conflicting and not-yet-acquired inputs
 fail before matching. Each known effort uses independently applicable evidence and
 its own utilized cut; unknown effort is a separate serialization/non-mapping case,
 never a successful receipt borrowing a `none`-configured limit.

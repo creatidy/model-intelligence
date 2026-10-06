@@ -65,6 +65,8 @@ def project_limit(limits: tuple[Limit, ...], subject: Subject, dimension: str) -
     rows = tuple(item for item in limits if item.subject == subject and item.dimension == dimension)
     if not rows:
         raise ValueError("missing-compatible-evidence")
+    if any(item.observation.retrieved_at > T for item in rows):
+        raise ValueError("future-acquisition")
     if any(item.observation.fresh_until is None for item in rows):
         raise ValueError("unknown-freshness")
     if any(item.observation.stale(T) for item in rows):
@@ -140,7 +142,11 @@ def record_payload(subject: Subject = SUBJECT, *, limits: tuple[Limit, ...] | No
             "model_version": subject.model_version,
             "channel": subject.channel,
             "configuration": dict(subject.configuration),
-            "surface": {"id": subject.surface.surface_id, "version": subject.surface.version},
+            "surface": {
+                "id": subject.surface.surface_id,
+                "provider": subject.surface.provider_id,
+                "version": subject.surface.version,
+            },
         },
         "public_evidence": {
             "data": data.decode(),
@@ -266,6 +272,15 @@ def admitted_limits(data: bytes, reference: CutReference, subject: Subject = SUB
 
 
 class CapabilityBoundaryTests(unittest.TestCase):
+    def test_serialized_surface_provider_cannot_be_relabelled_by_consumer(self) -> None:
+        changed = replace(SUBJECT, surface=replace(SUBJECT.surface, provider_id="other-surface-provider"))
+        data, ref = framed_record(record_payload())
+        changed_data, changed_ref = framed_record(record_payload(changed))
+        with self.subTest(check="distinct-artifacts"):
+            self.assertNotEqual((data, ref), (changed_data, changed_ref))
+        with self.subTest(check="no-relabel"), self.assertRaisesRegex(ValueError, "incompatible-mapping-context"):
+            admitted_limits(data, ref, changed)
+
     def test_serialized_observations_and_limits_retain_provenance_and_negative_states(self) -> None:
         changed = replace(
             INPUT,
@@ -278,6 +293,14 @@ class CapabilityBoundaryTests(unittest.TestCase):
         cases = (
             ((), "missing-compatible-evidence"),
             ((replace(INPUT, amount=None),), "unknown-limit"),
+            (
+                (
+                    replace(
+                        INPUT, observation=replace(INPUT.observation, retrieved_at=T + DAY, fresh_until=T + 2 * DAY)
+                    ),
+                ),
+                "future-acquisition",
+            ),
             ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=None)),), "unknown-freshness"),
             ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=T)),), "stale-evidence"),
             ((INPUT, replace(INPUT, identity="conflict", amount=Decimal("512"))), "conflicting-evidence"),
@@ -349,17 +372,23 @@ class CapabilityBoundaryTests(unittest.TestCase):
 
     def test_same_model_other_channel_configuration_and_version_do_not_transfer(self) -> None:
         self.assertEqual(project_limit((INPUT,), SUBJECT, "input_context_tokens"), 4096)
+        data, ref = framed_record(record_payload())
         for changed in (
             replace(SUBJECT, provider="other-provider"),
             replace(SUBJECT, requested="changed-alias"),
+            replace(SUBJECT, physical_model="other-physical-model"),
             replace(SUBJECT, channel="owned-plan"),
             replace(SUBJECT, model_version="revision-b"),
             replace(SUBJECT, configuration=(("effort", "high"),)),
             replace(SUBJECT, surface=replace(SUBJECT.surface, version="2.0")),
+            replace(SUBJECT, surface=replace(SUBJECT.surface, surface_id="other-client")),
+            replace(SUBJECT, surface=replace(SUBJECT.surface, provider_id="other-surface-provider")),
         ):
             with self.subTest(changed=changed):
                 with self.assertRaisesRegex(ValueError, "missing-compatible-evidence"):
                     project_limit((INPUT,), changed, "input_context_tokens")
+                with self.assertRaisesRegex(ValueError, "incompatible-mapping-context"):
+                    admitted_limits(data, ref, changed)
         plan = replace(SUBJECT, channel="owned-plan")
         plan_limit = replace(INPUT, identity="plan-limit", subject=plan, amount=Decimal("512"))
         self.assertEqual(project_limit((INPUT, plan_limit), plan, "input_context_tokens"), 512)
@@ -377,6 +406,14 @@ class CapabilityBoundaryTests(unittest.TestCase):
         cases = (
             ((), "missing-compatible-evidence"),
             ((replace(INPUT, amount=None),), "unknown-limit"),
+            (
+                (
+                    replace(
+                        INPUT, observation=replace(INPUT.observation, retrieved_at=T + DAY, fresh_until=T + 2 * DAY)
+                    ),
+                ),
+                "future-acquisition",
+            ),
             ((INPUT, replace(INPUT, identity="disagreement", amount=Decimal("512"))), "conflicting-evidence"),
             ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=T)),), "stale-evidence"),
             ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=None)),), "unknown-freshness"),
