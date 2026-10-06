@@ -11,7 +11,8 @@ from typing import cast
 
 from test_router_conformance import DAY, T, canonical, observation
 
-from model_intelligence.evidence import Benchmark, Model, Observation, Surface, SurfaceEvidence
+from model_intelligence.contract import Applicability, PublicEvidence, decode_public_evidence, encode_public_evidence
+from model_intelligence.evidence import Benchmark, Evidence, Model, Observation, Surface, SurfaceEvidence
 from model_intelligence.publication import CutReference, SourceRevision, decode_cut, decode_json_object, encode_cut
 from model_intelligence.utilization import decode_decision_utilization, encode_utilization
 
@@ -48,6 +49,8 @@ class Limit:
     amount: Decimal | None
     unit: str
     observation: Observation
+    source_revision: str | None = "owned-revision"
+    assertion: str = "advertised"
 
 
 INPUT = Limit("input-a", SUBJECT, "input_context_tokens", Decimal("4096"), "tokens", observation("input-a"))
@@ -94,17 +97,40 @@ def physical_binding(subjects: tuple[Subject, ...], requested: Subject) -> str:
 
 def framed_record(payload: dict[str, object]) -> tuple[bytes, CutReference]:
     """Reuse #13 framing; the payload is explicitly owned/non-normative research."""
+    public = read_public(payload)
+    limits = cast(list[dict[str, object]], payload["limits"])
     return encode_cut(
         canonical(payload),
         payload_schema=RESEARCH_VERSION,
         produced_at=T,
         scope="owned-capability-research",
-        members=("owned-mapping",),
-        sources=(SourceRevision("owned-source", "https://example.invalid/mapping", "owned-revision"),),
+        members=("owned-mapping", *public.members(), *(f"limit:{item['id']}" for item in limits)),
+        sources=tuple(public.sources()),
     )
 
 
-def record_payload(subject: Subject = SUBJECT) -> dict[str, object]:
+def record_payload(subject: Subject = SUBJECT, *, limits: tuple[Limit, ...] | None = None) -> dict[str, object]:
+    rows = (replace(INPUT, subject=subject),) if limits is None else limits
+    if any(item.subject != subject for item in rows):
+        raise ValueError("mixed-public-subjects")
+    observations: dict[str, Observation] = {}
+    revisions: dict[str, str | None] = {}
+    for item in rows:
+        key = item.observation.observation_id
+        if key in observations and (observations[key] != item.observation or revisions[key] != item.source_revision):
+            raise ValueError("rewritten-observation")
+        observations[key], revisions[key] = item.observation, item.source_revision
+    public = PublicEvidence(
+        Applicability(
+            "owned-capability-research",
+            subject.channel,
+            subject.configuration,
+            frozenset(item.source_id for item in observations.values()),
+        ),
+        Evidence(tuple(observations.values())),
+        tuple(revisions.items()),
+    )
+    data, reference = encode_public_evidence(public, produced_at=T)
     return {
         "mapping_version": RESEARCH_VERSION,
         "identity": {
@@ -116,7 +142,25 @@ def record_payload(subject: Subject = SUBJECT) -> dict[str, object]:
             "configuration": dict(subject.configuration),
             "surface": {"id": subject.surface.surface_id, "version": subject.surface.version},
         },
-        "public_input_limit": {"amount": "4096", "unit": "tokens", "meaning": "input allowance"},
+        "public_evidence": {
+            "data": data.decode(),
+            "reference": {
+                "format_version": reference.format_version,
+                "payload_schema": reference.payload_schema,
+                "sha256": reference.sha256,
+            },
+        },
+        "limits": [
+            {
+                "id": item.identity,
+                "observation_id": item.observation.observation_id,
+                "dimension": item.dimension,
+                "amount": None if item.amount is None else str(item.amount),
+                "unit": item.unit,
+                "assertion": item.assertion,
+            }
+            for item in rows
+        ],
     }
 
 
@@ -129,26 +173,166 @@ def narrow_requirement(context_tokens: int = 128) -> dict[str, object]:
     }
 
 
-def admitted_limit(data: bytes, reference: CutReference, subject: Subject = SUBJECT) -> Limit:
+def read_public(payload: dict[str, object]) -> PublicEvidence:
+    nested = payload.get("public_evidence")
+    if not isinstance(nested, dict):
+        raise ValueError("missing-public-evidence")
+    raw = cast(dict[str, object], nested)
+    if set(raw) != {"data", "reference"}:
+        raise ValueError("missing-public-evidence")
+    ref = raw["reference"]
+    if not isinstance(ref, dict):
+        raise ValueError("public-reference-shape")
+    fields = cast(dict[str, object], ref)
+    if set(fields) != {"format_version", "payload_schema", "sha256"}:
+        raise ValueError("public-reference-shape")
+    version, schema, digest, text = fields["format_version"], fields["payload_schema"], fields["sha256"], raw["data"]
+    if (
+        type(version) is not int
+        or not isinstance(schema, str)
+        or not isinstance(digest, str)
+        or not isinstance(text, str)
+    ):
+        raise ValueError("public-reference-types")
+    return decode_public_evidence(text.encode(), CutReference(version, schema, digest), max_bytes=65536)
+
+
+def admitted_limits(data: bytes, reference: CutReference, subject: Subject = SUBJECT) -> tuple[Limit, ...]:
     frame = decode_cut(data, reference, supported_payload_schemas=frozenset({RESEARCH_VERSION}), max_bytes=65536)
     raw = decode_json_object(frame.payload)
-    if set(raw) != {"mapping_version", "identity", "public_input_limit"} or raw["mapping_version"] != RESEARCH_VERSION:
+    if (
+        set(raw) != {"mapping_version", "identity", "public_evidence", "limits"}
+        or raw["mapping_version"] != RESEARCH_VERSION
+    ):
         raise ValueError("unsupported-mapping-version-or-shape")
     if raw["identity"] != record_payload(subject)["identity"]:
         raise ValueError("incompatible-mapping-context")
-    native = raw["public_input_limit"]
-    if not isinstance(native, dict):
+    public = read_public(raw)
+    if (
+        public.applicability.scope_id != "owned-capability-research"
+        or public.applicability.channel != subject.channel
+        or public.applicability.configuration != tuple(sorted(subject.configuration))
+    ):
+        raise ValueError("incompatible-public-applicability")
+    observed = {item.observation_id: item for item in public.evidence.observations}
+    revisions = dict(public.revisions)
+    native = raw["limits"]
+    if not isinstance(native, list):
         raise ValueError("limit-shape")
-    limit = cast(dict[str, object], native)
-    if set(limit) != {"amount", "unit", "meaning"} or limit["meaning"] != "input allowance":
-        raise ValueError("unsupported-limit-meaning")
-    amount, unit = limit["amount"], limit["unit"]
-    if not isinstance(amount, str) or not isinstance(unit, str):
-        raise ValueError("limit-native-types")
-    return replace(INPUT, subject=subject, amount=Decimal(amount), unit=unit)
+    rows: list[Limit] = []
+    for item in cast(list[object], native):
+        if not isinstance(item, dict):
+            raise ValueError("limit-shape")
+        limit = cast(dict[str, object], item)
+        if set(limit) != {
+            "id",
+            "observation_id",
+            "dimension",
+            "amount",
+            "unit",
+            "assertion",
+        }:
+            raise ValueError("limit-shape")
+        strings = tuple(limit[key] for key in ("id", "observation_id", "dimension", "unit", "assertion"))
+        if any(not isinstance(value, str) or not value.strip() for value in strings):
+            raise ValueError("limit-native-types")
+        identity, observation_id, dimension, unit, assertion = cast(tuple[str, str, str, str, str], strings)
+        if observation_id not in observed or assertion not in {"advertised", "source-supported"}:
+            raise ValueError("missing-observation-or-unsupported-assertion")
+        amount = limit["amount"]
+        if amount is not None and not isinstance(amount, str):
+            raise ValueError("limit-native-types")
+        rows.append(
+            Limit(
+                identity,
+                subject,
+                dimension,
+                None if amount is None else Decimal(amount),
+                unit,
+                observed[observation_id],
+                revisions[observation_id],
+                assertion,
+            )
+        )
+    members = ("owned-mapping", *public.members(), *(f"limit:{item.identity}" for item in rows))
+    if (
+        len(set(members)) != len(members)
+        or frame.members != tuple(sorted(members))
+        or frame.scope != public.applicability.scope_id
+        or frozenset(frame.sources) != public.sources()
+    ):
+        raise ValueError("mapping-manifest-mismatch")
+    return tuple(rows)
 
 
 class CapabilityBoundaryTests(unittest.TestCase):
+    def test_serialized_observations_and_limits_retain_provenance_and_negative_states(self) -> None:
+        changed = replace(
+            INPUT,
+            observation=replace(
+                INPUT.observation, reference="https://example.invalid/changed", fresh_until=T + 2 * DAY
+            ),
+            source_revision=None,
+        )
+        self.assertEqual(admitted_limits(*framed_record(record_payload(limits=(changed,)))), (changed,))
+        cases = (
+            ((), "missing-compatible-evidence"),
+            ((replace(INPUT, amount=None),), "unknown-limit"),
+            ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=None)),), "unknown-freshness"),
+            ((replace(INPUT, observation=replace(INPUT.observation, fresh_until=T)),), "stale-evidence"),
+            ((INPUT, replace(INPUT, identity="conflict", amount=Decimal("512"))), "conflicting-evidence"),
+            ((replace(INPUT, unit="characters"),), "incompatible-unit"),
+        )
+        for rows, diagnostic in cases:
+            data, ref = framed_record(record_payload(limits=rows))
+            retained = admitted_limits(data, ref)
+            self.assertEqual(retained, rows)
+            with self.subTest(diagnostic=diagnostic), self.assertRaisesRegex(ValueError, diagnostic):
+                project_limit(retained, SUBJECT, "input_context_tokens")
+
+    def test_serialized_configuration_must_match_and_unknown_effort_never_maps(self) -> None:
+        hashes: set[str] = set()
+        for effort in ("none", "ultra"):
+            subject = replace(SUBJECT, configuration=(("effort", effort), ("opaque-variant", "opaque")))
+            data, ref = framed_record(record_payload(subject))
+            hashes.add(ref.sha256)
+            self.assertEqual(project_limit(admitted_limits(data, ref, subject), subject, "input_context_tokens"), 4096)
+            with self.assertRaisesRegex(ValueError, "incompatible-mapping-context"):
+                admitted_limits(data, ref, replace(subject, configuration=(("effort", "high"),)))
+        self.assertEqual(len(hashes), 2)
+        unknown = replace(SUBJECT, configuration=(("effort", None),))
+        data, ref = framed_record(record_payload(unknown))
+        with self.assertRaisesRegex(ValueError, "unknown-applicability"):
+            project_limit(admitted_limits(data, ref, unknown), unknown, "input_context_tokens")
+
+    def test_serialized_manifest_cannot_supply_fixture_global_provenance(self) -> None:
+        payload = record_payload()
+        data, ref = framed_record(payload)
+        valid = decode_cut(data, ref, supported_payload_schemas=frozenset({RESEARCH_VERSION}), max_bytes=65536)
+        for scope, members, sources in (
+            ("wrong-scope", valid.members, valid.sources),
+            (valid.scope, (), valid.sources),
+            (valid.scope, valid.members, ()),
+            (
+                valid.scope,
+                valid.members,
+                (SourceRevision("other", "https://example.invalid/other", None),),
+            ),
+        ):
+            data, ref = encode_cut(
+                canonical(payload),
+                payload_schema=RESEARCH_VERSION,
+                produced_at=T,
+                scope=scope,
+                members=members,
+                sources=sources,
+            )
+            with (
+                self.subTest(scope=scope, sources=sources),
+                self.assertRaisesRegex(ValueError, "mapping-manifest-mismatch"),
+            ):
+                admitted_limits(data, ref)
+
     def test_explicit_identity_and_managed_unknown_are_separate(self) -> None:
         self.assertEqual(physical_binding((SUBJECT,), SUBJECT), "owned-model")
         managed = replace(SUBJECT, physical_model=None, model_version=None, channel="owned-plan")
@@ -255,13 +439,13 @@ class CapabilityBoundaryTests(unittest.TestCase):
         inner = record_payload()
         inner["mapping_version"] = "owned-capability-boundary/2"
         with self.assertRaisesRegex(ValueError, "unsupported-mapping-version"):
-            admitted_limit(*framed_record(inner))
+            admitted_limits(*framed_record(inner))
         with self.assertRaisesRegex(ValueError, "incompatible-mapping-context"):
-            admitted_limit(*framed_record(record_payload(replace(SUBJECT, channel="other-channel"))))
+            admitted_limits(*framed_record(record_payload(replace(SUBJECT, channel="other-channel"))))
 
     def test_mapping_requirement_calibration_and_decision_share_captured_reference(self) -> None:
         data, cut = framed_record(record_payload())
-        consumed = admitted_limit(data, cut)
+        consumed = admitted_limits(data, cut)
         requirement = narrow_requirement()
         context = canonical(
             {
@@ -274,7 +458,7 @@ class CapabilityBoundaryTests(unittest.TestCase):
         decision = canonical(
             {
                 "requirement": requirement,
-                "public_input_context": project_limit((consumed,), SUBJECT, "input_context_tokens"),
+                "public_input_context": project_limit(consumed, SUBJECT, "input_context_tokens"),
             }
         )
         manifest, reference = encode_utilization(cut, evaluated_at=T, decision=decision, context=context)

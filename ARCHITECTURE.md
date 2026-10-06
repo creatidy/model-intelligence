@@ -165,6 +165,13 @@ native limits, unknown/stale/conflicting evidence, incomparable benchmarks and
 advertised versus local support. Its comparison helper is test-only, neither a
 consumer implementation nor another ranker. The frame/decision relationship reuses
 the accepted #13 mechanics; typed evidence and R2 semantics are unchanged.
+The research artifact embeds #13's validated public-evidence cut and associates
+each native limit with its retained observation ID/revision/assertion. Decoder
+metadata comes from that cut, not fixture-global defaults; outer scope, membership
+and source pins must agree. Serialized missing/unknown/stale/conflicting inputs
+fail before matching. Each known effort uses independently applicable evidence and
+its own utilized cut; unknown effort is a separate serialization/non-mapping case,
+never a successful receipt borrowing a `none`-configured limit.
 
 `tests/verify_capability_consumers.py` separately checks exact pinned package Git
 blobs before importing inspected pure constructors/parsers/hard-constraint and

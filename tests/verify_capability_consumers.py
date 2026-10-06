@@ -8,6 +8,8 @@ import importlib
 import json
 import sys
 from collections.abc import Callable
+from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 from typing import cast
 from unittest.mock import patch
@@ -58,8 +60,31 @@ def main() -> None:
     typed_requirement = method(types.TaskRequirement, "from_dict")(requirement)
     assert method(typed_requirement, "to_dict")() == requirement
     data, cut = fixture.framed_record(fixture.record_payload())
-    limit = fixture.admitted_limit(data, cut)
-    amount = fixture.project_limit((limit,), fixture.SUBJECT, "input_context_tokens")
+    limits = fixture.admitted_limits(data, cut)
+    amount = fixture.project_limit(limits, fixture.SUBJECT, "input_context_tokens")
+    for rows, diagnostic in (
+        ((), "missing-compatible-evidence"),
+        ((replace(fixture.INPUT, amount=None),), "unknown-limit"),
+        (
+            (replace(fixture.INPUT, observation=replace(fixture.INPUT.observation, fresh_until=None)),),
+            "unknown-freshness",
+        ),
+        (
+            (replace(fixture.INPUT, observation=replace(fixture.INPUT.observation, fresh_until=fixture.T)),),
+            "stale-evidence",
+        ),
+        ((fixture.INPUT, replace(fixture.INPUT, identity="conflict", amount=Decimal("512"))), "conflicting-evidence"),
+    ):
+        rejected_data, rejected_ref = fixture.framed_record(fixture.record_payload(limits=rows))
+        try:
+            fixture.project_limit(
+                fixture.admitted_limits(rejected_data, rejected_ref), fixture.SUBJECT, "input_context_tokens"
+            )
+        except ValueError as error:
+            assert str(error) == diagnostic
+        else:
+            raise AssertionError("negative public artifact reached matching")
+        passed += 1
     identity = method(types.ModelIdentity, "from_dict")(
         {"provider": "zai", "model": "owned-model", "variant": "opaque"}
     )
@@ -76,12 +101,18 @@ def main() -> None:
         assert reasons == (() if known == amount else ("insufficient",) if known == 64 else ("unknown",))
         passed += 1
     # No ranking: one preauthorized candidate, using the real pure hard matcher above.
-    for effort in (None, "none", "ultra"):
+    utilized_cuts: set[str] = set()
+    for effort in ("none", "ultra"):
+        subject = replace(fixture.SUBJECT, configuration=(("effort", effort), ("opaque-variant", "opaque")))
+        data, cut = fixture.framed_record(fixture.record_payload(subject))
+        limits = fixture.admitted_limits(data, cut, subject)
+        amount = fixture.project_limit(limits, subject, "input_context_tokens")
+        utilized_cuts.add(cut.sha256)
         entry = call(types.ModelCatalogEntry)(
             identity=identity,
             display_name="Owned research only",
             hard_properties=call(types.ModelHardProperties)(
-                input_context_tokens=amount, supports_tool_use=True, supports_reasoning_mode=effort is not None
+                input_context_tokens=amount, supports_tool_use=True, supports_reasoning_mode=True
             ),
             capabilities=capabilities,
             capacity_bindings=None,
@@ -162,6 +193,27 @@ def main() -> None:
         assert field(received, "decision_provenance") == provenance
         assert field(received, "reasoning_effort") == effort
         passed += 1
+    assert len(utilized_cuts) == 2
+    # Unconfigured effort is only a DTO case; it gets no mapped limit or MI receipt.
+    unknown_subject = replace(fixture.SUBJECT, configuration=(("effort", None), ("opaque-variant", "opaque")))
+    unknown_data, unknown_cut = fixture.framed_record(fixture.record_payload(unknown_subject))
+    try:
+        fixture.project_limit(
+            fixture.admitted_limits(unknown_data, unknown_cut, unknown_subject), unknown_subject, "input_context_tokens"
+        )
+    except ValueError as error:
+        assert str(error) == "unknown-applicability"
+    else:
+        raise AssertionError("unknown effort obtained a mapped limit")
+    unconfigured = call(matcher.CandidateEvaluation)(
+        identity=identity,
+        display_name="Unconfigured serialization only",
+        eligible=True,
+        reasoning_effort=None,
+        capability_margin=0,
+    )
+    assert cast(dict[str, object], method(unconfigured, "to_dict")())["reasoning_effort"] is None
+    passed += 1
     # Public benchmarks are not a calibration conversion; unknown quality still fails.
     minima = method(types.CapabilityMinima, "from_dict")({"coding": 5})
     failures = cast(
