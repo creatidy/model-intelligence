@@ -207,6 +207,18 @@ def main() -> None:
         assert field(received, "reasoning_effort") == effort
         passed += 1
     assert len(utilized_cuts) == 2
+    for configuration in ((), (("opaque-variant", "max"),)):
+        omitted = replace(fixture.SUBJECT, configuration=configuration)
+        omitted_data, omitted_cut = fixture.framed_record(fixture.record_payload(omitted))
+        try:
+            fixture.project_limit(
+                fixture.admitted_limits(omitted_data, omitted_cut, omitted), omitted, "input_context_tokens"
+            )
+        except ValueError as error:
+            assert str(error) == "unknown-applicability"
+        else:
+            raise AssertionError("omitted effort obtained a mapping receipt")
+        passed += 1
     # Unconfigured effort is only a DTO case; it gets no mapped limit or MI receipt.
     unknown_subject = replace(fixture.SUBJECT, configuration=(("effort", None), ("opaque-variant", "opaque")))
     unknown_data, unknown_cut = fixture.framed_record(fixture.record_payload(unknown_subject))

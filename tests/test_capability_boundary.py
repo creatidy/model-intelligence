@@ -60,7 +60,12 @@ def project_limit(limits: tuple[Limit, ...], subject: Subject, dimension: str) -
     """Research-only exact comparison proposal; never selects or approves a rating."""
     if dimension not in {"input_context_tokens", "output_tokens"}:
         raise ValueError("unsupported-dimension")
-    if subject.channel is None or any(value is None for _, value in subject.configuration):
+    # This owned context is effort-dependent; omission is not an independent limit.
+    if (
+        subject.channel is None
+        or dict(subject.configuration).get("effort") is None
+        or any(value is None for _, value in subject.configuration)
+    ):
         raise ValueError("unknown-applicability")
     rows = tuple(item for item in limits if item.subject == subject and item.dimension == dimension)
     if not rows:
@@ -272,6 +277,13 @@ def admitted_limits(data: bytes, reference: CutReference, subject: Subject = SUB
 
 
 class CapabilityBoundaryTests(unittest.TestCase):
+    def test_serialized_omitted_effort_is_not_evidence_of_applicability(self) -> None:
+        for configuration in ((), (("opaque-variant", "max"),), (("effort", None),)):
+            subject = replace(SUBJECT, configuration=configuration)
+            data, ref = framed_record(record_payload(subject))
+            with self.subTest(configuration=configuration), self.assertRaisesRegex(ValueError, "unknown-applicability"):
+                project_limit(admitted_limits(data, ref, subject), subject, "input_context_tokens")
+
     def test_serialized_surface_provider_cannot_be_relabelled_by_consumer(self) -> None:
         changed = replace(SUBJECT, surface=replace(SUBJECT.surface, provider_id="other-surface-provider"))
         data, ref = framed_record(record_payload())

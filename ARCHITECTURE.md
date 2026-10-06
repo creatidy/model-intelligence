@@ -173,6 +173,9 @@ Serialized missing/unknown/stale/conflicting and not-yet-acquired inputs
 fail before matching. Each known effort uses independently applicable evidence and
 its own utilized cut; unknown effort is a separate serialization/non-mapping case,
 never a successful receipt borrowing a `none`-configured limit.
+This owned context is explicitly effort-dependent: missing/null effort, including
+empty or opaque-variant-only configuration, is non-mapping. Omission does not prove
+an effort-independent limit; such a future context needs its own explicit agreement.
 
 `tests/verify_capability_consumers.py` separately checks exact pinned package Git
 blobs before importing inspected pure constructors/parsers/hard-constraint and
