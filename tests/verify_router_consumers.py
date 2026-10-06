@@ -90,8 +90,15 @@ def method(value: object, name: str) -> Callable[..., object]:
     return cast(Callable[..., object], getattr(value, name))
 
 
-def main() -> None:
+def install_guard(root: Path, router: Path, kernel: Path) -> None:
     global _read_roots
+    _read_roots = (root / "src", root / "tests", router, kernel / "src", Path(sys.base_prefix).resolve())
+    sys.dont_write_bytecode = True
+    sys.addaudithook(guard)
+    sys.path[:0] = [str(root / "src"), str(root / "tests"), str(router), str(kernel / "src")]
+
+
+def main() -> None:
     if len(sys.argv) != 5:
         raise ValueError("four-source-arguments-required")
     router, router_git, kernel, kernel_git = (Path(value).resolve() for value in sys.argv[1:])
@@ -99,10 +106,7 @@ def main() -> None:
     verify_sources(kernel, kernel_git, KERNEL_PIN, "src/creatidy_kernel")
     # Import only inspected pure types/parsers; never CLI/application/provider adapters.
     root = Path(__file__).resolve().parents[1]
-    _read_roots = (root / "src", root / "tests", router, kernel / "src", Path(sys.base_prefix).resolve())
-    sys.dont_write_bytecode = True
-    sys.addaudithook(guard)
-    sys.path[:0] = [str(root / "src"), str(root / "tests"), str(router), str(kernel / "src")]
+    install_guard(root, router, kernel)
     import test_router_conformance as fixture
 
     types = importlib.import_module("scarcity_router.selection_types")
