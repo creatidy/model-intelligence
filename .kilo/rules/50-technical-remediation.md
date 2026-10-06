@@ -7,6 +7,14 @@ autonomously rather than asking how to run tests or relay obtainable public evid
 
 ## Classify Before Escalation
 
+For `/loop`, first apply post-selection eligibility revalidation in loop.md.
+Confirmed pre-implementation prerequisite/producer/contract gates are issue
+ineligibility, not machinery failure or a new owner decision: retain history/
+counters and return nonterminal SELECT with a fresh full queue. Unavailable
+inspection is not proof of a gate; recover tools/access first. Substantive
+delivery remains protected, genuine new owner decisions still stop, and this
+exception never bypasses public-evidence, security, value or review gates.
+
 Before STOP_AND_ASK, OWNER_DECISION_NEEDED, BLOCKED or returning an incomplete review,
 classify the obstacle and record evidence in the excluded delivery ledger:
 
