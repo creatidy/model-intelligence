@@ -40,7 +40,7 @@ MI #12-#19 have been supplemented with their applicable links in Forgejo.
 | G02/G05 approved requirements | [Kernel #49][kernel-intake] ordinary-issue specification, [#51][kernel-requirements] hard requirements without L0 fallback; [Router #175][router-requirements] monotone eligibility. MI [#14][semantics] owns evidence, not task classification. |
 | G03 product review | [Kernel #54][kernel-review] durable candidate-bound bounded remediation, exact-subject checks/fresh independent verdict and findings lineage. Not MI's local developer workflow. |
 | G06/G13 MI publication/adoption/reference | [Router #176][router-mi] complete admitted snapshots/provenance/atomic migration/offline expiry; [Kernel #55][kernel-knowledge] immutable utilized reference. Completed MI [#13][publication] supplies the minimum contract; remaining [#15][acquisition] producer/[#19][acceptance] installed receipt. |
-| G07 local outcome evidence | [Kernel #58][kernel-outcomes] private versioned full-cost/verdict export, local-by-default with scoped consent; [Router #177][router-feedback] correlation/dedup/incomplete-history and cautious calibration. MI [#17][feedback] optional admission is separate. |
+| G07 local outcome evidence | [Kernel #58][kernel-outcomes] private versioned full-cost/verdict export, local-by-default with scoped consent; [Router #177][router-feedback] correlation/dedup/incomplete-history and cautious calibration. MI [#17][feedback] owner REJECT current operational intake; future reconsideration is separately gated. |
 | G08 state/events | Separate [Kernel #57][kernel-events], [Router #183][router-events] and MI [#16][operator] owner-authorized reconnectable producers; Router [#182][router-cli] CLI preserving JSON/pipes. Console consumer counterpart not identified. |
 | G09 workspace authority | [Kernel #50][kernel-isolation] isolation/trusted-check preconditions and [Router #180][router-workspace] backend-native agent/workspace boundary; neither replaces MI parser safety [#15][acquisition]. |
 | G10 identity/protocol | [Router #179][router-identity] opaque variant versus effort/requested/resolved/dispatched/observed identity; [#181][router-protocol] versioned harness/protocol; [Kernel #52][kernel-routing] sticky execution identity after [#47][kernel-harness] feasibility. |
@@ -68,7 +68,7 @@ responsible even where a consumer link has not yet been identified.
 | G04 Gateway integration | Router producer; Kernel/harness consumer | [Kernel #11][allocator] is recommendation-only; neither MI proof nor Router harness architecture [#146][harness] proves gateway integration. | [Router #174][router-pin]/[#178][router-narrowing], [Kernel #52][kernel-routing] after #47 proof; no MI gateway task. |
 | G05 Task requirements / semantic boundary | Kernel requirements, Router matching/calibration, MI raw evidence | Completed #14/merged PR #31 retain ownership and versioned offline mapping/negative fixtures; no third scale or production mapping approval. | Preserve [#14][semantics]; separately accepted production mapping and [Router #175][router-requirements]/[Kernel #51][kernel-requirements] after #49 intake remain. |
 | G06 MI and integration | MI publication, Router consumption, Kernel utilized reference | #9/#10 temporal proof, closed #12/#23 ADAPT analysis and completed #13/merged PR #26 minimum decision-bound contract/conformance. Not full A/B/C or installed acceptance. | Remaining [#15][acquisition]/[#19][acceptance], [Router #176][router-mi], [Kernel #55][kernel-knowledge]; no reopening #12/#13 or another temporal proof. |
-| G07 Outcome feedback | Kernel/Router local export/analysis; MI optional acceptance | No MI outcome-sharing contract; scoped tests/APPROVE are not model-quality ground truth. | [#17][feedback] opt-in decision; local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback], no mandatory receive API. |
+| G07 Outcome feedback | Kernel/Router local export/analysis; no current MI intake | #17 owner REJECT: no demonstrated incremental need over public evidence/reproduction/local analysis; scoped outcomes are confounded, not quality ground truth. | Preserve [#17][feedback] [reconsideration criteria](OPERATIONAL_SHARING_REVIEW.md#reconsideration-and-compatibility); no receiving API/format/collection/automatic calibration. |
 | G08 Observability | MI own state/events; Console views; others own theirs | `evidence_delta`/`projection_delta` compare evidence/endpoints, not a reconnectable event feed. No MI status/inspect/Console export delivered. | [#16][operator]; separate [Kernel #57][kernel-events]/[Router #183][router-events]. Console counterpart not identified. |
 | G09 Isolation | Kernel workspace/harness; Router call execution | MI has no sandbox. Its separate acquisition/parser threat model is prospective, not evidence of an existing fetch vulnerability. | [Kernel #50][kernel-isolation]/[Router #180][router-workspace]; MI retrieval safety combined in [#15][acquisition], not a sandbox duplicate. |
 | G10 Identity/protocol evidence | MI public evidence; Router live inventory/admission; Kernel runtime identity | R2 identities, completed #13 native payload/context and #14/PR #31 bounded alias/channel/configuration negatives exist; production mapping/installed compatibility remain incomplete. | Remaining [#15][acquisition] accepted producer/mapping, [Kernel #52][kernel-routing]/[Router #179][router-identity]/[#181][router-protocol]; no entitlement attestation. |
@@ -90,7 +90,7 @@ does not mark its broader G gap complete.
 | Brief 4: recognizable snapshot, validity/conflicts/change, complete publication | Completed #13/merged PR #26 supplies framing/payload/cut/evaluation/decision manifest and offline conformance, not production publisher; `knowledge` remains supplied-cut classification. | Architecture integration/limits | Preserve completed [#13][publication]; remaining [#15][acquisition] producer/[#18][distribution] updates. |
 | Brief 4: failure, freshness, critical revocation, offline consumer policy | Completed #13 defines public semantics and retained-input failure conformance; `effective_at` does not exclude stale and absent freshness is not affirmative validity. | Architecture limits/outage | Remaining [#15][acquisition]/[#19][acceptance]; Router owns actual fallback/TTL/admission and Kernel authority. |
 | Brief 4-5: public plans/prices/promotions and untrusted source normalization | Closed #12 independently reviewed public-source analysis; no production fetch/parser or installed receipt. | Architecture security/reuse | Remaining [#15][acquisition]: actual source-use/copying rights, unknown terms and failure safety; no new public-fact legal gate or reopening [#12][value]. |
-| Brief 4-5: opt-in feedback with minimization/consent and confounding | No MI sharing contract, no unbiased ground truth from operational results. | Architecture privacy | New [#17][feedback]; decision/return criterion, no required central API/training. |
+| Brief 4-5: opt-in feedback with minimization/consent and confounding | #17 explicit owner REJECT current operational intake; no sharing contract or unbiased ground truth from operational results. | Architecture privacy and [decision packet](OPERATIONAL_SHARING_REVIEW.md) | Preserved reconsideration/rights/consent/negative conformance and separate approval; no central API/training. |
 | Brief 4-5: operator CLI/status/inspect, semantic vs transport change, Console events | Deltas not history feed; no MI operational command/export. | Architecture operator/integration | New [#16][operator], including authority, reconnect/dedup/version/history gaps. |
 | Brief 5-6: professional security, migrations, public install/maintenance and receipt | Python foundation exists, not data update/recovery or installed producer-consumer acceptance. | Architecture security, roadmap gates | New [#15][acquisition]/[#18][distribution]/[#19][acceptance], dependencies recorded rather than requirements omitted. |
 | Brief 7-8: no feature implementation/inference/effects; independent bounded review | Existing native workflow/Makefile; exact branch gates still required for this delivery. | AGENTS/task rules; this roadmap | [#11][alignment] focused documentation PR; #5 covers reused workflow, not another controller. |
@@ -110,7 +110,7 @@ requirements. Dependency comments complement its acceptance body.
 | [#14: Capability identity/calibration boundary][semantics] | Completed/closed through merged PR #31: small versioned ownership/semantic research record and negative fixtures, no third scale. | Existing Router assessments/effort and narrow Kernel reference trace; not production mapping approval or rich requirements/installed acceptance. |
 | [#15: Permitted-source acquisition/refresh][acquisition] | P2: normalized evidence and complete production publication with rights gates, safe parsing, preserved history and failed-refresh recovery. | Use closed #12/#13/#14 bounded receipts; actual separately accepted production contract, source scope and rights precede implementation. Closure alone is not approval. |
 | [#16: MI operator status/Console events][operator] | P2: consistent diagnosable facts plus versioned correlation/reconnect/dedup/history contract. | #13/#15; Console remains consumer, no parallel UI or generic scheduler. |
-| [#17: Optional outcome sharing decision][feedback] | P2: benefit/privacy/measurement packet, owner acceptance/rejection or concrete reconsideration trigger. | Kernel/Router local export and #13/#14; not a prerequisite forcing optional sharing into the core. |
+| [#17: Optional outcome sharing decision][feedback] | Explicit owner decision recorded: REJECT current operational intake, with rationale and concrete reconsideration criteria in [PR #33](https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/33). Delivery integration follows validation/fresh review. | Kernel/Router local analysis remains primary. Not permanent prohibition, sharing permission, product GO or a prerequisite forcing optional sharing into the core. |
 | [#18: Public install/update/migrations][distribution] | P2: installed public package/artifact compatibility, update/rollback and recovery without history loss. | #12-#16; only actual existing config/data formats require migration, no guessed backward-compatibility layer. |
 | [#19: Installed evidence-path acceptance][acceptance] | P2: frozen installed producer/consumer revisions with complete/update/outage/unknown/withdrawal and operator receipt. | #12-#16/#18 plus Router consumer, Kernel reference if available; explicitly record missing downstream acceptance. |
 
@@ -139,8 +139,9 @@ documentation APPROVE. No routine temporal proof defect is asserted here.
 | Completed #14/PR #31 agree retained ownership and bounded offline mapping diagnostics; no production schema is approved. | Automatic benchmark-to-rating, variant-to-effort or cross-channel assumptions remain forbidden. | Preserve [#14][semantics] research; separately accepted production mapping and actual consumer/adapter receipts before operational use. |
 
 Required subsequent backlog, not immediate proof defects: secure permitted-source
-operations (#15), usable operator/event diagnostics (#16), explicit opt-in decision
-(#17), compatible public maintenance (#18), installed composed receipt (#19).
+operations (#15), usable operator/event diagnostics (#16), compatible public
+maintenance (#18), installed composed receipt (#19). #17's current-intake REJECT
+is settled; future return follows its preserved criteria and separate owner approval.
 Missing an implementation solution is not a reason to erase known work.
 
 ## Receipt Sequence and Decisions
@@ -157,13 +158,13 @@ Missing an implementation solution is not a reason to erase known work.
    CLI/export consistency, partial update and rollback are receipts, not prose alone.
 5. Exercise #19 against frozen installed producer/consumer revisions; distinguish
    source integration, deployment and actually observed scenarios. No inference or
-   effectful task occurs without separate permission. #17 remains an explicit
-   optional decision, not mandatory telemetry collection.
+   effectful task occurs without separate permission. #17 rejects current intake;
+   reconsideration is separately gated, not mandatory telemetry collection.
 
 The ADAPT outcome for #12 and minimum contract acceptance for #13 are settled;
 completed #14 retains agreed ownership without a third scale. Owner-reserved
 decisions concern new production mapping, future contested ownership changes and
-optional data-sharing consent/benefit (#17). Paid/service/data,
+any future #17 reconsideration after the current-intake REJECT. Paid/service/data,
 inference or effect access is separately authorized when a future receipt needs it.
 No numerical quality/cost/time threshold is invented here. Routine documentation
 findings are remediated by the existing bounded workflow, not escalated as owner
