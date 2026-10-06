@@ -32,7 +32,8 @@ not to reopening #12.
   completed/closed #14, merged PR #31, versioned ownership research and guarded
   offline mapping fixtures; not production mapping approval or installed acceptance.
 - [Optional operational sharing packet](OPERATIONAL_SHARING_REVIEW.md): #17
-  research and original synthetic examples, explicit owner decision pending;
+  explicit owner **REJECT current operational intake**, rationale and preserved
+  reconsideration criteria with original synthetic examples;
   no receiving format, collection, sharing authorization or automatic calibration.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 

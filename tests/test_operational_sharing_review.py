@@ -28,15 +28,15 @@ DIAGNOSTICS = frozenset(
 
 
 class OperationalSharingReviewTests(unittest.TestCase):
-    def test_owner_decision_and_nonimplementation_bounds_are_explicit(self) -> None:
-        text = (ROOT / "OPERATIONAL_SHARING_REVIEW.md").read_text()
+    def test_owner_reject_and_nonimplementation_bounds_are_explicit(self) -> None:
+        text = " ".join((ROOT / "OPERATIONAL_SHARING_REVIEW.md").read_text().split())
         for boundary in (
-            "Owner decision pending",
+            "Owner decision: REJECT current operational intake",
             "#17 AC5",
-            "unmerged",
+            "not restart",
             "not an intake API",
             "no secret scanner/redactor/intake validator",
-            "separately select implementation",
+            "before separately selecting implementation",
             "code, not rights",
             "not a privacy guarantee",
             "whole-journey",
@@ -47,6 +47,37 @@ class OperationalSharingReviewTests(unittest.TestCase):
         self.assertIn("https://www.rfc-editor.org/rfc/rfc6973.html", text)
         self.assertIn("9dfa20931a46931d1e97d1f0efddcf2692afb7a7", text)
         self.assertIn("1dae1948f372e0f1739896655bb7db97d6b08460", text)
+        self.assertIn("issues/17#issuecomment-15400", text)
+        self.assertNotIn("Owner decision pending", text)
+
+    def test_owner_reconsideration_and_rationale_are_preserved_without_authorization(self) -> None:
+        text = " ".join((ROOT / "OPERATIONAL_SHARING_REVIEW.md").read_text().split())
+        for criterion in (
+            "specific named public-evidence/product problem",
+            "Demonstrated improvement over public sources/reproduction and origin-local analysis",
+            "proposed shared fields are necessary",
+            "Explicit producer/consumer contract and lifecycle",
+            "Voluntary scoped consent where private records are involved",
+            "Source/user rights and negative conformance",
+            "Separate owner approval before implementation",
+            "core public-evidence role does not currently require private operational intake",
+            "No material incremental product benefit",
+            "confounded by workload, prompt, harness, reviewer",
+            "privacy/linkage/lifecycle obligations without a demonstrated need",
+            "not a permanent prohibition",
+            "does not authorize a new receiver or bypass #15's production contract gate",
+            "Neither the decision nor closure grants product GO",
+        ):
+            with self.subTest(criterion=criterion):
+                self.assertIn(criterion, text)
+
+    def test_public_status_records_reject_not_pending_or_production_permission(self) -> None:
+        for name in ("README.md", "ARCHITECTURE.md", "ROADMAP.md"):
+            text = " ".join((ROOT / name).read_text().split())
+            with self.subTest(document=name):
+                self.assertIn("REJECT current operational intake", text)
+                self.assertIn("OPERATIONAL_SHARING_REVIEW.md", text)
+                self.assertNotIn("explicit owner decision pending", text)
 
     def test_policy_table_has_fixed_diagnostics_not_raw_input_values(self) -> None:
         text = (ROOT / "OPERATIONAL_SHARING_REVIEW.md").read_text()

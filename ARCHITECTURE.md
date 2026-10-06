@@ -237,7 +237,7 @@ installed use is unverified, with consumer delivery/receipts in #176/#55/#19.
 | Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | Completed [MI #13][publication] minimum contract; remaining [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
 | Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Completed #14 bounded ownership record/negative research fixtures; no calibration transfer or third scale. Production mapping needs separate acceptance. | Completed [MI #14][semantics]/[PR #31][semantics-pr]; remaining production mapping/[#15][acquisition], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
 | Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator], separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
-| Optional operational evidence | Kernel/Router local export / MI only after separate approval | Consent/minimization/provenance and cautious inference; denial/withdrawal leaves core operation intact. | [MI #17][feedback], local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
+| Optional operational evidence | Kernel/Router local export / no current MI intake | Owner #17 REJECT current operational intake; preserve named-problem/benefit/necessary-fields/contract/lifecycle/consent/rights/conformance reconsideration and separate owner approval. Core operation stays independent. | [MI #17][feedback] [decision packet](OPERATIONAL_SHARING_REVIEW.md); local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
 | Installation/updates and composed receipt | MI public artifact / Router, indirect Kernel evidence | Installed compatible versions, migrations/recovery, outage and operator acceptance. | [MI #18][distribution]/[#19][acceptance], [Kernel #62][kernel-migration]/[#60][kernel-acceptance] |
 
 Review caught incomplete discovery during concurrent task registration. The
@@ -268,8 +268,11 @@ MI grants neither account entitlement nor Kernel authority.
 
 Kernel outcomes/tests/APPROVE have limited scope and confounding from task
 difficulty, harness, prompt and reviewer. Local export/analysis belongs first to
-Kernel/Router. Any MI sharing is separately approved opt-in, with minimization,
-consent scope, provenance and metadata identifiability analysis in [#17][feedback].
+Kernel/Router. Any future MI sharing needs separate owner approval, minimization,
+consent scope, provenance and metadata identifiability analysis. The explicit
+[#17][feedback] decision is REJECT current operational intake, not a permanent
+prohibition or permission for a receiver; its [reconsideration path](OPERATIONAL_SHARING_REVIEW.md#reconsideration-and-compatibility)
+remains gated by demonstrated public benefit and necessary fields.
 There is no mandatory central feedback API or automatic training requirement.
 
 Reuse order is ADOPT -> VENDOR/COPY -> PORT -> ADAPT -> BUILD. Consider existing
@@ -309,6 +312,7 @@ the decisions in their canonical issues/PRs rather than rewriting them.
 | Completed/closed [#12][value], merged [PR #23][value-pr] | Accepted ADAPT to a thin upstream-backed public-evidence and selected-history layer. Not product GO, full A/B/C proof or installed MI-Router acceptance; unresolved implementation belongs to the remaining backlog. |
 | Completed/closed [#13][publication], merged [PR #26][publication-pr] | Accepted minimum public payload, critical-source semantics, immutable cut/evaluation/decision binding and pinned-code offline conformance. Not permanent ABI, private admission/cancellation, product GO or installed acceptance; remaining implementation belongs to #15-#19 and actual consumers. |
 | Completed/closed [#14][semantics], merged [PR #31][semantics-pr] | Versioned retained-ownership record and exact-pin guarded offline fixtures. MI raw evidence/identity, Router calibration/matching and Kernel requirements/adapter proof remain distinct. Not production mapping approval, rich Kernel requirements, installed adoption or product GO. |
+| [#17][feedback] explicit owner decision, 2026-10-06 | REJECT current operational intake. No demonstrated incremental public need justifies private exports/audits or their privacy/linkage/lifecycle obligations. Preserve the [decision packet](OPERATIONAL_SHARING_REVIEW.md) reconsideration criteria and separate owner approval; not permanent prohibition, private-sharing permission or product GO. |
 
 Agreed minimum #13 contract: use frozen evidence-cut references and explicit per-class
 validity diagnostics rather than treating an effective-time query as historical
@@ -322,8 +326,9 @@ distribution/migration ([#18][distribution]) and installed consumer policies/rec
 ([#19][acceptance]); do not repeat settled #13 contract acceptance;
 new production mapping or a future contested ownership change, not reopening
 completed [#14][semantics] research;
-optional feedback benefit/privacy approval or explicit return criterion
-([#17][feedback]). No invented numeric cost/quality/time threshold settles these.
+any future reconsideration of the settled #17 REJECT must satisfy its preserved
+benefit/privacy/contract/consent/rights/conformance criteria and separate owner approval.
+No invented numeric cost/quality/time threshold settles these.
 Routine documentation defects are not architecture decisions. A documentation
 APPROVE leaves the [functional roadmap](ROADMAP.md) open and is never
 `READY_FOR_LIVE_TASK`.

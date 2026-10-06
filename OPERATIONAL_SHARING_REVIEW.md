@@ -1,6 +1,11 @@
 # Optional Operational Evidence Decision Packet
 
-Research revision 1, 2026-10-06, selected [MI #17][issue]. **Owner decision pending.**
+Research revision 2, 2026-10-06, selected [MI #17][issue].
+**Owner decision: REJECT current operational intake.** Adrian supplied this explicit
+decision on 2026-10-06T14:23:48Z; [canonical transcription][decision] records the
+instruction, rationale and reconsideration gates. Revision 1's pending decision
+and initial review remain in Git/issue history; the delivery and review counter
+continue, not restart.
 This is an assessment and synthetic examples, not an intake API, consent/redaction
 implementation, new wire format, privacy certification or collection permission.
 No private records were inspected or exported. No new representation or dependency
@@ -8,26 +13,35 @@ is proposed: reuse origin-local evidence before any separately accepted optional
 contract. MI remains public/shared evidence; Kernel/Router retain local outcomes,
 analysis, consent enforcement, task meaning, calibration, economics and routing.
 
-## Recommendation And Decision
+## Owner Decision And Rationale
 
-Recommend **reject direct intake of existing private outcome exports/audits today**.
-Neither incremental public benefit nor safe, complete, authorized production
-sharing is established. Keep core operation independent of optional sharing.
+**REJECT current operational intake.** Do not implement a Model Intelligence
+receiver, private operational-data collection path, production sharing format,
+automatic calibration, or centralized ingestion of existing Kernel/Router private
+outcome exports/audits. Keep core operation independent of optional sharing.
+
+The governing owner rationale is:
+
+- MI's core public-evidence role does not currently require private operational intake.
+- No material incremental product benefit has been demonstrated over public-source
+  evidence, reproducible public/synthetic cases and origin-local analysis.
+- Task outcomes are materially confounded by workload, prompt, harness, reviewer,
+  retries/remediation, selection policy and incomplete cost/usage coverage.
+- Centralizing these records would add privacy/linkage/lifecycle obligations without
+  a demonstrated need.
+
 Public/synthetic, independently reproducible ecosystem corrections can instead be
 considered under the existing public-source boundary and actual source rights;
 this does not authorize a new receiver or bypass #15's production contract gate.
 
-Adrian must choose the #17 acceptance outcome with rationale:
-
-| Owner choice | Consequence |
-| --- | --- |
-| Reject current operational intake, with the reconsideration triggers below (recommended). | Keep private exports/local analysis at origin; no MI receiver or collection implementation. Record the explicit decision, not unexplained DEFER. |
-| Conditional return toward a narrowly named future operational intake purpose. | Commit to revisiting a recipient role only after the stated benefit/privacy/producer evidence. Specify accepted purpose and allowed evidence; separately select implementation and obtain producer/consumer, service, data-rights and voluntary consent approvals before collection. This packet grants none. |
-
-This is a genuine product/privacy authority decision, not a missing tool or a
-request to configure tests. A loop implementation/review/merge mandate cannot
-replace the explicit owner decision required by #17 AC5. Until then #17 remains
-open and this delivery unmerged; no product GO or sharing acceptance is inferred.
+This explicit decision supplies #17 AC5's owner outcome, not an unexplained DEFER
+or a decision inferred from loop authority, review or Git authorship. It is not
+a permanent prohibition on future opt-in sharing. Reconsideration retains all
+criteria below and requires separate owner approval before implementation.
+Closure follows required validation, fresh exact-HEAD independent review and
+verified integration. Neither the decision nor closure grants product GO, private
+sharing, installed acceptance or implementation authority for #15/#16/#18/#19
+without their own gates. No collection implementation task is selected or registered.
 
 ## Actual Local Evidence And Reuse
 
@@ -142,6 +156,16 @@ owned hash example are executable in `tests/test_operational_sharing_review.py`.
 
 ## Reconsideration And Compatibility
 
+The owner preserves this path; future return is not approved now. It requires:
+
+- A specific named public-evidence/product problem.
+- Demonstrated improvement over public sources/reproduction and origin-local analysis.
+- Evidence that the proposed shared fields are necessary.
+- Explicit producer/consumer contract and lifecycle.
+- Voluntary scoped consent where private records are involved.
+- Source/user rights and negative conformance.
+- Separate owner approval before implementation.
+
 A conditional return requires a named public user problem and measured improvement
 over public sources/reproduction plus origin-local analysis: record the prevented
 incorrect public assertion/compatibility conclusion, curation effort and maintenance
@@ -163,6 +187,7 @@ not an MI wire API; no backwards compatibility bridge or second outcomes framewo
 is built. Transport hashes prove integrity, not truth, consent or anonymity.
 
 [issue]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/17
+[decision]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/17#issuecomment-15400
 [kernel]: https://forgejo.creatidy.com/Creatidy/creatidy-kernel/issues/58
 [router]: https://forgejo.creatidy.com/BioMedical-IT/scarcity-router/issues/177
 [privacy]: https://www.rfc-editor.org/rfc/rfc6973.html
