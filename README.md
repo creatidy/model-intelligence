@@ -28,6 +28,9 @@ not to reopening #12.
 - [Minimum publication contract](PUBLICATION_CONTRACT.md): completed/closed #13,
   merged PR #26, accepted payload/reference/critical semantics and exact-pin
   decision-bound conformance; not a permanent ABI or installed consumer acceptance.
+- [Capability boundary record](ARCHITECTURE.md#capability-boundary-record):
+  completed/closed #14, merged PR #31, versioned ownership research and guarded
+  offline mapping fixtures; not production mapping approval or installed acceptance.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,

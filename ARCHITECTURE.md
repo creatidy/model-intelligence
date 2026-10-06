@@ -127,7 +127,8 @@ them. MI does not classify private tasks or establish entitlement.
 
 ## Capability Boundary Record
 
-Record `mi.capability-boundary-research/1`, selected [#14][semantics]. Decision:
+Record `mi.capability-boundary-research/1`, completed/closed [#14][semantics] through
+merged [PR #31][semantics-pr]. Decision:
 retain the already agreed ownership, not move calibration or invent a third scale.
 This is a versioned research/fixture interpretation, not an approved production
 mapping schema, installed adoption or a change to #13's public payload grammar.
@@ -234,7 +235,7 @@ installed use is unverified, with consumer delivery/receipts in #176/#55/#19.
 | Contract | Producer / consumer owner | Required receipt | Registered work |
 | --- | --- | --- | --- |
 | Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | Completed [MI #13][publication] minimum contract; remaining [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
-| Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Small versioned language with negative/unknown cases; no automatic transfer of existing calibration or third scale. | [MI #14][semantics], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
+| Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Completed #14 bounded ownership record/negative research fixtures; no calibration transfer or third scale. Production mapping needs separate acceptance. | Completed [MI #14][semantics]/[PR #31][semantics-pr]; remaining production mapping/[#15][acquisition], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
 | Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator], separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
 | Optional operational evidence | Kernel/Router local export / MI only after separate approval | Consent/minimization/provenance and cautious inference; denial/withdrawal leaves core operation intact. | [MI #17][feedback], local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
 | Installation/updates and composed receipt | MI public artifact / Router, indirect Kernel evidence | Installed compatible versions, migrations/recovery, outage and operator acceptance. | [MI #18][distribution]/[#19][acceptance], [Kernel #62][kernel-migration]/[#60][kernel-acceptance] |
@@ -249,8 +250,10 @@ requirements/gateway/budget/concurrency/compatibility matches and their scope.
 
 This table itself does not approve an endpoint, permanent ABI, CLI, global ontology,
 PKI or broker. Completed #13 has its separately accepted minimum payload/reference
-contract and negative conformance; remaining [#14][semantics] mapping choices need
-their own accepted evidence. Production acquisition/distribution/consumer adoption
+contract and negative conformance; completed [#14][semantics] retains existing
+ownership and offline mapping research, not production mapping approval. Future
+production mapping choices need their own accepted evidence.
+Production acquisition/distribution/consumer adoption
 remain separately selected deliveries. Optional
 Kernel queries for versioned harness/interface evidence cannot create a second
 ranker or replace adapter tests. Router ZCode support is not Kernel ZCode runtime.
@@ -304,7 +307,8 @@ the decisions in their canonical issues/PRs rather than rewriting them.
 | [#9][r2], merged [PR #10][r2-pr] | R2 separation delivered; final native APPROVE at `177471b7bc083e796d03096382740d1b2d80d676` is synthetic-proof approval, not live accuracy or final GO. |
 | [#11][alignment], current owner direction | Shared target and full known professional scope replace a bootstrap-only prohibition on public-module dependencies. Private onprem dependence remains disallowed. Registered gaps do not authorize feature implementation. |
 | Completed/closed [#12][value], merged [PR #23][value-pr] | Accepted ADAPT to a thin upstream-backed public-evidence and selected-history layer. Not product GO, full A/B/C proof or installed MI-Router acceptance; unresolved implementation belongs to the remaining backlog. |
-| Completed/closed [#13][publication], merged [PR #26][publication-pr] | Accepted minimum public payload, critical-source semantics, immutable cut/evaluation/decision binding and pinned-code offline conformance. Not permanent ABI, private admission/cancellation, product GO or installed acceptance; remaining implementation belongs to #14-#19 and actual consumers. |
+| Completed/closed [#13][publication], merged [PR #26][publication-pr] | Accepted minimum public payload, critical-source semantics, immutable cut/evaluation/decision binding and pinned-code offline conformance. Not permanent ABI, private admission/cancellation, product GO or installed acceptance; remaining implementation belongs to #15-#19 and actual consumers. |
+| Completed/closed [#14][semantics], merged [PR #31][semantics-pr] | Versioned retained-ownership record and exact-pin guarded offline fixtures. MI raw evidence/identity, Router calibration/matching and Kernel requirements/adapter proof remain distinct. Not production mapping approval, rich Kernel requirements, installed adoption or product GO. |
 
 Agreed minimum #13 contract: use frozen evidence-cut references and explicit per-class
 validity diagnostics rather than treating an effective-time query as historical
@@ -316,7 +320,8 @@ The ADAPT outcome and analysis delivery for #12 are settled. Still To Prove/deci
 full A/B/C receipt ([#1][abc]), production acquisition/publication ([#15][acquisition]),
 distribution/migration ([#18][distribution]) and installed consumer policies/receipt
 ([#19][acceptance]); do not repeat settled #13 contract acceptance;
-raw-evidence versus derived-calibration ownership if contested ([#14][semantics]);
+new production mapping or a future contested ownership change, not reopening
+completed [#14][semantics] research;
 optional feedback benefit/privacy approval or explicit return criterion
 ([#17][feedback]). No invented numeric cost/quality/time threshold settles these.
 Routine documentation defects are not architecture decisions. A documentation
@@ -337,6 +342,7 @@ APPROVE leaves the [functional roadmap](ROADMAP.md) open and is never
 [publication]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/13
 [publication-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/26
 [semantics]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/14
+[semantics-pr]: https://forgejo.creatidy.com/Creatidy/model-intelligence/pulls/31
 [acquisition]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15
 [operator]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/16
 [feedback]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/17
