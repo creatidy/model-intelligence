@@ -211,6 +211,34 @@ consumer receipt. Green offline fixtures grant none of those or product GO.
 
 ## Integration Contracts
 
+### Owner-Accepted Production Extension
+
+The owner accepted #15's minimum public identity/native-limit contract on
+2026-10-08 ([canonical decision](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15#issuecomment-15692)).
+This extends #13 through explicitly selected `mi.public-evidence-working/2`, not
+by changing `/1` or reopening #14. The [producer contract](PUBLICATION_CONTRACT.md#native-public-payload-extension)
+retains exact subject/channel/configuration, unknown physical identity, native
+meaning/value/unit/basis/strength, observations, explicit lineage/history and
+decision-bound immutable reference mechanics. Router alone maps/admits/calibrates;
+Kernel owns approved requirements and actual use. No second scale or private intake.
+
+The bounded #15 source adapter uses selected models.dev TOMLs and original public
+Z.ai factual annotations/citations, strict bounded retrieval, complete generation
+validation, atomic retained artifacts and separate source-health facts. Repeated
+facts/formatting cannot renew freshness, conflicts do not choose an authority, and
+unknown campaign intervals cannot become active discounts. `NOTICE` records actual
+MIT selected-data reuse; raw official pages/foreign code/fixtures are not distributed.
+This candidate's real source publication and guarded pure-code proof are not
+installed adoption, publisher truth authentication, execution support or product GO.
+
+Newer exact read-only consumer inspection at Router
+`5c48d51f1eb1f11424a5100eb2ccf20a6cba4581` / Kernel
+`19775b9679cf04f071e4fe5f2542fe230272ea36` verifies integrated #175/#179 and #49/#51,
+including bounded ordinary approved requirement transmission. This supersedes the
+historical narrow-reference maturity limit above at its older source cut. #176/#55
+MI adoption and #52/#181 applicable executable receipts remain separate; their
+absence is not a precondition for this owner-accepted public evidence producer.
+
 Agreed primary output is recognizable versioned knowledge with provenance,
 validity, conflicts and meaningful change. MI need not be synchronous on every
 inference call. Router owns acceptance/freshness/offline policy and private
@@ -251,8 +279,9 @@ requirements/gateway/budget/concurrency/compatibility matches and their scope.
 This table itself does not approve an endpoint, permanent ABI, CLI, global ontology,
 PKI or broker. Completed #13 has its separately accepted minimum payload/reference
 contract and negative conformance; completed [#14][semantics] retains existing
-ownership and offline mapping research, not production mapping approval. Future
-production mapping choices need their own accepted evidence.
+ownership and offline mapping research, not production mapping approval. The later
+owner #15 decision accepts the minimal production representation above; future
+expansions still need their own accepted evidence.
 Production acquisition/distribution/consumer adoption
 remain separately selected deliveries. Optional
 Kernel queries for versioned harness/interface evidence cannot create a second
@@ -324,7 +353,7 @@ The ADAPT outcome and analysis delivery for #12 are settled. Still To Prove/deci
 full A/B/C receipt ([#1][abc]), production acquisition/publication ([#15][acquisition]),
 distribution/migration ([#18][distribution]) and installed consumer policies/receipt
 ([#19][acceptance]); do not repeat settled #13 contract acceptance;
-new production mapping or a future contested ownership change, not reopening
+material expansion beyond the accepted #15 representation or a future contested ownership change, not reopening
 completed [#14][semantics] research;
 any future reconsideration of the settled #17 REJECT must satisfy its preserved
 benefit/privacy/contract/consent/rights/conformance criteria and separate owner approval.

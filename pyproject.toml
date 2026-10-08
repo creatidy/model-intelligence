@@ -5,11 +5,11 @@ build-backend = "uv_build"
 [project]
 name = "model-intelligence"
 version = "0.1.0"
-description = "Public AI ecosystem intelligence: repository bootstrap"
+description = "Public AI ecosystem evidence, provenance and immutable publication"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "NOTICE"]
 dependencies = []
 
 [dependency-groups]

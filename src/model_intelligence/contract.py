@@ -19,6 +19,7 @@ from model_intelligence.evidence import (
     Model,
     ModelClaim,
     Money,
+    NativeLimit,
     Observation,
     OverrideClaim,
     Period,
@@ -33,6 +34,8 @@ from model_intelligence.evidence import (
 from model_intelligence.publication import CutReference, SourceRevision, decode_cut, encode_cut
 
 PAYLOAD_SCHEMA = "mi.public-evidence-working/1"
+NATIVE_PAYLOAD_SCHEMA = "mi.public-evidence-working/2"
+PUBLIC_PAYLOAD_SCHEMAS = frozenset({PAYLOAD_SCHEMA, NATIVE_PAYLOAD_SCHEMA})
 type _SurfaceCapability = Literal[
     "headless",
     "structured-output",
@@ -301,22 +304,40 @@ def _read_terms(value: object) -> Terms:
     )
 
 
-def _subject(value: Model | Plan | Surface) -> dict[str, object]:
+def _subject(value: Model | Plan | Surface, schema: str = PAYLOAD_SCHEMA) -> dict[str, object]:
     match value:
         case Model():
-            return {
+            result: dict[str, object] = {
                 "kind": "model",
                 "id": value.model_id,
                 "provider": value.provider_id,
                 "request_id": value.provider_model_id,
             }
+            if schema == PAYLOAD_SCHEMA:
+                if value != Model(value.model_id, value.provider_id, value.provider_model_id):
+                    raise ValueError("identity-needs-native-grammar")
+            else:
+                result.update(
+                    {
+                        "physical_model": value.physical_model_id,
+                        "revision": value.revision,
+                        "channel": value.channel,
+                        "interface": {
+                            "id": value.interface_id,
+                            "provider": value.interface_provider_id,
+                            "version": value.interface_version,
+                        },
+                        "configuration": None if value.configuration is None else dict(value.configuration),
+                    }
+                )
+            return result
         case Plan():
             return {"kind": "plan", "id": value.plan_id, "provider": value.provider_id, "generation": value.generation}
         case Surface():
             return {"kind": "surface", "id": value.surface_id, "provider": value.provider_id, "version": value.version}
 
 
-def _read_subject(value: object) -> Model | Plan | Surface:
+def _read_subject(value: object, schema: str = PAYLOAD_SCHEMA) -> Model | Plan | Surface:
     if not isinstance(value, dict):
         raise ValueError("subject-shape")
     item = cast(dict[str, object], value)
@@ -324,13 +345,45 @@ def _read_subject(value: object) -> Model | Plan | Surface:
     extra = {"model": "request_id", "plan": "generation", "surface": "version"}.get(_text(kind))
     if extra is None:
         raise ValueError("subject-kind")
-    item = _shape(item, {"kind", "id", "provider", extra})
+    keys = {"kind", "id", "provider", extra}
+    if kind == "model" and schema == NATIVE_PAYLOAD_SCHEMA:
+        keys |= {"physical_model", "revision", "channel", "interface", "configuration"}
+    item = _shape(item, keys)
     args = (_text(item["id"]), _text(item["provider"]), _text(item[extra]))
+    if kind == "model" and schema == NATIVE_PAYLOAD_SCHEMA:
+        interface = _shape(item["interface"], {"id", "provider", "version"})
+        cfg = item["configuration"]
+        if cfg is not None and not isinstance(cfg, dict):
+            raise ValueError("configuration-shape")
+        return Model(
+            *args,
+            _optional(item["physical_model"]),
+            _optional(item["revision"]),
+            _optional(item["channel"]),
+            _optional(interface["id"]),
+            _optional(interface["provider"]),
+            _optional(interface["version"]),
+            None if cfg is None else tuple((_text(k), _optional(v)) for k, v in cast(dict[str, object], cfg).items()),
+        )
     return Model(*args) if kind == "model" else Plan(*args) if kind == "plan" else Surface(*args)
 
 
-def _value(value: Money | Capability | Benchmark | SurfaceEvidence) -> dict[str, object]:
+def _value(
+    value: Money | Capability | Benchmark | SurfaceEvidence | NativeLimit, schema: str = PAYLOAD_SCHEMA
+) -> dict[str, object]:
     match value:
+        case NativeLimit():
+            if schema != NATIVE_PAYLOAD_SCHEMA:
+                raise ValueError("limit-needs-native-grammar")
+            return {
+                "kind": "native-limit",
+                "dimension": value.dimension,
+                "meaning": value.meaning,
+                "amount": None if value.amount is None else str(value.amount),
+                "unit": value.unit,
+                "basis": value.basis,
+                "assertion": value.assertion,
+            }
         case Money():
             return {"kind": "money", "amount": str(value.amount), "currency": value.currency, "unit": value.unit}
         case Capability():
@@ -357,11 +410,26 @@ def _value(value: Money | Capability | Benchmark | SurfaceEvidence) -> dict[str,
             }
 
 
-def _read_value(value: object) -> Money | Capability | Benchmark | SurfaceEvidence:
+def _read_value(
+    value: object, schema: str = PAYLOAD_SCHEMA
+) -> Money | Capability | Benchmark | SurfaceEvidence | NativeLimit:
     if not isinstance(value, dict):
         raise ValueError("value-shape")
     raw = cast(dict[str, object], value)
     match raw.get("kind"):
+        case "native-limit" if schema == NATIVE_PAYLOAD_SCHEMA:
+            item = _shape(raw, {"kind", "dimension", "meaning", "amount", "unit", "basis", "assertion"})
+            assertion = _text(item["assertion"])
+            if assertion not in {"advertised", "source-observed", "source-supported", "unknown"}:
+                raise ValueError("native-assertion")
+            return NativeLimit(
+                _text(item["dimension"]),
+                _text(item["meaning"]),
+                None if item["amount"] is None else _decimal(item["amount"]),
+                _optional(item["unit"]),
+                _optional(item["basis"]),
+                cast("Literal['advertised','source-observed','source-supported','unknown']", assertion),
+            )
         case "money":
             item = _shape(raw, {"kind", "amount", "currency", "unit"})
             return Money(_decimal(item["amount"]), _text(item["currency"]), _text(item["unit"]))
@@ -421,13 +489,13 @@ def _read_window(value: object) -> DailyWindow | None:
     )
 
 
-def _statement(claim: EvidenceClaim) -> dict[str, object]:
+def _statement(claim: EvidenceClaim, schema: str = PAYLOAD_SCHEMA) -> dict[str, object]:
     row: dict[str, object] = {
         "id": claim.claim_id,
         "origin": claim.observation_id,
         "effective": _date(claim.effective_from),
         "replaces": claim.revises,
-        "subject": _subject(claim.subject),
+        "subject": _subject(claim.subject, schema),
     }
     if isinstance(claim, BaselineClaim):
         row.update({"kind": "baseline", "value": _terms(claim.terms)})
@@ -445,11 +513,13 @@ def _statement(claim: EvidenceClaim) -> dict[str, object]:
             }
         )
     else:
-        row.update({"kind": "model" if isinstance(claim, ModelClaim) else "surface", "value": _value(claim.payload)})
+        row.update(
+            {"kind": "model" if isinstance(claim, ModelClaim) else "surface", "value": _value(claim.payload, schema)}
+        )
     return row
 
 
-def _read_statement(value: object) -> EvidenceClaim:
+def _read_statement(value: object, schema: str = PAYLOAD_SCHEMA) -> EvidenceClaim:
     if not isinstance(value, dict):
         raise ValueError("statement-shape")
     raw = cast(dict[str, object], value)
@@ -458,7 +528,7 @@ def _read_statement(value: object) -> EvidenceClaim:
     if kind == "campaign":
         keys |= {"campaign", "interval", "conditions", "window"}
     item = _shape(raw, keys)
-    subject = _read_subject(item["subject"])
+    subject = _read_subject(item["subject"], schema)
     common = (_text(item["id"]), _text(item["origin"]), _at(item["effective"]), _optional(item["replaces"]))
     if kind == "baseline" and isinstance(subject, Plan):
         return BaselineClaim(
@@ -483,8 +553,12 @@ def _read_statement(value: object) -> EvidenceClaim:
             effective_from=common[2],
             revises=common[3],
         )
-    payload = _read_value(item["value"])
-    if kind == "model" and isinstance(subject, Model) and isinstance(payload, Money | Capability | Benchmark):
+    payload = _read_value(item["value"], schema)
+    if (
+        kind == "model"
+        and isinstance(subject, Model)
+        and isinstance(payload, Money | Capability | Benchmark | NativeLimit)
+    ):
         return ModelClaim(
             subject, payload, claim_id=common[0], observation_id=common[1], effective_from=common[2], revises=common[3]
         )
@@ -495,7 +569,11 @@ def _read_statement(value: object) -> EvidenceClaim:
     raise ValueError("statement-kind-or-subject")
 
 
-def encode_public_evidence(cut: PublicEvidence, *, produced_at: datetime) -> tuple[bytes, CutReference]:
+def encode_public_evidence(
+    cut: PublicEvidence, *, produced_at: datetime, payload_schema: str = PAYLOAD_SCHEMA
+) -> tuple[bytes, CutReference]:
+    if payload_schema not in PUBLIC_PAYLOAD_SCHEMAS:
+        raise ValueError("unsupported-version")
     revisions = dict(cut.revisions)
     payload = {
         "applicability": {
@@ -522,7 +600,7 @@ def encode_public_evidence(cut: PublicEvidence, *, produced_at: datetime) -> tup
             }
             for o in cut.evidence.observations
         ],
-        "statements": [_statement(c) for c in cut.evidence.claims],
+        "statements": [_statement(c, payload_schema) for c in cut.evidence.claims],
         "notices": [
             {
                 "id": n.notice_id,
@@ -553,7 +631,7 @@ def encode_public_evidence(cut: PublicEvidence, *, produced_at: datetime) -> tup
     }
     data, reference = encode_cut(
         _json(payload),
-        payload_schema=PAYLOAD_SCHEMA,
+        payload_schema=payload_schema,
         produced_at=produced_at,
         scope=cut.applicability.scope_id,
         members=cut.members(),
@@ -564,8 +642,19 @@ def encode_public_evidence(cut: PublicEvidence, *, produced_at: datetime) -> tup
     return data, reference
 
 
-def decode_public_evidence(data: bytes, expected: CutReference, *, max_bytes: int) -> PublicEvidence:
-    frame = decode_cut(data, expected, supported_payload_schemas=frozenset({PAYLOAD_SCHEMA}), max_bytes=max_bytes)
+def decode_public_evidence(
+    data: bytes,
+    expected: CutReference,
+    *,
+    max_bytes: int,
+    supported_payload_schemas: frozenset[str] = PUBLIC_PAYLOAD_SCHEMAS,
+) -> PublicEvidence:
+    frame = decode_cut(
+        data,
+        expected,
+        supported_payload_schemas=PUBLIC_PAYLOAD_SCHEMAS & supported_payload_schemas,
+        max_bytes=max_bytes,
+    )
     root = _shape(
         json.loads(frame.payload, parse_float=Decimal),
         {"applicability", "observations", "statements", "notices", "uncertain_campaigns"},
@@ -650,7 +739,10 @@ def decode_public_evidence(data: bytes, expected: CutReference, *, max_bytes: in
         )
     result = PublicEvidence(
         applicability,
-        Evidence(tuple(observations), tuple(_read_statement(c) for c in _rows(root["statements"]))),
+        Evidence(
+            tuple(observations),
+            tuple(_read_statement(c, frame.reference.payload_schema) for c in _rows(root["statements"])),
+        ),
         tuple(revisions),
         tuple(notices),
         tuple(uncertain),

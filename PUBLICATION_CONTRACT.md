@@ -1,4 +1,4 @@
-# Publication Framing Candidate
+# Working Public Evidence Publication
 
 ## Status and Boundaries
 
@@ -9,16 +9,19 @@ The expanded payload, source-critical semantics and versioned utilization/envelo
 binding were then accepted as the minimum coordinated contract ([acceptance][accepted]).
 Neither decision approves a permanent public wire ABI, production publisher,
 private admission/cancellation, installed MI-Router acceptance, release or product GO.
-All #13 criteria and downstream gates remain; incompatibilities require revision.
+The later [owner production decision][production] explicitly accepts the narrow
+#15 identity/native-limit extension below, without reopening #13/#14. It does not
+grant a permanent ABI, installed adoption, private policy, inference, deployment or GO.
+All downstream gates remain; incompatibilities require revision.
 
 Issue #13 is completed/closed through [merged PR #26][delivery]. The [completion
 receipt][completion] records exact independent approval, integrated acceptance and
 conformance evidence. Remaining production/adoption/installed work stays in the
 backlog; this does not grant product GO or permanent schema/ABI status.
 
-The candidate uses original standard-library code and owned synthetic fixtures.
+The historical #13 candidate uses original standard-library code and owned synthetic fixtures.
 No upstream code/data/fixtures, private accounts, calibration ratings or consumer
-product functions are copied or implemented. No source acquisition, service, CLI,
+product functions were copied or implemented. That delivery added no source acquisition, service, CLI,
 daemon, database, broker, signatures or PKI is added. #15/#18/#19 remain separate.
 
 ## Reused Evidence and Consumer Seams
@@ -90,8 +93,9 @@ actual copied/distributed payload rights are separately required when applicable
 
 R2 `Evidence`, temporal evaluation and deltas remain unchanged. Supplementary source
 notices and uncertain campaigns are separate from that proof's payload classes.
-Unsupported fields/kinds reject; this work does not invent numeric-limit/calibration
-mapping belonging to #14 or promise active prices from unknown interval bounds.
+Unsupported fields/kinds reject. `/1` does not encode numeric limits; the explicitly
+accepted `/2` extension below adds public native assertions, not calibration or a
+promise of active prices from unknown interval bounds.
 
 Serialization sorts producer keys/membership/source references; it makes repeated
 owned inputs deterministic, not a claim of a general cross-language canonical JSON
@@ -110,6 +114,128 @@ It validates framing, **not** completeness or truth of an opaque payload. A prod
 must validate the registered payload and declared cut before publishing; a consumer
 must validate it before activation. No self-reported `complete=true` is treated as
 proof. A declared empty cut means no supplied evidence, never withdrawal or free use.
+
+## Native Public Payload Extension
+
+`mi.public-evidence-working/2` is deliberately selected by the #15 producer. The
+default `encode_public_evidence` remains `/1` and rejects extended identities/native
+limits instead of silently dropping or reinterpreting them. Both registered versions
+have closed nested shapes; `decode_public_evidence` accepts a caller's supported
+allowlist. `/1` bytes and original R2 temporal behavior are unchanged.
+
+Version 2 model subjects add explicit nullable physical identity, model revision,
+serving channel, interface ID/provider/version and native configuration. Unknown is
+not a wildcard or execution attestation. Omitted configuration, an empty declared
+configuration, missing/null `reasoning_effort`, literal `none`, unsupported effort
+and opaque `variant` remain distinct. Evidence dimensions include these fields;
+different alias/channel/version/configuration cannot be implicitly comparable lineage.
+
+A tagged `native-limit` value carries `dimension`, `meaning`, exact decimal-string
+`amount` or null, native `unit`/`basis` or explicit unknown, and attributed assertion
+strength (`advertised`, `source-observed`, `source-supported`, `unknown`). It reuses
+`ModelClaim`, observations/revisions, effective times, history, source notices and
+immutable publication. Decimal precision, zero and unknown survive unchanged.
+Total context, input allowance, output allowance, request-parameter maximum and
+enforceable execution ceiling are distinct meanings. No conversion/subtraction,
+rounding, quality score, default-unlimited or source-authority winner is supplied.
+
+Router alone may map sufficiently sourced/temporally valid, exact applicable,
+equivalent and unambiguous evidence to its existing properties and local admission.
+MI publishes raw assertions, not that mapping or a second calibration. Public
+evidence cannot grant entitlement, local adapter support, private quota or observed
+execution identity. Kernel retains approved requirements and actual-use evidence.
+Uncertainty/conflict/staleness persists; an unsuitable value is non-mapping, never
+a weakened task requirement. Consumer policy determines freshness, not a global TTL.
+
+## Bounded Production Source Slice
+
+`zai.py` is one original adapter, not a parallel catalog/crawler/service: selected
+models.dev canonical/API/Coding Plan GLM-5.3-Flash TOMLs at
+`f014f106dd414d575de2d0160d91267e2e7cb119` and five named official Z.ai Markdown
+pages for pricing, plan/cohort, campaign and interface facts. Upstream database
+data remain upstream; selected normalized facts retain references, observed-as-of
+time and source-byte digest. Release/publication/business dates are not invented
+from retrieval. Benchmark metrics/version/harness/variant/source remain contextual;
+unreported unit/date stays unreported, not a converted percentage or rating.
+
+The source scope/config fingerprint is independently fixed. All eight bounded
+inputs must parse before activation. HTTPS origins/paths, encoding, redirects,
+partial/compressed/malformed/oversized replies are checked; embedded examples/MDX
+are never executed or followed. Per-source byte caps are measured source-policy
+inputs, not a global numeric budget. Unexpected size/schema/identity/configuration
+changes fail for explicit inspection, not scope shrinking or guessed defaults.
+
+`producer.publish` validates the complete cut, expected scope, retained history and
+new grammar, then fsyncs immutable content-addressed bytes and atomically replaces
+the `current` digest. Failed/incomplete updates cannot activate partial evidence.
+`retained` independently validates its reference/bytes. Every prior artifact remains.
+One mutator/local filesystem is required; no server, database or scheduler is added.
+`import_legacy` explicitly validates `/1`, retains original bytes and publishes `/2`
+without inventing identity or history. Unsupported versions/configuration or
+history-losing rollback rejects while retaining the active artifact. Re-running an
+older producer against incompatible data is not an automatic migration.
+
+`zai.refresh` emits `source-status.json` operator facts separately from publication:
+source URL, retrieval/size/digest/failure class, attempt and last successful publication,
+active digest and concrete retry/remediation guidance. Last successful publication
+is not freshness or entitlement. A formatting-only/same-fact re-read keeps original
+observation/claim/revision/freshness; changed unlinked facts retain disagreement.
+Equivalent numeric spellings reuse the exact existing same-source subject/value,
+including its originally stored decimal precision and provenance. No rounding or
+Decimal context normalization creates identity; genuinely different quantities stay
+independent additions. First capture spellings remain exact in the immutable cut.
+Retrieval codes are allowlisted and content-free; normalization names its responsible
+source and semantic failure class. Publication/storage failures are a separate phase,
+not mislabeled as transport. Arbitrary exception messages/response text are not logged.
+Plan credit headings/reset anchors and promotion lane/subject/eligibility/version
+relations must be validated before their annotations can enter a complete cut.
+Prices bind to the selected section's unit declaration and exact column headings;
+unrelated sections cannot supply a basis. OpenAPI model/type/bounds bind to the
+actual `properties.model` and `properties.max_tokens`, never a following sibling.
+The inspected OpenAPI server/path/POST/request-body JSON `oneOf` must reference
+that component in the same declared document before interface applicability is
+asserted. An unused component or detached/ambiguous reference cannot validate it.
+Interrupted HTTP body/protocol exceptions become content-free attempt diagnostics
+and cannot bypass health recording or activate a partial artifact.
+No inferred correction, withdrawal or newest-source winner. Explicit supplied
+lineage/withdrawal/expiry remains available through the evidence/publication APIs.
+
+API per-token prices and Coding Plan included incremental token price are separate;
+zero does not mean free subscription, zero consumption or unlimited quota. Public
+credits retain period/cohort/reset basis; current rules are not applied to legacy
+accounts. Starting subscription price is not assigned to an unspecified SKU.
+Cache-storage free promotion and the dated overnight campaign preserve unknown
+exact bounds, timezone, paid/harness/alias conditions and source exhaustion wording;
+retrieval does not renew an expired/uncertain campaign or determine private balances.
+
+MIT models.dev selected data attribution/permission is in `NOTICE` (also packaged).
+Generator code, foreign fixtures, AA-derived indexes, weights and images are not
+copied. Official pages contribute original factual annotations/citations, not raw
+page redistribution or a generic legal barrier to public facts. Compared pinned
+genai-prices/codingplan tools remain reference evidence, not adopted code, scheduler
+or a substitute for MI history, units or source precedence.
+
+| Exact reuse comparison | Fit and bounded decision |
+| --- | --- |
+| models.dev `f014f106...`, `packages/core/src/schema.ts` / `generate.ts` / selected TOMLs; MIT data notice2025 | Its explicit canonical/provider link is retained, but producer assertions remain source-scoped; no automatic cross-channel limit inheritance. Original `tomllib` adapter uses only named records and two benchmark facts, not the upstream generator or linked datasets. |
+| genai-prices `36d4e77cc4e8a447f13d63d79326425493268d45`, `update_prices.py` / `data_snapshot.py` / source adapters; MIT2025 Pydantic Services | All-or-error snapshot validation is useful precedent. Creation timestamp, conditional last-wins valuation, missing-price zero and date approximation cannot replace MI source/temporal semantics. No copied implementation, fixtures or scheduler. |
+| codingplan `7a7e43268c8b56f0b0c4ccf2fd5d1581cf2a9c2a`, `scripts/entity-data.js`; MIT2026wmpeng | Inventory/tier separation informs source reading. Duplicate overwrite, sourceURL dropping, zero-to-null and unlimited display substitution are unsuitable. No code/data adoption from this comparison. |
+
+The small local adapter supplies source-specific original applicability/cohort/
+unknown-bound annotations and retained publication absent from those upstream
+outputs; it is not a competing catalog or a reusable scoring/routing framework.
+
+Current pinned offline conformance uses Router
+`5c48d51f1eb1f11424a5100eb2ccf20a6cba4581` and Kernel
+`19775b9679cf04f071e4fe5f2542fe230272ea36`. Kernel #49/#51 and Router #175/#179
+are integrated; #52/#181 are separate executable receipts, not MI producer gates.
+`tests/verify_native_consumers.py` checks package Git blobs before guarded pure
+imports, proves existing Router field/parser/hard-matcher behavior and explicit
+non-mapping counterexamples. Its owned prospective Router-side fixture is not MI
+production mapping. Raw `/2` is not admitted by those consumers. #176/#55 adoption,
+#19 installed acceptance and actual execution remain unverified, not claimed.
+
+[production]: https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/15#issuecomment-15692
 
 ## Frozen Input and Evaluation
 
