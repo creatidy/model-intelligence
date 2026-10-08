@@ -54,11 +54,13 @@ TEXT = {
     "prices": (
         "# Pricing\nAll prices are in USD.\n## Models\n### Latest Models\nPrices per 1M tokens.\n"
         "| Model | Input | Cached Input | Cached Input Storage | Output |\n"
+        "| :- | :- | :- | :- | :- |\n"
         "| GLM-5.3-Flash | \\$0.15 | \\$0.03 | Limited-time Free | \\$0.50 |\n"
     ),
     "plans": (
         "Starting at just 18 USD per month\n"
-        "| Plan Type | 5-Hour Credits | Weekly Credits |\n| Lite | 2,000 | 10,000 |\n"
+        "#### Usage Credit Allowance\n"
+        "| Plan Type | 5-Hour Credits | Weekly Credits |\n| :- | :- | :- |\n| Lite | 2,000 | 10,000 |\n"
         "5-hour credits: Dynamically refreshed; credit quota resets 5 hours after consumption.\n"
         "Weekly credits: Activated upon subscription; resets every 7 days.\n"
         "requests for GLM-4.7 will automatically be routed to GLM-5.3-Flash\n"
@@ -93,6 +95,34 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_selected_row_cannot_borrow_a_compatible_header_from_another_table(self) -> None:
+        changed = dict(TEXT)
+        changed["prices"] = (
+            "# Pricing\nAll prices are in USD.\n## Models\n### Latest Models\n"
+            "Prices per 1M tokens.\n| Model | Input | Cached Input | Cached Input Storage | Output |\n"
+            "| :- | :- | :- | :- | :- |\n| Other | \\$0.15 | \\$0.03 | Limited-time Free | \\$0.50 |\n\n"
+            "| Model | Output | Cached Input | Cached Input Storage | Input |\n"
+            "| :- | :- | :- | :- | :- |\n| GLM-5.3-Flash | \\$0.50 | \\$0.03 | Limited-time Free | \\$0.15 |\n"
+        )
+        with self.subTest(source="prices"), self.assertRaises(ValueError):
+            normalize(captures(texts=changed))
+        changed = dict(TEXT)
+        changed["plans"] = TEXT["plans"].replace("| Lite | 2,000 | 10,000 |", "| Other | 2,000 | 10,000 |")
+        changed["plans"] += (
+            "\n\n| Plan Type | Weekly Credits | 5-Hour Credits |\n| :- | :- | :- |\n| Lite | 10,000 | 2,000 |\n"
+        )
+        with self.subTest(source="plans"), self.assertRaises(ValueError):
+            normalize(captures(texts=changed))
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            with patch("model_intelligence.zai.fetch", side_effect=captures(texts=changed)):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            self.assertEqual({item.source_id for item in result.sources if item.diagnostic}, {"plans"})
+
     def test_interrupted_body_records_attempt_health_without_partial_activation_or_echo(self) -> None:
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)

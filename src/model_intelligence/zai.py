@@ -104,6 +104,8 @@ NORMALIZATION_CODES = frozenset(
         "source-cohort-schema",
         "source-campaign-schema",
         "source-campaign-lane-or-eligibility",
+        "source-table-row-missing-or-ambiguous",
+        "source-table-columns-or-framing",
     }
 )
 
@@ -113,6 +115,32 @@ def _one(pattern: str, text: str, source: str) -> tuple[str, ...]:
     if len(matches) != 1:
         raise SourceFailure(source, "source-selector-missing-or-ambiguous")
     return matches[0].groups()
+
+
+def _row(text: str, first: str, columns: tuple[str, ...], source: str) -> tuple[str, ...]:
+    """Only the selected row's contiguous Markdown table defines its columns."""
+    tables: list[list[tuple[str, ...]]] = []
+    current: list[tuple[str, ...]] = []
+    for line in (*text.splitlines(), ""):
+        line = line.strip()
+        if line.startswith("|") and line.endswith("|"):
+            current.append(tuple(cell.strip() for cell in line[1:-1].split("|")))
+        elif current:
+            tables.append(current)
+            current = []
+    matches = [(table, index, row) for table in tables for index, row in enumerate(table) if row and row[0] == first]
+    if len(matches) != 1:
+        raise SourceFailure(source, "source-table-row-missing-or-ambiguous")
+    table, index, row = matches[0]
+    if (
+        index < 2
+        or table[0] != columns
+        or len(row) != len(columns)
+        or len(table[1]) != len(columns)
+        or any(re.fullmatch(r":?-+:?", cell) is None for cell in table[1])
+    ):
+        raise SourceFailure(source, "source-table-columns-or-framing")
+    return row
 
 
 def _number(value: object, source: str) -> Decimal:
@@ -294,19 +322,15 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
     prices = by_source["prices"].data.decode()
     prologue = _one(r"(?ms)^# Pricing\n(.*?)(?=^## |\Z)", prices, "prices")[0]
     section = _one(r"(?ms)^### Latest Models\n(.*?)(?=^#{1,3} |\Z)", prices, "prices")[0]
-    if "All prices are in USD." not in prologue or "Prices per 1M tokens." not in section:
+    unit_basis = _one(r"^Prices per ([^\n]+) tokens\.$", section, "prices")[0]
+    if "All prices are in USD." not in prologue or unit_basis != "1M":
         raise SourceFailure("prices", "source-price-unit-or-basis")
-    _ = _one(
-        r"^\|[ \t]*Model[ \t]*\|[ \t]*Input[ \t]*\|[ \t]*Cached Input[ \t]*\|"
-        r"[ \t]*Cached Input Storage[ \t]*\|[ \t]*Output[ \t]*\|$",
-        section,
-        "prices",
+    _, raw_in, raw_cached, storage, raw_out = _row(
+        section, "GLM-5.3-Flash", ("Model", "Input", "Cached Input", "Cached Input Storage", "Output"), "prices"
     )
-    amount_in, amount_cached, storage, amount_out = _one(
-        r"^\| GLM-5\.3-Flash \| \\\$(\d+(?:\.\d+)?) \| \\\$(\d+(?:\.\d+)?) \| ([^|]+) \| \\\$(\d+(?:\.\d+)?) \|$",
-        section,
-        "prices",
-    )
+    amount_in = _one(r"^\\\$(\d+(?:\.\d+)?)$", raw_in, "prices")[0]
+    amount_cached = _one(r"^\\\$(\d+(?:\.\d+)?)$", raw_cached, "prices")[0]
+    amount_out = _one(r"^\\\$(\d+(?:\.\d+)?)$", raw_out, "prices")[0]
     for key, amount in (("input", amount_in), ("cache_read", amount_cached), ("output", amount_out)):
         model_fact(
             "prices", _model("zai-api"), Money(_number(amount, "prices"), "USD", "API-price/" + key + "/1000000-tokens")
@@ -377,18 +401,19 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
         Plan("coding-plan-starting-offer", "zai", "public-unspecified"),
         Terms(price=Money(_number(amount, "plans"), "USD", "advertised-starting-monthly-subscription")),
     )
-    five_hour, weekly = _one(r"^\| Lite \| ([\d,]+) \| ([\d,]+) \|$", plans, "plans")
     plan_plain = plans.replace("*", "").replace("`", "")
-    _ = _one(
-        r"^\|[ \t]*Plan Type[ \t]*\|[ \t]*5-Hour Credits[ \t]*\|[ \t]*Weekly Credits[ \t]*\|$", plan_plain, "plans"
-    )
+    plan_features = _one(r"(?ms)^#### Usage Credit Allowance\n(.*?)(?=^#{1,4} |\Z)", plan_plain, "plans")[0]
+    _, five_hour, weekly = _row(plan_features, "Lite", ("Plan Type", "5-Hour Credits", "Weekly Credits"), "plans")
+    for value in (five_hour, weekly):
+        if re.fullmatch(r"\d+(?:,\d{3})*", value) is None:
+            raise SourceFailure("plans", "source-number")
     (five_reset,) = _one(
         r"5-hour credits:[ \t]*Dynamically refreshed; credit quota resets (\d+) hours after consumption\.",
-        plan_plain,
+        plan_features,
         "plans",
     )
     (week_reset,) = _one(
-        r"Weekly credits:[ \t]*Activated upon subscription; resets every (\d+) days\.", plan_plain, "plans"
+        r"Weekly credits:[ \t]*Activated upon subscription; resets every (\d+) days\.", plan_features, "plans"
     )
     if five_reset != "5" or week_reset != "7":
         raise SourceFailure("plans", "source-plan-unit-reset-schema")
