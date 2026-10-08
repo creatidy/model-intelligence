@@ -1,4 +1,5 @@
 import unittest
+from http.client import IncompleteRead
 from unittest.mock import MagicMock, patch
 
 from test_router_conformance import T
@@ -9,6 +10,19 @@ SOURCE = Source("owned-doc", "https://docs.z.ai/guides/owned.md", 20, "owned-ori
 
 
 class AcquisitionTests(unittest.TestCase):
+    def test_truncated_body_protocol_exception_is_safe_incomplete_response(self) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.status = 200
+        response.geturl.return_value = SOURCE.reference
+        response.headers = {"Content-Encoding": "identity"}
+        response.read.side_effect = IncompleteRead(b"OWNED-SECRET-PARTIAL", 10)
+        opener = MagicMock()
+        opener.open.return_value = response
+        with patch("model_intelligence.acquisition.build_opener", return_value=opener):
+            with self.assertRaisesRegex(ValueError, "source-incomplete-response"):
+                fetch(SOURCE, at=T, timeout=1)
+
     def test_nonfinite_timeout_never_starts_a_public_request(self) -> None:
         for timeout in (float("nan"), float("inf"), -1.0, 0.0):
             with self.subTest(timeout=timeout), patch("model_intelligence.acquisition.build_opener") as opener:

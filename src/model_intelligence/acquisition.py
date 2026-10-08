@@ -6,6 +6,7 @@ import hashlib
 import math
 from dataclasses import dataclass
 from datetime import datetime
+from http.client import HTTPException, IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
@@ -87,6 +88,10 @@ def fetch(source: Source, *, at: datetime, timeout: float) -> Capture:
             if length is not None and (not length.isdecimal() or int(length) != len(data)):
                 raise ValueError("source-incomplete-response")
             return Capture(source, data, at)
+    except IncompleteRead:
+        raise ValueError("source-incomplete-response") from None
+    except HTTPException:
+        raise ValueError("source-http-protocol-failed") from None
     except (HTTPError, URLError, TimeoutError, UnicodeError, OSError) as error:
         # Only a diagnostic class escapes; never echo response bodies or headers.
         raise ValueError("source-retrieval-failed") from error

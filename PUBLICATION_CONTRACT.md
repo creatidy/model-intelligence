@@ -185,6 +185,11 @@ source and semantic failure class. Publication/storage failures are a separate p
 not mislabeled as transport. Arbitrary exception messages/response text are not logged.
 Plan credit headings/reset anchors and promotion lane/subject/eligibility/version
 relations must be validated before their annotations can enter a complete cut.
+Prices bind to the selected section's unit declaration and exact column headings;
+unrelated sections cannot supply a basis. OpenAPI model/type/bounds bind to the
+actual `properties.model` and `properties.max_tokens`, never a following sibling.
+Interrupted HTTP body/protocol exceptions become content-free attempt diagnostics
+and cannot bypass health recording or activate a partial artifact.
 No inferred correction, withdrawal or newest-source winner. Explicit supplied
 lineage/withdrawal/expiry remains available through the evidence/publication APIs.
 

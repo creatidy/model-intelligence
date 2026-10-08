@@ -74,6 +74,7 @@ RETRIEVAL_REMEDIATION = {
     "source-compressed-response": "Require identity encoding; never decode unbounded compression.",
     "source-partial-or-unexpected-response": "Require a complete 200 reply at the declared URL.",
     "source-incomplete-response": "Compare response framing/length; discard partial bytes and retry complete capture.",
+    "source-http-protocol-failed": "Inspect HTTP framing/status; discard and retry complete capture.",
     "source-size-policy": "Inspect measured size/config changes; review bounds, never truncate evidence.",
     "source-encoding": "Inspect source UTF-8 format; discard malformed text without guessing another encoding.",
     "invalid-source-timeout": "Supply a finite positive retrieval timeout before retry.",
@@ -291,11 +292,19 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
             )
 
     prices = by_source["prices"].data.decode()
-    if "All prices are in USD." not in prices or "Prices per 1M tokens." not in prices:
+    prologue = _one(r"(?ms)^# Pricing\n(.*?)(?=^## |\Z)", prices, "prices")[0]
+    section = _one(r"(?ms)^### Latest Models\n(.*?)(?=^#{1,3} |\Z)", prices, "prices")[0]
+    if "All prices are in USD." not in prologue or "Prices per 1M tokens." not in section:
         raise SourceFailure("prices", "source-price-unit-or-basis")
+    _ = _one(
+        r"^\|[ \t]*Model[ \t]*\|[ \t]*Input[ \t]*\|[ \t]*Cached Input[ \t]*\|"
+        r"[ \t]*Cached Input Storage[ \t]*\|[ \t]*Output[ \t]*\|$",
+        section,
+        "prices",
+    )
     amount_in, amount_cached, storage, amount_out = _one(
         r"^\| GLM-5\.3-Flash \| \\\$(\d+(?:\.\d+)?) \| \\\$(\d+(?:\.\d+)?) \| ([^|]+) \| \\\$(\d+(?:\.\d+)?) \|$",
-        prices,
+        section,
         "prices",
     )
     for key, amount in (("input", amount_in), ("cache_read", amount_cached), ("output", amount_out)):
@@ -318,11 +327,19 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
 
     interface = by_source["interface"].data.decode()
     (version,) = _one(r"^  version: ([\w.]+)$", interface, "interface")
-    segment = _one(r"(?s)    ChatCompletionVisionRequest:(.*?)\n    \w", interface, "interface")[0]
-    lower, upper = _one(
-        r"(?s)        max_tokens:.*?\n          minimum: (\d+)\n          maximum: (\d+)", segment, "interface"
-    )
-    if "- glm-5.3-flash\n" not in segment or "type: integer" not in segment:
+    segment = _one(r"(?ms)^    ChatCompletionVisionRequest:\n(.*?)(?=^    \w|\Z)", interface, "interface")[0]
+    properties = _one(r"(?ms)^      properties:\n(.*?)(?=^      \w|\Z)", segment, "interface")[0]
+    model_property = _one(r"(?ms)^        model:\n(.*?)(?=^        \w|\Z)", properties, "interface")[0]
+    model_enum = _one(r"(?ms)^          enum:\n(.*?)(?=^          \w|\Z)", model_property, "interface")[0]
+    token_property = _one(r"(?ms)^        max_tokens:\n(.*?)(?=^        \w|\Z)", properties, "interface")[0]
+    (lower,) = _one(r"^          minimum: (\d+)$", token_property, "interface")
+    (upper,) = _one(r"^          maximum: (\d+)$", token_property, "interface")
+    if (
+        "            - glm-5.3-flash\n" not in model_enum
+        or "          type: string\n" not in model_property
+        or "          type: integer\n" not in token_property
+        or "The maximum number of tokens for model output." not in token_property
+    ):
         raise SourceFailure("interface", "source-interface-subject")
     subject = _model("zai-api", interface_version=version)
     model_fact(

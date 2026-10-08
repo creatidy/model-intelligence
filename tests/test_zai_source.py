@@ -6,8 +6,9 @@ import unittest
 from dataclasses import replace
 from datetime import datetime
 from decimal import Decimal
+from http.client import IncompleteRead
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from test_router_conformance import DAY, T
 
@@ -51,7 +52,8 @@ TEXT = {
     "api": OFFER,
     "coding": OFFER.replace("0.15", "0").replace("0.50", "0").replace("0.03", "0"),
     "prices": (
-        "All prices are in USD.\nPrices per 1M tokens.\n"
+        "# Pricing\nAll prices are in USD.\n## Models\n### Latest Models\nPrices per 1M tokens.\n"
+        "| Model | Input | Cached Input | Cached Input Storage | Output |\n"
         "| GLM-5.3-Flash | \\$0.15 | \\$0.03 | Limited-time Free | \\$0.50 |\n"
     ),
     "plans": (
@@ -75,8 +77,11 @@ TEXT = {
     ),
     "cohort": "Publication date: July 30, 2026\nUTC+8 Plans are not switched automatically\n",
     "interface": (
-        "  version: 1.0.0\n    ChatCompletionVisionRequest:\n      enum:\n        - glm-5.3-flash\n"
-        "        max_tokens:\n          type: integer\n          minimum: 1\n"
+        "  version: 1.0.0\n    ChatCompletionVisionRequest:\n      properties:\n        model:\n"
+        "          type: string\n          enum:\n            - glm-5.3-flash\n"
+        "        max_tokens:\n          type: integer\n"
+        "          description: The maximum number of tokens for model output.\n"
+        "          minimum: 1\n"
         "          maximum: 131072\n    NextSchema:\n"
     ),
 }
@@ -88,6 +93,82 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_interrupted_body_records_attempt_health_without_partial_activation_or_echo(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            response = MagicMock()
+            response.__enter__.return_value = response
+            response.status = 200
+            response.headers = {"Content-Encoding": "identity"}
+            response.geturl.side_effect = tuple(source.reference for source in SOURCES)
+            response.read.side_effect = IncompleteRead(b"OWNED-SECRET-PARTIAL", 12)
+            opener = MagicMock()
+            opener.open.return_value = response
+            with patch("model_intelligence.acquisition.build_opener", return_value=opener):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            self.assertEqual({item.diagnostic for item in result.sources}, {"source-incomplete-response"})
+            status = (root / "source-status.json").read_text()
+            self.assertNotIn("OWNED-SECRET-PARTIAL", status)
+            self.assertEqual(json.loads(status)["attempted_at"], (T + DAY).isoformat())
+
+    def test_unbound_price_headers_and_sibling_parameter_limits_are_rejected(self) -> None:
+        for key, value in (
+            (
+                "prices",
+                TEXT["prices"].replace("| Model | Input | Cached Input | Cached Input Storage | Output |\n", ""),
+            ),
+            (
+                "prices",
+                TEXT["prices"].replace("| Input |", "| Output |").replace("Storage | Output |", "Storage | Input |"),
+            ),
+            (
+                "prices",
+                TEXT["prices"].replace("1M tokens", "1000 tokens") + "\n### Other Models\nPrices per 1M tokens.\n",
+            ),
+            (
+                "interface",
+                TEXT["interface"].replace(
+                    "          minimum: 1\n          maximum: 131072",
+                    "        sibling_count:\n          type: integer\n          minimum: 1\n          maximum: 131072",
+                ),
+            ),
+        ):
+            changed = dict(TEXT)
+            changed[key] = value
+            with self.subTest(source=key), self.assertRaises(ValueError):
+                normalize(captures(texts=changed))
+
+    def test_sibling_property_schema_failure_leaves_active_bytes_and_names_interface(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            changed = dict(TEXT)
+            changed["interface"] = changed["interface"].replace("maximum: 131072", "maximum: unknown")
+            with patch("model_intelligence.zai.fetch", side_effect=captures(texts=changed)):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            self.assertEqual({item.source_id for item in result.sources if item.diagnostic}, {"interface"})
+
+    def test_local_price_basis_drift_preserves_bytes_despite_other_section_basis(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            changed = dict(TEXT)
+            changed["prices"] = TEXT["prices"].replace("1M tokens", "1000 tokens")
+            changed["prices"] += "\n### Other Models\nPrices per 1M tokens.\n"
+            with patch("model_intelligence.zai.fetch", side_effect=captures(texts=changed)):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            self.assertEqual({item.source_id for item in result.sources if item.diagnostic}, {"prices"})
+
     def test_missing_plan_headings_resets_and_campaign_lane_clauses_do_not_activate(self) -> None:
         for source, before, after in (
             ("plans", "5-Hour Credits", "5-Hour Requests"),
