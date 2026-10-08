@@ -17,6 +17,10 @@ selected-history layer, not product GO, full A/B/C proof or installed MI-Router
 acceptance. Future implementation and receipts belong to the remaining backlog,
 not to reopening #12.
 
+The later owner-accepted #15 contract adds a bounded upstream-backed public source
+producer and explicit native evidence grammar `/2`, preserving `/1`. This is not
+installed Router adoption, a live intelligence service, private intake or product GO.
+
 ## Documentation
 
 - [Architecture](ARCHITECTURE.md): shared ownership, delivered semantics, evidence
@@ -28,6 +32,10 @@ not to reopening #12.
 - [Minimum publication contract](PUBLICATION_CONTRACT.md): completed/closed #13,
   merged PR #26, accepted payload/reference/critical semantics and exact-pin
   decision-bound conformance; not a permanent ABI or installed consumer acceptance.
+- [Native producer extension](PUBLICATION_CONTRACT.md#native-public-payload-extension):
+  owner-accepted #15 `/2` representation, selected models.dev/Z.ai source adapter,
+  atomic retained publication and source-health facts. No consumer admission,
+  private calibration, installed adoption or product GO.
 - [Capability boundary record](ARCHITECTURE.md#capability-boundary-record):
   completed/closed #14, merged PR #31, versioned ownership research and guarded
   offline mapping fixtures; not production mapping approval or installed acceptance.
@@ -92,6 +100,31 @@ No MI runtime CLI, Console feed or snapshot API is documented as delivered.
 [Forgejo](https://forgejo.creatidy.com/Creatidy/model-intelligence) is canonical for
 source, issues, PRs, reviews and integration history.
 [GitHub](https://github.com/creatidy/model-intelligence) is a read-only public mirror.
+
+## Public Producer
+
+The narrow adapter is `model_intelligence.zai`, not a catalog fork or service.
+`SOURCES` fixes inspected public URI/pin, rights route and measured byte bounds;
+`SCOPE` binds its configuration. Every declared source must parse before activation.
+The caller supplies time, timeout and artifact byte policy; no global TTL, daemon
+or private credentials are needed.
+
+```python
+from datetime import UTC, datetime
+from pathlib import Path
+from model_intelligence.zai import refresh
+
+directory = Path("public-artifacts")  # Operator-owned local output, one mutator.
+directory.mkdir(exist_ok=True)
+result = refresh(directory, at=datetime.now(UTC), max_artifact_bytes=65536, timeout=30)
+```
+
+The sample artifact allowance is an example for the measured first selected cut,
+not a global/ecosystem limit. History can grow; inspect and explicitly adjust policy
+rather than dropping observations. Failure retains complete bytes, not freshness.
+Raw official pages are not distributed. Read `NOTICE` and the [source limits](PUBLICATION_CONTRACT.md#bounded-production-source-slice)
+before redistribution. Public evidence does not establish entitlement, account quota,
+local execution support, universal quality or a routing decision.
 
 ## Local Development
 

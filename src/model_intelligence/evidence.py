@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, time
 from decimal import Decimal
@@ -74,9 +75,36 @@ class Model:
     model_id: str
     provider_id: str
     provider_model_id: str
+    physical_model_id: str | None = None
+    revision: str | None = None
+    channel: str | None = None
+    interface_id: str | None = None
+    interface_provider_id: str | None = None
+    interface_version: str | None = None
+    configuration: tuple[tuple[str, str | None], ...] | None = None
 
     def __post_init__(self) -> None:
         _nonempty(self.model_id, self.provider_id, self.provider_model_id)
+        for value in (
+            self.physical_model_id,
+            self.revision,
+            self.channel,
+            self.interface_id,
+            self.interface_provider_id,
+            self.interface_version,
+        ):
+            if value is not None:
+                _nonempty(value)
+        if self.configuration is not None:
+            names: set[str] = set()
+            for name, value in self.configuration:
+                _nonempty(name)
+                if name in names:
+                    raise ValueError("duplicate-configuration")
+                names.add(name)
+                if value is not None:
+                    _nonempty(value)
+            object.__setattr__(self, "configuration", tuple(sorted(self.configuration)))
 
 
 @dataclass(frozen=True)
@@ -121,6 +149,30 @@ class Benchmark:
         _nonempty(self.name, self.version, self.methodology, self.configuration, self.unit)
         if not self.value.is_finite():
             raise ValueError("benchmark must be finite")
+
+
+@dataclass(frozen=True)
+class NativeLimit:
+    """Attributed native assertion, never a consumer hard property or conversion."""
+
+    dimension: str
+    meaning: str
+    amount: Decimal | None
+    unit: str | None
+    basis: str | None
+    assertion: Literal["advertised", "source-observed", "source-supported", "unknown"]
+
+    def __post_init__(self) -> None:
+        _nonempty(self.dimension, self.meaning)
+        for value in (self.unit, self.basis):
+            if value is not None:
+                _nonempty(value)
+        if self.amount is not None and (
+            type(self.amount) is not Decimal or not self.amount.is_finite() or self.amount < 0
+        ):
+            raise ValueError("native limit must be an exact finite nonnegative decimal or unknown")
+        if self.assertion not in {"advertised", "source-observed", "source-supported", "unknown"}:
+            raise ValueError("native assertion strength")
 
 
 @dataclass(frozen=True)
@@ -200,7 +252,7 @@ class Claim:
 @dataclass(frozen=True)
 class ModelClaim(Claim):
     subject: Model
-    payload: Capability | Benchmark | Money
+    payload: Capability | Benchmark | Money | NativeLimit
 
 
 @dataclass(frozen=True)
@@ -269,6 +321,18 @@ def dimension(claim: EvidenceClaim) -> tuple[str, ...]:
             claim.payload.capability,
         )
     prefix = ("model", claim.subject.model_id, claim.subject.provider_id, claim.subject.provider_model_id)
+    context = (
+        claim.subject.physical_model_id,
+        claim.subject.revision,
+        claim.subject.channel,
+        claim.subject.interface_id,
+        claim.subject.interface_provider_id,
+        claim.subject.interface_version,
+        claim.subject.configuration,
+    )
+    if any(value is not None for value in context):
+        # Null, omitted configuration and literal strings remain different keys.
+        prefix = (*prefix, "applicability", json.dumps(context, separators=(",", ":")))
     match claim.payload:
         case Capability(name=name):
             return (*prefix, "capability", name)
@@ -283,6 +347,14 @@ def dimension(claim: EvidenceClaim) -> tuple[str, ...]:
                 benchmark.methodology,
                 benchmark.configuration,
                 benchmark.unit,
+            )
+        case NativeLimit() as limit:
+            return (
+                *prefix,
+                "native-limit",
+                limit.dimension,
+                limit.meaning,
+                json.dumps((limit.unit, limit.basis), separators=(",", ":")),
             )
 
 
