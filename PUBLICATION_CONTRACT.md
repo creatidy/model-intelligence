@@ -180,6 +180,11 @@ source URL, retrieval/size/digest/failure class, attempt and last successful pub
 active digest and concrete retry/remediation guidance. Last successful publication
 is not freshness or entitlement. A formatting-only/same-fact re-read keeps original
 observation/claim/revision/freshness; changed unlinked facts retain disagreement.
+Retrieval codes are allowlisted and content-free; normalization names its responsible
+source and semantic failure class. Publication/storage failures are a separate phase,
+not mislabeled as transport. Arbitrary exception messages/response text are not logged.
+Plan credit headings/reset anchors and promotion lane/subject/eligibility/version
+relations must be validated before their annotations can enter a complete cut.
 No inferred correction, withdrawal or newest-source winner. Explicit supplied
 lineage/withdrawal/expiry remains available through the evidence/publication APIs.
 

@@ -55,12 +55,23 @@ TEXT = {
         "| GLM-5.3-Flash | \\$0.15 | \\$0.03 | Limited-time Free | \\$0.50 |\n"
     ),
     "plans": (
-        "Starting at just 18 USD per month\n| Lite | 2,000 | 10,000 |\n"
+        "Starting at just 18 USD per month\n"
+        "| Plan Type | 5-Hour Credits | Weekly Credits |\n| Lite | 2,000 | 10,000 |\n"
+        "5-hour credits: Dynamically refreshed; credit quota resets 5 hours after consumption.\n"
+        "Weekly credits: Activated upon subscription; resets every 7 days.\n"
         "requests for GLM-4.7 will automatically be routed to GLM-5.3-Flash\n"
     ),
     "campaign": (
         "Campaign period: September 3, 2026 to October 7, 2026\n"
-        "23:00 to 09:00 UTC+8 paid plan users Zero quota consumption doubled 3.10\n"
+        "Campaign is available to all paid plan users. UTC+8.\n"
+        "For every day from 23:00 to 09:00 the following day, usage of GLM-5.3-Flash through GLM Coding Plan.\n"
+        "Campaign applies only to GLM-5.3-Flash.\n"
+        "| Usage Method | Quota Consumption Rule |\n"
+        "| Use via [ZCode](https://example.invalid/z)\u3001[AutoClaw](https://example.invalid/a) "
+        "| Zero quota consumption for unlimited usage |\n"
+        "| Use via other supported Agents | Available quota is doubled based on your plan's standard quota rules |\n"
+        "When reached the 5 hours/week quota limit, users will temporarily be unable to participate.\n"
+        "Campaign takes effect only in ZCode version 3.10 and later.\n"
     ),
     "cohort": "Publication date: July 30, 2026\nUTC+8 Plans are not switched automatically\n",
     "interface": (
@@ -77,6 +88,65 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_missing_plan_headings_resets_and_campaign_lane_clauses_do_not_activate(self) -> None:
+        for source, before, after in (
+            ("plans", "5-Hour Credits", "5-Hour Requests"),
+            ("plans", "after consumption", "after midnight"),
+            ("plans", "upon subscription", "upon first call"),
+            ("campaign", "[ZCode]", "[DifferentTool]"),
+            ("campaign", "other supported Agents", "ZCode only"),
+            ("campaign", "temporarily be unable to participate", "allowed to participate"),
+            ("campaign", "ZCode version 3.10", "AutoClaw version 3.10"),
+        ):
+            modified = dict(TEXT)
+            modified[source] = modified[source].replace(before, after)
+            with self.subTest(source=source, clause=before), self.assertRaises(ValueError):
+                normalize(captures(texts=modified))
+
+    def test_source_schema_failure_names_only_responsible_source_and_retains_current(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            modified = dict(TEXT)
+            modified["prices"] = modified["prices"].replace("USD", "EUR")
+            with patch("model_intelligence.zai.fetch", side_effect=captures(texts=modified)):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertFalse(result.succeeded)
+            errors = {item.source_id: item.diagnostic for item in result.sources if item.diagnostic is not None}
+            self.assertEqual(errors, {"prices": "source-price-unit-or-basis"})
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            status = json.loads((root / "source-status.json").read_text())
+            self.assertEqual(status["phase"], "normalization")
+            self.assertTrue(all(item.retrieved for item in result.sources))
+
+    def test_retrieval_policy_class_is_preserved_without_response_text(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=ValueError("source-redirect-rejected")):
+                result = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual({item.diagnostic for item in result.sources}, {"source-redirect-rejected"})
+
+    def test_storage_failure_is_not_reported_as_source_failure_or_echoed(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            with (
+                patch("model_intelligence.zai.fetch", side_effect=captures(at=T + DAY)),
+                patch("model_intelligence.zai.publish", side_effect=OSError("OWNED-SECRET-PATH")),
+            ):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertFalse(result.succeeded)
+            self.assertEqual(result.diagnostic, "publication-storage-failed")
+            self.assertTrue(all(item.retrieved and item.diagnostic is None for item in result.sources))
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            text = (root / "source-status.json").read_text()
+            self.assertNotIn("OWNED-SECRET-PATH", text)
+            self.assertEqual(json.loads(text)["phase"], "publication")
+
     def test_complete_scope_roundtrip_native_distinctions_and_unknowns(self) -> None:
         public = normalize(captures())
         data, reference = encode_public_evidence(public, produced_at=T, payload_schema=NATIVE_PAYLOAD_SCHEMA)
