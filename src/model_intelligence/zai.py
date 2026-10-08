@@ -367,8 +367,24 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
     )
 
     interface = by_source["interface"].data.decode()
-    (version,) = _one(r"^  version: ([\w.]+)$", interface, "interface")
-    segment = _one(r"(?ms)^    ChatCompletionVisionRequest:\n(.*?)(?=^    \w|\Z)", interface, "interface")[0]
+    interface = _one(r"(?ms)^````yaml POST /paas/v4/chat/completions\n(.*?)^````$", interface, "interface")[0]
+    _ = _one(r"^openapi: 3\.0\.1$", interface, "interface")
+    info = _one(r"(?ms)^info:\n(.*?)(?=^\w|\Z)", interface, "interface")[0]
+    (version,) = _one(r"^  version: ([\w.]+)$", info, "interface")
+    servers = _one(r"(?ms)^servers:\n(.*?)(?=^\w|\Z)", interface, "interface")[0]
+    _ = _one(r"^  - url: https://api\.z\.ai/api$", servers, "interface")
+    paths = _one(r"(?ms)^paths:\n(.*?)(?=^\w|\Z)", interface, "interface")[0]
+    path = _one(r"(?ms)^  /paas/v4/chat/completions:\n(.*?)(?=^  \S|\Z)", paths, "interface")[0]
+    operation = _one(r"(?ms)^    post:\n(.*?)(?=^    \w|\Z)", path, "interface")[0]
+    body = _one(r"(?ms)^      requestBody:\n(.*?)(?=^      \w|\Z)", operation, "interface")[0]
+    content = _one(r"(?ms)^        content:\n(.*?)(?=^        \w|\Z)", body, "interface")[0]
+    media = _one(r"(?ms)^          application/json:\n(.*?)(?=^          \S|\Z)", content, "interface")[0]
+    schema = _one(r"(?ms)^            schema:\n(.*?)(?=^            \w|\Z)", media, "interface")[0]
+    variants = _one(r"(?ms)^              oneOf:\n(.*?)(?=^              \w|\Z)", schema, "interface")[0]
+    _ = _one(r"^                - \$ref: '#/components/schemas/ChatCompletionVisionRequest'$", variants, "interface")
+    components = _one(r"(?ms)^components:\n(.*?)(?=^\w|\Z)", interface, "interface")[0]
+    schemas = _one(r"(?ms)^  schemas:\n(.*?)(?=^  \w|\Z)", components, "interface")[0]
+    segment = _one(r"(?ms)^    ChatCompletionVisionRequest:\n(.*?)(?=^    \w|\Z)", schemas, "interface")[0]
     properties = _one(r"(?ms)^      properties:\n(.*?)(?=^      \w|\Z)", segment, "interface")[0]
     model_property = _one(r"(?ms)^        model:\n(.*?)(?=^        \w|\Z)", properties, "interface")[0]
     model_enum = _one(r"(?ms)^          enum:\n(.*?)(?=^          \w|\Z)", model_property, "interface")[0]

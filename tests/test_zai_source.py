@@ -81,12 +81,16 @@ TEXT = {
     ),
     "cohort": "Publication date: July 30, 2026\nUTC+8 Plans are not switched automatically\n",
     "interface": (
-        "  version: 1.0.0\n    ChatCompletionVisionRequest:\n      properties:\n        model:\n"
+        "````yaml POST /paas/v4/chat/completions\nopenapi: 3.0.1\ninfo:\n  version: 1.0.0\n"
+        "servers:\n  - url: https://api.z.ai/api\npaths:\n  /paas/v4/chat/completions:\n    post:\n"
+        "      requestBody:\n        content:\n          application/json:\n            schema:\n"
+        "              oneOf:\n                - $ref: '#/components/schemas/ChatCompletionVisionRequest'\n"
+        "components:\n  schemas:\n    ChatCompletionVisionRequest:\n      properties:\n        model:\n"
         "          type: string\n          enum:\n            - glm-5.3-flash\n"
         "        max_tokens:\n          type: integer\n"
         "          description: The maximum number of tokens for model output.\n"
         "          minimum: 1\n"
-        "          maximum: 131072\n    NextSchema:\n"
+        "          maximum: 131072\n    NextSchema:\n````\n"
     ),
 }
 
@@ -97,6 +101,25 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_unused_component_without_operation_link_does_not_prove_applicability(self) -> None:
+        link = "                - $ref: '#/components/schemas/ChatCompletionVisionRequest'\n"
+        for replacement in ("", link.replace("VisionRequest", "OtherRequest"), link * 2):
+            changed = dict(TEXT)
+            changed["interface"] = changed["interface"].replace(link, replacement)
+            with self.subTest(link=replacement), self.assertRaises(ValueError):
+                normalize(captures(texts=changed))
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            with patch("model_intelligence.zai.fetch", side_effect=captures()):
+                _ = refresh(root, at=T, max_artifact_bytes=65536, timeout=1)
+            original = retained(root, max_bytes=65536)
+            changed = dict(TEXT)
+            changed["interface"] = changed["interface"].replace(link, "")
+            with patch("model_intelligence.zai.fetch", side_effect=captures(texts=changed)):
+                result = refresh(root, at=T + DAY, max_artifact_bytes=65536, timeout=1)
+            self.assertEqual(retained(root, max_bytes=65536), original)
+            self.assertEqual({item.source_id for item in result.sources if item.diagnostic}, {"interface"})
+
     def test_equivalent_numeric_spelling_keeps_original_observations_and_values(self) -> None:
         original = normalize(captures())
         changed = dict(TEXT)

@@ -192,6 +192,9 @@ relations must be validated before their annotations can enter a complete cut.
 Prices bind to the selected section's unit declaration and exact column headings;
 unrelated sections cannot supply a basis. OpenAPI model/type/bounds bind to the
 actual `properties.model` and `properties.max_tokens`, never a following sibling.
+The inspected OpenAPI server/path/POST/request-body JSON `oneOf` must reference
+that component in the same declared document before interface applicability is
+asserted. An unused component or detached/ambiguous reference cannot validate it.
 Interrupted HTTP body/protocol exceptions become content-free attempt diagnostics
 and cannot bypass health recording or activate a partial artifact.
 No inferred correction, withdrawal or newest-source winner. Explicit supplied
