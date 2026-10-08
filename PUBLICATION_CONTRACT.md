@@ -180,6 +180,10 @@ source URL, retrieval/size/digest/failure class, attempt and last successful pub
 active digest and concrete retry/remediation guidance. Last successful publication
 is not freshness or entitlement. A formatting-only/same-fact re-read keeps original
 observation/claim/revision/freshness; changed unlinked facts retain disagreement.
+Equivalent numeric spellings reuse the exact existing same-source subject/value,
+including its originally stored decimal precision and provenance. No rounding or
+Decimal context normalization creates identity; genuinely different quantities stay
+independent additions. First capture spellings remain exact in the immutable cut.
 Retrieval codes are allowlisted and content-free; normalization names its responsible
 source and semantic failure class. Publication/storage failures are a separate phase,
 not mislabeled as transport. Arbitrary exception messages/response text are not logged.

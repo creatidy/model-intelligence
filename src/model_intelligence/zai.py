@@ -215,10 +215,27 @@ def normalize(captures: tuple[Capture, ...], *, previous: PublicEvidence | None 
         return identity, observations[identity].retrieved_at
 
     def model_fact(source: str, subject: Model, value: Capability | Money | Benchmark | NativeLimit) -> None:
+        # Decimal equality is exact and context-independent; repr is not semantic identity.
+        if any(
+            isinstance(row, ModelClaim)
+            and row.subject == subject
+            and row.payload == value
+            and observations[row.observation_id].source_id == source
+            for row in claims.values()
+        ):
+            return
         identity, at = origin(source, (subject, value))
         claims[identity] = ModelClaim(subject, value, claim_id=identity, observation_id=identity, effective_from=at)
 
     def baseline(source: str, subject: Plan, terms: Terms) -> None:
+        if any(
+            isinstance(row, BaselineClaim)
+            and row.subject == subject
+            and row.terms == terms
+            and observations[row.observation_id].source_id == source
+            for row in claims.values()
+        ):
+            return
         identity, at = origin(source, (subject, terms))
         claims[identity] = BaselineClaim(subject, terms, claim_id=identity, observation_id=identity, effective_from=at)
 

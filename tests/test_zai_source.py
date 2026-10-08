@@ -14,8 +14,10 @@ from test_router_conformance import DAY, T
 
 from model_intelligence.acquisition import Capture
 from model_intelligence.contract import NATIVE_PAYLOAD_SCHEMA, decode_public_evidence, encode_public_evidence
+from model_intelligence.deltas import evidence_delta, projection_delta
 from model_intelligence.evidence import ModelClaim, Money, NativeLimit
 from model_intelligence.producer import retained
+from model_intelligence.projection import effective_at
 from model_intelligence.zai import SOURCES, normalize, refresh
 
 CATALOG = """name = "GLM-5.3-Flash"
@@ -95,6 +97,20 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_equivalent_numeric_spelling_keeps_original_observations_and_values(self) -> None:
+        original = normalize(captures())
+        changed = dict(TEXT)
+        changed["prices"] = changed["prices"].replace("\\$0.50", "\\$0.5")
+        changed["api"] = changed["api"].replace("output = 0.50", "output = 0.5")
+        updated = normalize(captures(texts=changed, at=T + DAY), previous=original)
+        self.assertEqual(updated, original)
+        self.assertEqual(updated.revisions, original.revisions)
+        self.assertEqual(updated.evidence.observations, original.evidence.observations)
+        delta = evidence_delta(original.evidence, updated.evidence)
+        self.assertEqual((delta.observations, delta.claims), ((), ()))
+        projected = projection_delta(effective_at(original.evidence, T), effective_at(updated.evidence, T + DAY))
+        self.assertEqual((projected.offers, projected.models_before, projected.models_after), ((), (), ()))
+
     def test_selected_row_cannot_borrow_a_compatible_header_from_another_table(self) -> None:
         changed = dict(TEXT)
         changed["prices"] = (
