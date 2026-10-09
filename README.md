@@ -43,6 +43,10 @@ installed Router adoption, a live intelligence service, private intake or produc
   explicit owner **REJECT current operational intake**, rationale and preserved
   reconsideration criteria with original synthetic examples;
   no receiving format, collection, sharing authorization or automatic calibration.
+- [Offline operator contract](OPERATOR_CONTRACT.md): #16 producer-owned first
+  definition, read-only local CLI/status/inspection/export and independently
+  implemented portable consumer conformance. Console requirements are inputs,
+  not an existing-receiver prerequisite; live/browser/installed gates remain open.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
@@ -95,7 +99,8 @@ GPUs, preferences or task-specific final routing decisions. It is not a downstre
 decision engine. Reuse existing open components only where semantics and licenses
 permit; do not construct another generic model catalog.
 Public module dependencies are allowed; private creatidy-onprem is not required.
-No MI runtime CLI, Console feed or snapshot API is documented as delivered.
+The #16 candidate supplies an offline read-only CLI and full-snapshot export,
+not a live Console feed, endpoint, event replay or effectful command API.
 
 [Forgejo](https://forgejo.creatidy.com/Creatidy/model-intelligence) is canonical for
 source, issues, PRs, reviews and integration history.
@@ -127,6 +132,31 @@ before redistribution. Public evidence does not establish entitlement, account q
 local execution support, universal quality or a routing decision.
 
 ## Local Development
+
+Offline operator views (no source fetching, publication writes or commands):
+
+```sh
+mi-evidence status public-artifacts --instance public-demo --at 2026-10-08T20:00:00Z --max-bytes 65536
+mi-evidence inspect public-artifacts --instance public-demo --at 2026-10-08T20:00:00Z --max-bytes 65536 --json
+mi-evidence export public-artifacts --instance public-demo --at 2026-10-08T20:00:00Z --max-bytes 65536
+```
+
+All JSON forms use the same validated snapshot facts. Time and per-input byte
+policy are explicit operator inputs, not a global TTL/limit. Optional `--checkpoint`
+is a retained cut digest, not an event offset: missing history yields a gap, never
+a fabricated timeline. Source health and active publication may disagree because
+their files are separate; mismatch/unavailable is exposed rather than called current.
+Snapshots retain unknown/stale/future/conflicting/withdrawn/expired classifications
+without source-policy or admission decisions. Human inspection prints the same
+projection, not new facts. Reads never refresh or modify an artifact.
+
+The portable consumer is original code implemented independently from the producer
+in a separate context, with no `model_intelligence` imports. Its strict shape/hash/
+reference/version/namespace checks and immutable last-known state exercise malformed,
+unsupported, duplicate/reordered, reconnect/resync and explicit missing-history
+cases. This is not actual Console adoption, browser authorization, transport security,
+installed integration, source authenticity or product acceptance. Effectful commands
+are empty; #17 REJECT is unchanged. See the contract for compatibility limits.
 
 Requires Python 3.12+, [uv](https://docs.astral.sh/uv/) and Make.
 
