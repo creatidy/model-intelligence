@@ -264,16 +264,19 @@ installed use is unverified, with consumer delivery/receipts in #176/#55/#19.
 | --- | --- | --- | --- |
 | Knowledge publication/adoption/reference | MI / Router / Kernel | Complete recognizable artifact; evidence-cut, compatibility, corruption/partial-update rejection, provenance and immutable utilized reference. | Completed [MI #13][publication] minimum contract; remaining [#15][acquisition], [Router #176][router-mi], [Kernel #55][kernel-knowledge] |
 | Capability identity/calibration | MI raw evidence / Router mapping and matching / Kernel requirements | Completed #14 bounded ownership record/negative research fixtures; no calibration transfer or third scale. Production mapping needs separate acceptance. | Completed [MI #14][semantics]/[PR #31][semantics-pr]; remaining production mapping/[#15][acquisition], [Router #175][router-requirements], [Kernel #49][kernel-intake]/[#51][kernel-requirements] |
-| Operator state/events | Each producer / CLI and Console | Consistent facts, correlation/version, reconnect/dedup position and explicit history gaps; no direct foreign DB edits. | [MI #16][operator], separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
+| Operator state/export | MI owns first contract; Console validates/adopts/presents | Owner correction15780 accepts versioned offline read-only MI contract over #13/#15, independently implemented portable consumer conformance, honest correlation/reconnect/dedup/gaps, empty effectful commands. Actual Console/browser/live/installed gates separate. | [MI #16][operator], Console #6 NOT a prerequisite; separate [Kernel #57][kernel-events]/[Router #183][router-events] producers |
 | Optional operational evidence | Kernel/Router local export / no current MI intake | Owner #17 REJECT current operational intake; preserve named-problem/benefit/necessary-fields/contract/lifecycle/consent/rights/conformance reconsideration and separate owner approval. Core operation stays independent. | [MI #17][feedback] [decision packet](OPERATIONAL_SHARING_REVIEW.md); local [Kernel #58][kernel-outcomes]/[Router #177][router-feedback] |
 | Installation/updates and composed receipt | MI public artifact / Router, indirect Kernel evidence | Installed compatible versions, migrations/recovery, outage and operator acceptance. | [MI #18][distribution]/[#19][acceptance], [Kernel #62][kernel-migration]/[#60][kernel-acceptance] |
 
 Review caught incomplete discovery during concurrent task registration. The
 corrected registry links the actual Kernel children above, rather than leaving
 known reference/export/state/migration consumers only under planning parent
-[#46][kernel]. These are planned work, not integrated contracts. A Console consumer
-counterpart was not identified; [MI #16][operator] records its expected owner/contract
-without designing Console. [ROADMAP.md](ROADMAP.md) gives the complete received
+[#46][kernel]. Source maturity must be checked at its own revision. Console
+counterparts #2/#3/#6/#7/#9/#12/#11 are registered in MI comment14308. The later
+owner correction15780 resolves initial MI16-Console6 circularity: MI owns first
+offline read-only contract; semantic consumer requirements are inputs, not wire
+ownership, and no existing receiver or browser topology is required first.
+[ROADMAP.md](ROADMAP.md) gives the complete received
 requirements/gateway/budget/concurrency/compatibility matches and their scope.
 
 This table itself does not approve an endpoint, permanent ABI, CLI, global ontology,
@@ -286,6 +289,27 @@ Production acquisition/distribution/consumer adoption
 remain separately selected deliveries. Optional
 Kernel queries for versioned harness/interface evidence cannot create a second
 ranker or replace adapter tests. Router ZCode support is not Kernel ZCode runtime.
+
+### Producer-Owned Operator Contract
+
+The explicit owner decision2026-10-08T20:23:50Z is traceable in the governing
+[#16][operator] acceptance addendum and [comment15780](https://forgejo.creatidy.com/Creatidy/model-intelligence/issues/16#issuecomment-15780).
+Original AC1/3/4 wording is preserved; the addendum corrects its interpretation,
+not the requirement for concrete evidence. MI defines/versions/publishes the
+[working offline contract](OPERATOR_CONTRACT.md), CLI views and fixtures first.
+Console owns semantic requirements, adoption, presentation and compatibility
+feedback. An implemented Console receiver, Console #6 completion and accepted
+browser topology are not prerequisites for MI implementation.
+
+Independent portable consumer code must validate complete malformed/unsupported,
+stale/unknown, correlation, reconnect/resync, duplicate/reordered snapshots and
+explicit missing retained-history cases without importing producer validators.
+Producer self-round-trip alone is insufficient. This receipt does not claim actual
+Console adoption, browser authorization, transport security, installed integration
+or product acceptance. Those deferred gates remain open with their respective owners.
+Effectful-command inventory is empty: no endpoint/command/replay/global cursor/auth
+scheme/service/second event store is introduced. Snapshot replacement and endpoint
+deltas cannot be marketed as lossless event history. #13/#15 and #17 REJECT remain.
 
 ## Privacy, Security and Reuse
 
@@ -342,6 +366,7 @@ the decisions in their canonical issues/PRs rather than rewriting them.
 | Completed/closed [#13][publication], merged [PR #26][publication-pr] | Accepted minimum public payload, critical-source semantics, immutable cut/evaluation/decision binding and pinned-code offline conformance. Not permanent ABI, private admission/cancellation, product GO or installed acceptance; remaining implementation belongs to #15-#19 and actual consumers. |
 | Completed/closed [#14][semantics], merged [PR #31][semantics-pr] | Versioned retained-ownership record and exact-pin guarded offline fixtures. MI raw evidence/identity, Router calibration/matching and Kernel requirements/adapter proof remain distinct. Not production mapping approval, rich Kernel requirements, installed adoption or product GO. |
 | [#17][feedback] explicit owner decision, 2026-10-06 | REJECT current operational intake. No demonstrated incremental public need justifies private exports/audits or their privacy/linkage/lifecycle obligations. Preserve the [decision packet](OPERATIONAL_SHARING_REVIEW.md) reconsideration criteria and separate owner approval; not permanent prohibition, private-sharing permission or product GO. |
+| [#16][operator] explicit producer-ownership correction, 2026-10-08 | MI owns first offline read-only operator/export schema/semantics/version/fixtures/publication; Console requirements are inputs and consumer adoption remains Console-owned. Independently implemented portable consumer conformance replaces the initial implemented-Console prerequisite, not deferred browser/transport/installed/product receipt claims. Empty effectful commands. |
 
 Agreed minimum #13 contract: use frozen evidence-cut references and explicit per-class
 validity diagnostics rather than treating an effective-time query as historical

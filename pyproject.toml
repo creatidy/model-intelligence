@@ -12,6 +12,9 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 dependencies = []
 
+[project.scripts]
+mi-evidence = "model_intelligence.cli:main"
+
 [dependency-groups]
 dev = [
     "basedpyright>=1.31.0,<2",
