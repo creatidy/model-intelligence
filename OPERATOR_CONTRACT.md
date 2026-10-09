@@ -117,6 +117,9 @@ Embedded lineage requires matching kind/comparable subject and value dimension,
 nondecreasing effective boundary and valid campaign period/withdrawal invariants,
 independently from its byte hash. Projection change covers both before/after sides
 and diagnostic conflicts, including the first effective model or surface assertion.
+Daily windows independently require a valid named timezone and distinct naive
+wall-time endpoints. Malformed retained/checkpoint windows diagnose invalid/gap,
+never traceback or overwrite accepted state, including explicit resync.
 Notice replacement also preserves source ownership and targets. Uncertain campaign
 terms must declare a field and keep at least one boundary unknown; both-known bounds
 belong to a bounded override, not an uncertain record. These checks are independent

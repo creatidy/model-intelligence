@@ -12,6 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta
 from typing import Any, Literal, NoReturn, cast
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 type Object = dict[str, Any]
 type Groups = dict[str, dict[str, Object]]
@@ -188,13 +189,18 @@ def _window(value: Any) -> Object | None:
         return None
     result: Object = _check(value, dict(timezone=_text, start=_text, end=_text))
     try:
+        _ = ZoneInfo(result["timezone"])
+        endpoints: list[time] = []
         for key in ("start", "end"):
             parsed: time = time.fromisoformat(result[key])
             if parsed.tzinfo is not None:
                 _fail("window-zone")
+            endpoints.append(parsed)
+        if endpoints[0] == endpoints[1]:
+            _fail("window-equal-times")
     except ValidationError:
         raise
-    except ValueError:
+    except (ValueError, ZoneInfoNotFoundError):
         _fail("window-time")
     return result
 

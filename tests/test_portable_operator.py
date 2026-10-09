@@ -35,6 +35,32 @@ from model_intelligence.zai import normalize
 
 
 class PortableOperatorTests(unittest.TestCase):
+    def test_rehashed_malformed_windows_reject_even_explicit_resync(self) -> None:
+        public = normalize(captures())
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _ = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=262144)
+            original = canonical(snapshot(root, instance="owned", at=T, max_bytes=262144))
+            first = receive(None, original, max_bytes=262144)
+            self.assertEqual(first.disposition, "accepted")
+            for mode in ("unknown-zone", "equal-times"):
+                view = json.loads(original)
+                frame = json.loads(view["publication"]["artifact"])
+                payload = json.loads(frame["payload"])
+                window = next(row["window"] for row in payload["uncertain_campaigns"] if row["window"] is not None)
+                if mode == "unknown-zone":
+                    window["timezone"] = "Owned/Not_A_Zone"
+                else:
+                    window["end"] = window["start"]
+                frame["payload"] = canonical(payload).decode()
+                artifact = canonical(frame)
+                view["publication"]["artifact"] = artifact.decode()
+                view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+                result = receive(first.state, canonical(view), max_bytes=262144, resync=True)
+                with self.subTest(mode=mode):
+                    self.assertEqual(result.disposition, "rejected")
+                    self.assertEqual(result.state, first.state)
+
     def test_actual_full_source_normalizer_operator_and_consumer_are_compatible(self) -> None:
         public = normalize(captures())
         with tempfile.TemporaryDirectory() as name:

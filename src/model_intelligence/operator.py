@@ -9,6 +9,7 @@ from datetime import datetime, time
 from decimal import Decimal
 from pathlib import Path
 from typing import cast
+from zoneinfo import ZoneInfoNotFoundError
 
 from model_intelligence.contract import PUBLIC_PAYLOAD_SCHEMAS, PublicEvidence, decode_public_evidence
 from model_intelligence.deltas import projection_delta
@@ -174,7 +175,7 @@ def snapshot(
                 "artifact": data.decode(),
                 "diagnostics": [],
             }
-    except (ValueError, OSError, UnicodeError, TypeError) as error:
+    except (ValueError, OSError, UnicodeError, TypeError, ZoneInfoNotFoundError) as error:
         unsupported = isinstance(error, ValueError) and str(error) == "unsupported-version"
         publication["state"] = "unsupported" if unsupported else "invalid"
         publication["diagnostics"] = [
@@ -282,7 +283,7 @@ def snapshot(
                         )
                     ),
                 )
-            except (ValueError, OSError, UnicodeError):
+            except (ValueError, OSError, UnicodeError, ZoneInfoNotFoundError):
                 history["relation"] = "gap"
     return {
         "schema": SCHEMA,
