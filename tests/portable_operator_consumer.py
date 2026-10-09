@@ -10,7 +10,7 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Any, Literal, NoReturn, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -135,7 +135,7 @@ def _date(value: Any, utc: bool = False) -> datetime:
         offset: timedelta | None = result.utcoffset()
         if offset is None or (utc and offset.total_seconds() != 0):
             _fail("timestamp-zone")
-        return result
+        return result.astimezone(UTC)
     except ValidationError:
         raise
     except (ValueError, OverflowError):

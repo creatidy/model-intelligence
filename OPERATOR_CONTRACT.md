@@ -123,6 +123,9 @@ never traceback or overwrite accepted state, including explicit resync.
 Aware timestamps whose UTC normalization is outside the datetime range are rejected
 at CLI input policy and diagnosed as invalid publication/health or checkpoint gap
 at stored-data boundaries; the untrusted timestamp is never echoed in a traceback.
+The independent portable timestamp validator verifies UTC representability too;
+awareness alone is insufficient. Rehashed invalid frame/observation/health instants
+remain rejected even when a receiver explicitly requests full-snapshot resync.
 Notice replacement also preserves source ownership and targets. Uncertain campaign
 terms must declare a field and keep at least one boundary unknown; both-known bounds
 belong to a bounded override, not an uncertain record. These checks are independent

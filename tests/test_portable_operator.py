@@ -35,6 +35,44 @@ from model_intelligence.zai import normalize
 
 
 class PortableOperatorTests(unittest.TestCase):
+    def test_rehashed_utc_underflow_overflow_in_all_stored_time_boundaries_keep_state(self) -> None:
+        public = normalize(captures())
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            ref = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=262144)
+            original = canonical(snapshot(root, instance="owned", at=T, max_bytes=262144))
+            accepted = receive(None, original, max_bytes=262144)
+            for timestamp in ("0001-01-01T00:00:00+01:00", "9999-12-31T23:59:59-01:00"):
+                for boundary in ("acquired", "published", "frame", "health"):
+                    view = json.loads(original)
+                    if boundary == "health":
+                        data = json.loads(
+                            health(ref.sha256, public.applicability.scope_id, public.applicability.source_ids)
+                        )
+                        data["attempted_at"] = timestamp
+                        view["health"] = {
+                            "state": "valid",
+                            "data": data,
+                            "sha256": hashlib.sha256(canonical(data)).hexdigest(),
+                            "correlation": "matched",
+                        }
+                    else:
+                        frame = json.loads(view["publication"]["artifact"])
+                        if boundary == "frame":
+                            frame["produced_at"] = timestamp
+                        else:
+                            payload = json.loads(frame["payload"])
+                            payload["observations"][0]["times"][boundary] = timestamp
+                            frame["payload"] = canonical(payload).decode()
+                        artifact = canonical(frame)
+                        view["publication"]["artifact"] = artifact.decode()
+                        view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+                    result = receive(accepted.state, canonical(view), max_bytes=262144, resync=True)
+                    with self.subTest(timestamp=timestamp, boundary=boundary):
+                        self.assertEqual(result.disposition, "rejected")
+                        self.assertEqual(result.state, accepted.state)
+                        self.assertNotIn(timestamp, " ".join(result.diagnostics))
+
     def test_rehashed_malformed_windows_reject_even_explicit_resync(self) -> None:
         public = normalize(captures())
         with tempfile.TemporaryDirectory() as name:
