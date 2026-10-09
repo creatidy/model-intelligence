@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import cast
 
 from model_intelligence.contract import PUBLIC_PAYLOAD_SCHEMAS, PublicEvidence, decode_public_evidence
-from model_intelligence.deltas import evidence_delta, projection_delta
+from model_intelligence.deltas import projection_delta
 from model_intelligence.evidence import instant, knowledge
 from model_intelligence.producer import retained
 from model_intelligence.projection import Conflict, effective_at
@@ -266,15 +266,21 @@ def snapshot(
                     supported_payload_schemas=PUBLIC_PAYLOAD_SCHEMAS,
                 )
                 old.check_update(public)
-                delta = evidence_delta(old.evidence, public.evidence)
                 projected = projection_delta(effective_at(old.evidence, at), projection)
                 history.update(
                     relation="same" if old_ref == reference else "extension",
-                    evidence_added=sorted(
-                        ["observation:" + item.observation_id for item in delta.observations]
-                        + ["statement:" + item.claim_id for item in delta.claims]
+                    evidence_added=sorted(set(public.members()) - set(old.members())),
+                    projection_changed=any(
+                        (
+                            projected.offers,
+                            projected.models_before,
+                            projected.models_after,
+                            projected.surfaces_before,
+                            projected.surfaces_after,
+                            projected.conflicts_before,
+                            projected.conflicts_after,
+                        )
                     ),
-                    projection_changed=bool(projected.offers or projected.models_before or projected.surfaces_before),
                 )
             except (ValueError, OSError, UnicodeError):
                 history["relation"] = "gap"

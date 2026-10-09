@@ -1,4 +1,5 @@
 import ast
+import hashlib
 import json
 import tempfile
 import unittest
@@ -11,12 +12,154 @@ from test_native_evidence import LIMIT, claim, cut
 from test_operator import health
 from test_router_conformance import DAY, PLAN, T, augment, base, observation
 
-from model_intelligence.evidence import Money, OverrideClaim, Period, Terms
+from model_intelligence.contract import SourceNotice, UncertainCampaign
+from model_intelligence.evidence import (
+    Capability,
+    Model,
+    ModelClaim,
+    Money,
+    OverrideClaim,
+    Period,
+    Surface,
+    SurfaceClaim,
+    SurfaceEvidence,
+    Terms,
+)
 from model_intelligence.operator import canonical, snapshot
 from model_intelligence.producer import publish, record_refresh_status
 
 
 class PortableOperatorTests(unittest.TestCase):
+    def test_notice_and_uncertain_member_extensions_follow_checkpoint(self) -> None:
+        public = cut(claim())
+        notice = SourceNotice("revoked", "native", frozenset({"statement:native"}), T, "revocation", True)
+        campaign = UncertainCampaign("uncertain", "native", PLAN, "owned", Terms(available=True), T, None, None)
+        updated = replace(public, notices=(notice,), uncertain_campaigns=(campaign,))
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            old_ref = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            first = receive(None, canonical(snapshot(root, instance="owned", at=T, max_bytes=65536)), max_bytes=65536)
+            _ = publish(root, updated, expected=public.applicability, produced_at=T, max_bytes=65536)
+            view = snapshot(root, instance="owned", at=T, max_bytes=65536, checkpoint=old_ref.sha256)
+            current = receive(first.state, canonical(view), max_bytes=65536)
+            self.assertEqual(current.disposition, "accepted")
+            self.assertEqual(
+                json.loads(canonical(view))["history"]["evidence_added"], ["notice:revoked", "uncertain:uncertain"]
+            )
+            next_ref = json.loads(canonical(view))["publication"]["reference"]["sha256"]
+            retraction = SourceNotice("retracted", "native", notice.targets, T + DAY, "retraction", None, "revoked")
+            later = replace(updated, notices=(notice, retraction))
+            _ = publish(root, later, expected=public.applicability, produced_at=T + DAY, max_bytes=65536)
+            last = snapshot(root, instance="owned", at=T + DAY, max_bytes=65536, checkpoint=next_ref)
+            self.assertEqual(receive(current.state, canonical(last), max_bytes=65536).disposition, "accepted")
+            self.assertEqual(json.loads(canonical(last))["history"]["evidence_added"], ["notice:retracted"])
+
+    def test_first_effective_model_and_surface_are_projection_changes(self) -> None:
+        original = base()
+        for item in (
+            ModelClaim(
+                Model("owned", "zai", "alias"),
+                Capability("tool", True),
+                claim_id="first",
+                observation_id="first",
+                effective_from=T,
+            ),
+            SurfaceClaim(
+                Surface("owned", "zai", "1"),
+                SurfaceEvidence("headless", advertised=True),
+                claim_id="first",
+                observation_id="first",
+                effective_from=T,
+            ),
+        ):
+            with tempfile.TemporaryDirectory() as name:
+                root = Path(name)
+                old_ref = publish(root, original, expected=original.applicability, produced_at=T, max_bytes=65536)
+                updated = replace(
+                    original,
+                    evidence=original.evidence.extend(observations=(observation("first"),), claims=(item,)),
+                    revisions=(*original.revisions, ("first", "owned-revision")),
+                )
+                _ = publish(root, updated, expected=original.applicability, produced_at=T, max_bytes=65536)
+                view = json.loads(
+                    canonical(snapshot(root, instance="owned", at=T, max_bytes=65536, checkpoint=old_ref.sha256))
+                )
+                self.assertTrue(view["history"]["projection_changed"])
+
+    def test_acquisition_only_observation_change_retains_forward_consumer_state(self) -> None:
+        public = cut(claim())
+        changed = replace(
+            public,
+            evidence=replace(
+                public.evidence,
+                observations=tuple(replace(item, retrieved_at=T + DAY) for item in public.evidence.observations),
+            ),
+        )
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            old_ref = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            first = receive(None, canonical(snapshot(root, instance="owned", at=T, max_bytes=65536)), max_bytes=65536)
+            _ = publish(root, changed, expected=public.applicability, produced_at=T + DAY, max_bytes=65536)
+            view = snapshot(root, instance="owned", at=T + DAY, max_bytes=65536, checkpoint=old_ref.sha256)
+            self.assertEqual(receive(first.state, canonical(view), max_bytes=65536).disposition, "accepted")
+            self.assertEqual(json.loads(canonical(view))["history"]["evidence_added"], [])
+            self.assertEqual(public.evidence.observations[0].fresh_until, changed.evidence.observations[0].fresh_until)
+
+    def test_rehashed_cross_kind_embedded_lineage_is_not_valid_integrity(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            public = cut(claim())
+            _ = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            view = json.loads(canonical(snapshot(root, instance="owned", at=T, max_bytes=65536)))
+            first = receive(None, canonical(view), max_bytes=65536)
+            frame = json.loads(view["publication"]["artifact"])
+            payload = json.loads(frame["payload"])
+            row = next(row for row in payload["statements"] if row["kind"] == "model")
+            row["replaces"] = "base"
+            frame["payload"] = canonical(payload).decode()
+            artifact = canonical(frame)
+            view["publication"]["artifact"] = artifact.decode()
+            view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+            rejected = receive(first.state, canonical(view), max_bytes=65536)
+            self.assertEqual(rejected.disposition, "rejected")
+            self.assertEqual(rejected.state, first.state)
+
+    def test_rehashed_invalid_campaign_lifecycle_keeps_prior_accepted_state(self) -> None:
+        promotion = OverrideClaim(
+            PLAN,
+            "owned",
+            Terms(available=True),
+            Period(T, T + DAY),
+            claim_id="promo",
+            observation_id="promo",
+            effective_from=T,
+        )
+        public = augment(base(), observed=(observation("promo"),), claims=(promotion,))
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _ = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            original = canonical(snapshot(root, instance="owned", at=T, max_bytes=65536))
+            first = receive(None, original, max_bytes=65536)
+            for mode in ("no-interval", "reverse", "unlinked-withdrawal"):
+                view = json.loads(original)
+                frame = json.loads(view["publication"]["artifact"])
+                payload = json.loads(frame["payload"])
+                row = next(row for row in payload["statements"] if row["kind"] == "campaign")
+                if mode == "reverse":
+                    row["interval"]["end"] = row["interval"]["start"]
+                else:
+                    row["interval"] = None
+                    if mode == "unlinked-withdrawal":
+                        row["value"] = None
+                frame["payload"] = canonical(payload).decode()
+                artifact = canonical(frame)
+                view["publication"]["artifact"] = artifact.decode()
+                view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+                with self.subTest(mode=mode):
+                    result = receive(first.state, canonical(view), max_bytes=65536)
+                    self.assertEqual(result.disposition, "rejected")
+                    self.assertEqual(result.state, first.state)
+
     def test_conflicting_native_assertions_are_present_without_a_consumer_winner(self) -> None:
         public = cut(claim(), claim("disagreement", limit=replace(LIMIT, amount=Decimal("2048"))))
         with tempfile.TemporaryDirectory() as name:

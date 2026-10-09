@@ -108,6 +108,13 @@ indicator type/history context but does not recalculate producer temporal semant
 Only declared retained cuts are available history; missing checkpoint explicitly
 gaps. No lossless acquisition-attempt/transport timeline or retention duration is
 promised. Corrupt checkpoint yields gap, not heuristic ordering.
+History additions cover all published member families: observations, statements,
+notices and uncertain campaigns. Observation acquisition-time-only updates are
+permitted by #13/#15 history; semantic/source-revision/freshness fields remain exact.
+Embedded lineage requires matching kind/comparable subject and value dimension,
+nondecreasing effective boundary and valid campaign period/withdrawal invariants,
+independently from its byte hash. Projection change covers both before/after sides
+and diagnostic conflicts, including the first effective model or surface assertion.
 
 An independently implemented portable receiver validates the entire envelope,
 hashes, versions and references without importing producer validators. Exact

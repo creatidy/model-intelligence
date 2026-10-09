@@ -336,6 +336,17 @@ def _statement(value: Any, schema: str) -> Object:
         _fail("statement-subject")
     if kind in ("baseline", "campaign"):
         _check(obj["value"], _optional(_TERMS) if kind == "campaign" else _TERMS)
+        if kind == "campaign":
+            interval = obj["interval"]
+            if obj["value"] is None:
+                if obj["replaces"] is None or interval is not None or obj["conditions"] or obj["window"] is not None:
+                    _fail("withdrawal-shape")
+            elif (
+                interval is None
+                or all(item is None for item in obj["value"].values())
+                or _date(interval["end"]) <= _date(interval["start"])
+            ):
+                _fail("campaign-lifecycle")
     else:
         if type(obj["value"]) is not dict:
             _fail("value-kind")
@@ -347,6 +358,34 @@ def _statement(value: Any, schema: str) -> Object:
             _fail("value-kind")
         _check(item, _VALUES[tag])
     return obj
+
+
+def _dimension(row: Object) -> tuple[Any, ...]:
+    """Independent declared comparability keys, not temporal projection selection."""
+    subject = json.dumps(row["subject"], sort_keys=True, separators=(",", ":"))
+    kind = row["kind"]
+    if kind == "baseline":
+        return kind, subject
+    if kind == "campaign":
+        return kind, subject, row["campaign"]
+    value = row["value"]
+    tag = value["kind"]
+    keys = {
+        "money": ("currency", "unit"),
+        "capability": ("name",),
+        "surface": ("capability",),
+        "benchmark": ("name", "version", "method", "configuration", "unit"),
+        "native-limit": ("dimension", "meaning", "unit", "basis"),
+    }[tag]
+    return kind, subject, tag, *(value[key] for key in keys)
+
+
+def _same_observation(before: Object, after: Object) -> bool:
+    old = dict(before)
+    new = dict(after)
+    old["times"] = {key: value for key, value in before["times"].items() if key != "acquired"}
+    new["times"] = {key: value for key, value in after["times"].items() if key != "acquired"}
+    return old == new
 
 
 def _statement_rule(schema: str) -> Validator:
@@ -435,6 +474,13 @@ def _public(frame: Object) -> tuple[Object, Groups, frozenset[str]]:
                     parent: str = cursor["replaces"]
                     if parent in seen or parent not in groups[kind]:
                         _fail("revision-reference")
+                    previous = groups[kind][parent]
+                    if _date(cursor["effective"]) < _date(previous["effective"]):
+                        _fail("revision-boundary")
+                    if kind == "statement" and _dimension(cursor) != _dimension(previous):
+                        _fail("revision-comparability")
+                    if kind == "notice" and cursor["targets"] != previous["targets"]:
+                        _fail("notice-comparability")
                     seen.add(parent)
                     cursor = groups[kind][parent]
     members: frozenset[str] = frozenset(f"{kind}:{key}" for kind, rows in groups.items() for key in rows)
@@ -761,7 +807,15 @@ def receive(state: State | None, data: bytes, *, max_bytes: int, resync: bool = 
             if cut.payload["applicability"] != old_cut.payload["applicability"]:
                 return Receipt("resync-required", state, ("applicability-changed",))
             for kind, rows in old_cut.groups.items():
-                if any(cut.groups[kind].get(key) != row for key, row in rows.items()):
+                if any(
+                    key not in cut.groups[kind]
+                    or (
+                        not _same_observation(row, cut.groups[kind][key])
+                        if kind == "observation"
+                        else cut.groups[kind][key] != row
+                    )
+                    for key, row in rows.items()
+                ):
                     return Receipt("resync-required", state, ("history-not-preserved",))
             if set(history["evidence_added"]) != set(cut.members - old_cut.members):
                 _fail("history-additions-mismatch")
