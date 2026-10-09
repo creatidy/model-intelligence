@@ -1,5 +1,7 @@
 import ast
+import contextlib
 import hashlib
+import io
 import json
 import tempfile
 import unittest
@@ -11,7 +13,9 @@ from portable_operator_consumer import decode, receive
 from test_native_evidence import LIMIT, claim, cut
 from test_operator import health
 from test_router_conformance import DAY, PLAN, T, augment, base, observation
+from test_zai_source import captures
 
+from model_intelligence.cli import main
 from model_intelligence.contract import SourceNotice, UncertainCampaign
 from model_intelligence.evidence import (
     Capability,
@@ -27,9 +31,101 @@ from model_intelligence.evidence import (
 )
 from model_intelligence.operator import canonical, snapshot
 from model_intelligence.producer import publish, record_refresh_status
+from model_intelligence.zai import normalize
 
 
 class PortableOperatorTests(unittest.TestCase):
+    def test_actual_full_source_normalizer_operator_and_consumer_are_compatible(self) -> None:
+        public = normalize(captures())
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _ = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=262144)
+            view = snapshot(root, instance="owned", at=T, max_bytes=262144)
+            receipt = receive(None, canonical(view), max_bytes=262144)
+            self.assertEqual(receipt.disposition, "accepted")
+            emitted: list[str] = []
+            for operation in ("status", "inspect", "export"):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(
+                        main(
+                            [
+                                operation,
+                                str(root),
+                                "--instance",
+                                "owned",
+                                "--at",
+                                T.isoformat(),
+                                "--max-bytes",
+                                "262144",
+                                "--json",
+                            ]
+                        ),
+                        0,
+                    )
+                emitted.append(out.getvalue())
+                self.assertEqual(
+                    receive(None, out.getvalue().strip().encode(), max_bytes=262144).disposition, "accepted"
+                )
+            self.assertEqual(emitted[0], emitted[1])
+            self.assertEqual(emitted[1], emitted[2])
+
+    def test_rehashed_other_source_notice_retraction_keeps_original_report(self) -> None:
+        public = cut(claim())
+        other = replace(observation("other"), source_id="other-source")
+        revoked = SourceNotice("revoked", "native", frozenset({"statement:native"}), T, "revocation", True)
+        retracted = SourceNotice("retracted", "native", revoked.targets, T + DAY, "retraction", None, "revoked")
+        public = replace(
+            public,
+            applicability=replace(public.applicability, source_ids=public.applicability.source_ids | {"other-source"}),
+            evidence=public.evidence.extend(observations=(other,)),
+            revisions=(*public.revisions, ("other", "owned")),
+            notices=(revoked, retracted),
+        )
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _ = publish(root, public, expected=public.applicability, produced_at=T + DAY, max_bytes=65536)
+            view = json.loads(canonical(snapshot(root, instance="owned", at=T + DAY, max_bytes=65536)))
+            first = receive(None, canonical(view), max_bytes=65536)
+            self.assertEqual(first.disposition, "accepted")
+            frame = json.loads(view["publication"]["artifact"])
+            payload = json.loads(frame["payload"])
+            next(row for row in payload["notices"] if row["id"] == "retracted")["origin"] = "other"
+            frame["payload"] = canonical(payload).decode()
+            artifact = canonical(frame)
+            view["publication"]["artifact"] = artifact.decode()
+            view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+            result = receive(first.state, canonical(view), max_bytes=65536)
+            self.assertEqual(result.disposition, "rejected")
+            self.assertEqual(result.state, first.state)
+
+    def test_rehashed_uncertain_bounds_and_empty_terms_do_not_replace_state(self) -> None:
+        public = cut(claim())
+        campaign = UncertainCampaign("uncertain", "native", PLAN, "owned", Terms(available=True), T, None, None)
+        public = replace(public, uncertain_campaigns=(campaign,))
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            _ = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            original = canonical(snapshot(root, instance="owned", at=T, max_bytes=65536))
+            first = receive(None, original, max_bytes=65536)
+            for mode in ("bounded", "empty"):
+                view = json.loads(original)
+                frame = json.loads(view["publication"]["artifact"])
+                payload = json.loads(frame["payload"])
+                row = payload["uncertain_campaigns"][0]
+                if mode == "bounded":
+                    row["start"], row["end"] = T.isoformat(), (T + DAY).isoformat()
+                else:
+                    row["value"] = {key: None for key in row["value"]}
+                frame["payload"] = canonical(payload).decode()
+                artifact = canonical(frame)
+                view["publication"]["artifact"] = artifact.decode()
+                view["publication"]["reference"]["sha256"] = hashlib.sha256(artifact).hexdigest()
+                with self.subTest(mode=mode):
+                    result = receive(first.state, canonical(view), max_bytes=65536)
+                    self.assertEqual(result.disposition, "rejected")
+                    self.assertEqual(result.state, first.state)
+
     def test_notice_and_uncertain_member_extensions_follow_checkpoint(self) -> None:
         public = cut(claim())
         notice = SourceNotice("revoked", "native", frozenset({"statement:native"}), T, "revocation", True)

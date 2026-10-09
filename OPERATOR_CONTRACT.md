@@ -65,7 +65,9 @@ references; conflicts use the above shape. Terms is `{price,quota,available,rule
 price null or `{amount,currency,unit}` exact finite nonnegative decimal string plus
 nonempty currency/unit; quota null or `{amount,unit,period}` with the same exact
 decimal constraint and nonempty unit/period; available null or boolean, rules null
-(unreported) or sorted unique strings. Missing publication still uses all four projection keys with empty
+(unreported) or nonempty-string arrays in their reported tuple order. Rule ordering
+and duplicates are inherited evidence, not silently converted to a set; retained
+#13/#15 bytes are unchanged. Missing publication still uses all four projection keys with empty
 arrays, not a partial object. This is diagnostic producer evaluation, not eligibility.
 
 Health agreement: `data.adapter` must equal payload `applicability.scope`;
@@ -115,6 +117,10 @@ Embedded lineage requires matching kind/comparable subject and value dimension,
 nondecreasing effective boundary and valid campaign period/withdrawal invariants,
 independently from its byte hash. Projection change covers both before/after sides
 and diagnostic conflicts, including the first effective model or surface assertion.
+Notice replacement also preserves source ownership and targets. Uncertain campaign
+terms must declare a field and keep at least one boundary unknown; both-known bounds
+belong to a bounded override, not an uncertain record. These checks are independent
+of producer validators and do not reinterpret or reorder retained evidence.
 
 An independently implemented portable receiver validates the entire envelope,
 hashes, versions and references without importing producer validators. Exact

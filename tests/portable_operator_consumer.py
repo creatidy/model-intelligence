@@ -462,6 +462,12 @@ def _public(frame: Object) -> tuple[Object, Groups, frozenset[str]]:
                 _fail("missing-origin")
             if kind == "uncertain" and row["subject"]["kind"] != "plan":
                 _fail("uncertain-subject")
+            if kind == "uncertain" and (
+                row["start"] is not None
+                and row["end"] is not None
+                or all(item is None for item in row["value"].values())
+            ):
+                _fail("uncertain-lifecycle")
             if kind == "notice":
                 if not row["targets"] or not set(row["targets"]) <= targets:
                     _fail("notice-target")
@@ -481,6 +487,10 @@ def _public(frame: Object) -> tuple[Object, Groups, frozenset[str]]:
                         _fail("revision-comparability")
                     if kind == "notice" and cursor["targets"] != previous["targets"]:
                         _fail("notice-comparability")
+                    if kind == "notice" and (
+                        observations[cursor["origin"]]["source"] != observations[previous["origin"]]["source"]
+                    ):
+                        _fail("notice-source-lineage")
                     seen.add(parent)
                     cursor = groups[kind][parent]
     members: frozenset[str] = frozenset(f"{kind}:{key}" for kind, rows in groups.items() for key in rows)
@@ -672,7 +682,7 @@ def _facts(value: Any, cut: _Cut | None) -> None:
                     price=_optional(dict(amount=_nonnegative, currency=_text, unit=_text)),
                     quota=_optional(_QUOTA),
                     available=_optional(_boolean),
-                    rules=_optional(_ordered),
+                    rules=_optional([_text]),
                 ),
                 conflicts=[_pass],
             ),
