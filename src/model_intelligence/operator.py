@@ -175,7 +175,7 @@ def snapshot(
                 "artifact": data.decode(),
                 "diagnostics": [],
             }
-    except (ValueError, OSError, UnicodeError, TypeError, ZoneInfoNotFoundError) as error:
+    except (ValueError, OSError, UnicodeError, TypeError, ZoneInfoNotFoundError, OverflowError) as error:
         unsupported = isinstance(error, ValueError) and str(error) == "unsupported-version"
         publication["state"] = "unsupported" if unsupported else "invalid"
         publication["diagnostics"] = [
@@ -194,7 +194,7 @@ def snapshot(
                     and names == set(public.applicability.source_ids)
                 )
                 health["correlation"] = "matched" if matched else "mismatch"
-        except (ValueError, OSError, UnicodeError, TypeError) as error:
+        except (ValueError, OSError, UnicodeError, TypeError, OverflowError) as error:
             health["state"] = (
                 "unsupported" if isinstance(error, ValueError) and str(error) == "unsupported-health" else "invalid"
             )
@@ -283,7 +283,7 @@ def snapshot(
                         )
                     ),
                 )
-            except (ValueError, OSError, UnicodeError, ZoneInfoNotFoundError):
+            except (ValueError, OSError, UnicodeError, ZoneInfoNotFoundError, OverflowError):
                 history["relation"] = "gap"
     return {
         "schema": SCHEMA,

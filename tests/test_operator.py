@@ -47,6 +47,42 @@ def health(publication: str, scope: str, source_ids: frozenset[str]) -> bytes:
 
 
 class OperatorTests(unittest.TestCase):
+    def test_unrepresentable_utc_input_and_stored_times_have_bounded_diagnostics(self) -> None:
+        bad_time = "0001-01-01T00:00:00+01:00"
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            public = cut(claim())
+            reference = publish(root, public, expected=public.applicability, produced_at=T, max_bytes=65536)
+            before = {path.name: path.read_bytes() for path in root.iterdir()}
+            out, error = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(error):
+                self.assertEqual(
+                    main(["export", str(root), "--instance", "owned", "--at", bad_time, "--max-bytes", "65536"]), 2
+                )
+            self.assertNotIn(bad_time, out.getvalue() + error.getvalue())
+            self.assertNotIn("Traceback", out.getvalue() + error.getvalue())
+            self.assertEqual({path.name: path.read_bytes() for path in root.iterdir()}, before)
+            raw = json.loads(health(reference.sha256, public.applicability.scope_id, public.applicability.source_ids))
+            raw["attempted_at"] = bad_time
+            record_refresh_status(root, canonical(raw))
+            view = json.loads(canonical(snapshot(root, instance="owned", at=T, max_bytes=65536)))
+            self.assertEqual(view["publication"]["state"], "available")
+            self.assertEqual(view["health"]["state"], "invalid")
+            original = (root / f"{reference.sha256}.json").read_bytes()
+            frame = json.loads(original)
+            payload = json.loads(frame["payload"])
+            payload["observations"][0]["times"]["acquired"] = bad_time
+            frame["payload"] = canonical(payload).decode()
+            invalid = canonical(frame)
+            bad_hash = hashlib.sha256(invalid).hexdigest()
+            (root / f"{bad_hash}.json").write_bytes(invalid)
+            view = json.loads(canonical(snapshot(root, instance="owned", at=T, max_bytes=65536, checkpoint=bad_hash)))
+            self.assertEqual(view["history"]["relation"], "gap")
+            (root / "current").write_text(bad_hash)
+            view = json.loads(canonical(snapshot(root, instance="owned", at=T, max_bytes=65536)))
+            self.assertEqual(view["publication"]["state"], "invalid")
+            self.assertNotIn(bad_time, canonical(view).decode())
+
     def test_malformed_retained_timezone_is_invalid_and_checkpoint_is_gap_without_echo(self) -> None:
         public = normalize(captures())
         with tempfile.TemporaryDirectory() as name:

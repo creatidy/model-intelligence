@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
             max_bytes=cast(int, args.max_bytes),
             checkpoint=cast(str | None, args.checkpoint),
         )
-    except (ValueError, OSError, UnicodeError):
+    except (ValueError, OSError, UnicodeError, OverflowError):
         print("operator-input-or-read-policy-rejected", file=sys.stderr)
         return 2
     if args.operation == "export" or args.json:
