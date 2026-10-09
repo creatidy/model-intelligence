@@ -47,6 +47,9 @@ installed Router adoption, a live intelligence service, private intake or produc
   definition, read-only local CLI/status/inspection/export and independently
   implemented portable consumer conformance. Console requirements are inputs,
   not an existing-receiver prerequisite; live/browser/installed gates remain open.
+- [Installation and maintenance](src/model_intelligence/INSTALLATION.md): #18
+  offline source-build/wheel distribution, installed compatibility and recovery.
+  This resource is included in the package; no registry release or deployment.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,
@@ -99,7 +102,7 @@ GPUs, preferences or task-specific final routing decisions. It is not a downstre
 decision engine. Reuse existing open components only where semantics and licenses
 permit; do not construct another generic model catalog.
 Public module dependencies are allowed; private creatidy-onprem is not required.
-The #16 candidate supplies an offline read-only CLI and full-snapshot export,
+Completed #16 supplies an offline read-only CLI and full-snapshot export,
 not a live Console feed, endpoint, event replay or effectful command API.
 
 [Forgejo](https://forgejo.creatidy.com/Creatidy/model-intelligence) is canonical for
@@ -165,6 +168,19 @@ uv sync --locked --group dev
 make check
 uv build
 ```
+
+Repeatable outside-checkout installed lifecycle validation (prepared offline backend
+cache required; use a new staging directory):
+
+```sh
+uv run --no-sync python tests/verify_distribution.py /tmp/kilo/mi-distribution-check --uv-cache /tmp/kilo/mi15-validation/cache/uv
+```
+
+The verifier uses an allowlisted synthetic environment, current and pinned #13/#15
+wheels, exact wheel digests, sdist rebuild, real installed CLI, original installed
+source/update/outage/legacy/rollback/refusal tests and packaged support/NOTICE.
+It performs no live acquisition, publishing or consumer admission. See the installed
+support resource for local installation, artifact copying, recovery and limitations.
 
 `make check` owns locked synchronization, Ruff lint/format, basedpyright, local
 standard-library tests and Git whitespace checks. Tests use no live services.
