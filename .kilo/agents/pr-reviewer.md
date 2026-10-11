@@ -22,6 +22,7 @@ permission:
   bash:
     "*": deny
     "git status --short": allow
+    "git status --porcelain=v1": allow
     "git remote -v": allow
     "git rev-parse *": allow
     "git merge-base *": allow
@@ -119,9 +120,10 @@ identity checks. Missing or mismatched MCP identity/ref/SHA, a closed/merged PR,
 or a non-`develop` target means COMMENT with actual metadata; do not review a
 different range or approve.
 
-Require the SAME normal checkout to be clean at expected HEAD. Independently
-verify that the exact MCP-reported head and base commit objects are present locally,
-that the local HEAD equals the reported/expected head SHA, and inspect the exact
+Require the SAME normal checkout to be clean at expected HEAD (run the allowlisted
+`git status --porcelain=v1` read by itself). Independently verify that the exact
+MCP-reported head and base commit objects are present locally and that the local
+HEAD equals the reported/expected head SHA. Inspect the exact
 merge base and complete merge-base-to-HEAD diff/current implementation read-only
 in the primary-prepared candidate checkout (including authorized temporary
 isolation under rule 50); do not create another checkout. MCP metadata alone is

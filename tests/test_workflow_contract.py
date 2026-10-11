@@ -176,6 +176,7 @@ class WorkflowContractTests(unittest.TestCase):
             "external_directory: deny",
             "apply_patch: deny",
             "task: deny",
+            '"git status --porcelain=v1": allow',
         ):
             self.assertIn(restriction, header)
         loop = text(".kilo/command/loop.md")
