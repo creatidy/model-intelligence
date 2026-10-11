@@ -104,17 +104,30 @@ authorized by the owner.
 The reviewer itself must never change its provider, model, reasoning level,
 permissions or execution path, and must never delegate review.
 
-First fetch current PR metadata via Forgejo MCP, then query the canonical HTTPS
-repository with `git ls-remote`, using `refs/heads/develop` and the exact head ref
-from metadata. Do not guess branch names, use alternate transports or add options.
-Require open/unmerged develop target and exact expected HEAD/base. Mismatch means
-COMMENT with actual SHAs; do not review a different range. Require the SAME normal
-checkout to be clean at expected HEAD. Inspect exact frozen Git objects/current
-branch read-only in the primary-prepared exact-candidate checkout (including
-authorized temporary isolation under rule 50); do not create another checkout.
-The primary owns Git fetch and
-safe branch switching. You must not fetch, switch/create branches, use git worktree,
-commit, push or mutate Git/Forgejo state.
+First use `forgejo-mcp_get_repo` and `forgejo-mcp_get_pull_request_by_index` to
+verify canonical repository identity and fetch current PR metadata. Require the
+repository URL/owner/name to identify
+`https://forgejo.creatidy.com/Creatidy/model-intelligence`, and require an
+open, unmerged PR whose base repository is canonical and whose base ref is
+`develop`. Verify the PR head/base refs and exact commit SHAs against the expected
+values; the current PR base SHA is the frozen base, not a separately guessed ref.
+MCP is authoritative for current canonical identity, refs and commit identities.
+If available, anonymous `git ls-remote` may add corroborating ref evidence, but
+its absence, access denial or failure does not block review and must not prompt
+for or expose credentials. Never substitute another transport or weaken MCP/local
+identity checks. Missing or mismatched MCP identity/ref/SHA, a closed/merged PR,
+or a non-`develop` target means COMMENT with actual metadata; do not review a
+different range or approve.
+
+Require the SAME normal checkout to be clean at expected HEAD. Independently
+verify that the exact MCP-reported head and base commit objects are present locally,
+that the local HEAD equals the reported/expected head SHA, and inspect the exact
+merge base and complete merge-base-to-HEAD diff/current implementation read-only
+in the primary-prepared candidate checkout (including authorized temporary
+isolation under rule 50); do not create another checkout. MCP metadata alone is
+not evidence that local objects or the complete diff match. The primary owns Git
+fetch and safe branch switching. You must not fetch, switch/create branches, use
+git worktree, commit, push or mutate Git/Forgejo state.
 
 Read the linked issue and relevant referenced acceptance context, AGENTS.md and
 all applicable rules, and the COMPLETE merge-base-to-HEAD diff/current implementation.

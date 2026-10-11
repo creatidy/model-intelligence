@@ -21,6 +21,8 @@ reporting a blocker. Bounded temporary exact-candidate review checkouts are allo
 Prepare the sanitized offline locked
 environment here; review frozen Git objects/current clean branch read-only. The
 parent must not edit/switch while the reviewer is active. Locate `pr-reviewer`.
+The reviewer verifies canonical identity and current PR refs/SHAs through read-only
+Forgejo MCP; anonymous `git ls-remote` is optional corroboration, never a review gate.
 If native task/agent or required access is unavailable, diagnose and try bounded
 environment repair or another available authorized independent native reviewer path
 with the same contract; never self-review or broaden permissions instead.
