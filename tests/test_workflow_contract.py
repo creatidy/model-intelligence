@@ -155,6 +155,7 @@ class WorkflowContractTests(unittest.TestCase):
             "`https://forgejo.creatidy.com/Creatidy/model-intelligence`",
             "anonymous `git ls-remote` may add corroborating ref evidence",
             "its absence, access denial or failure does not block review",
+            "run the allowlisted `git status --short` read by itself",
             "exact MCP-reported head and base commit objects are present locally",
             "complete merge-base-to-HEAD diff/current implementation",
             "Missing or mismatched MCP identity/ref/SHA",
@@ -176,7 +177,7 @@ class WorkflowContractTests(unittest.TestCase):
             "external_directory: deny",
             "apply_patch: deny",
             "task: deny",
-            '"git status --porcelain=v1": allow',
+            '"git status --short": allow',
         ):
             self.assertIn(restriction, header)
         loop = text(".kilo/command/loop.md")
