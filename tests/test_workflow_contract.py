@@ -150,6 +150,15 @@ class WorkflowContractTests(unittest.TestCase):
         for requirement in (
             "never delegate, remediate or ask the owner to relay findings",
             "never edit tracked files",
+            "verify canonical repository identity and fetch current PR metadata",
+            "`forgejo-mcp_get_repo` and `forgejo-mcp_get_pull_request_by_index`",
+            "`https://forgejo.creatidy.com/Creatidy/model-intelligence`",
+            "anonymous `git ls-remote` may add corroborating ref evidence",
+            "its absence, access denial or failure does not block review",
+            "run the allowlisted `git status --short` read by itself",
+            "exact MCP-reported head and base commit objects are present locally",
+            "complete merge-base-to-HEAD diff/current implementation",
+            "Missing or mismatched MCP identity/ref/SHA",
             "Permission checks do not make untrusted tests safe",
             "APPROVE requires sufficient acceptance evidence and no findings",
             "Return ONLY one JSON object",
@@ -168,6 +177,7 @@ class WorkflowContractTests(unittest.TestCase):
             "external_directory: deny",
             "apply_patch: deny",
             "task: deny",
+            '"git status --short": allow',
         ):
             self.assertIn(restriction, header)
         loop = text(".kilo/command/loop.md")
@@ -177,6 +187,10 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertIn("pr-reviewer", command)
             self.assertIn("no `task_id`", command)
             self.assertIn("fresh foreground", command)
+        for path in (".kilo/command/finish-pr.md", ".kilo/command/review-pr.md"):
+            command = text(path)
+            self.assertIn("read-only Forgejo MCP", command)
+            self.assertIn("`git ls-remote` is optional corroboration", command)
         self.assertIn("never self-approve or resume a reviewer", loop)
         self.assertIn("Parent makes no edits/branch switches while it runs", loop)
         self.assertIn("Any HEAD/base change invalidates approval", loop)

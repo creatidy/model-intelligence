@@ -37,6 +37,9 @@ delivery; STOP_REVISE still requires an explicit owner decision, not a new PR/na
    environment and inspect
    reviewer permissions. Review frozen objects/current clean branch in this SAME
    checkout. The parent must not edit/switch branches while the reviewer is active.
+   The reviewer uses read-only Forgejo MCP for canonical repository identity and
+   current PR refs/SHAs; anonymous `git ls-remote` is optional corroboration, never
+   an approval prerequisite.
    Missing native task/agent requires bounded environment repair or another
    available authorized independent native path under rule 50, never self-review
    or an external service. Do not silently broaden reviewer permissions.
