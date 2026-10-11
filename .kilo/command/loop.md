@@ -26,6 +26,10 @@ Verify canonical remote/access and clean status. Never overwrite others' work or
 guess reconciliation of divergence. Classify checkout/access/tool failures under
 `.kilo/rules/50-technical-remediation.md` and attempt bounded safe remediation
 before BLOCKED. Do not create speculative issues to sustain the queue.
+Technical-recovery progress narration is NONTERMINAL. Continue the already-authorized
+phase in this same primary context after recovery; do not stop merely to announce
+intent, validation progress or READY_TO_MERGE. Only the existing terminal contracts
+below end the invocation, with all review, currentness and acceptance gates intact.
 
 Before dispatching work, verify `.task_progress.md` is excluded via the local Git
 exclude mechanism in `.kilo/rules/40-local-search.md`; append an invocation ID and
@@ -66,8 +70,11 @@ records (not PRs). Apply these steps in order:
    Materially conflicting/incomparable priority declarations, cyclic ordering,
    or a canonical issue/repository requirement conflict without a safe deterministic
    interpretation require STOP_AND_ASK, not an invented ordering.
-4. If no eligible issue remains, report QUEUE_EMPTY with the excluded/gated reasons.
-   This is not product completion or permission to create work. Otherwise record
+4. If no eligible issue remains, run the dependency evidence check below before
+   reporting QUEUE_EMPTY. Require a complete fresh queue with no unresolved evidence
+   that could hide executable work, and report exact exclusions and verified gates.
+   This is scoped to this canonical MI queue, not whole-program inactivity, product
+   completion or permission to create work. Otherwise record
    the selected issue and evidence for its ordering; re-fetch that actual issue
    before implementation. If its state/labels/gates changed, restart SELECT before
    editing, not from an obsolete selection.
@@ -79,6 +86,53 @@ Use one current authorized implementation PR for the issue if it exists. Multipl
 apparently current PRs with no settled disposition require STOP_AND_ASK. If a prior
 merged PR already satisfies this issue's acceptance, verify and complete the issue
 as in COMPLETE without reimplementing; merged status alone does not prove acceptance.
+
+## Dependency Evidence Before Inactivity
+
+Before an existing WAIT recommendation or terminal decision (`BLOCKED`,
+`STOP_AND_ASK`, `QUEUE_EMPTY`), refresh the full canonical MI open-issue queue,
+paging to exhaustion, and the relevant issue bodies/comments/explicit dependencies.
+Refresh only producer/contract evidence that an explicit dependency in this MI queue
+requires. Follow explicit dependency edges backward through their chain, assessing
+each unfinished MI predecessor until reaching the earliest executable predecessor
+or a verified externally controlled prerequisite. An open issue is not itself a
+gate. Feed eligible predecessors into the existing priority/required-ordering/age
+rules; a gated candidate must not block another verified eligible MI issue.
+
+Revalidate dependent eligibility when relevant producer or contract evidence changes;
+do not reuse a historical gate as current evidence. For each actual unmet condition,
+record its owner, exact canonical evidence, required check/action and whether it is
+an implementation, integration or acceptance gate. Downstream acceptance remains a
+final gate unless canonical MI evidence explicitly makes it an implementation
+prerequisite.
+
+Missing, inaccessible or unresolved dependency/producer evidence is `UNVERIFIED`,
+not readiness and not a proven gate. State the precise missing check and attempt
+authorized read-only recovery under rule 50. Keep assessing unrelated issues whose
+eligibility is verified. Do not report `QUEUE_EMPTY` while unknown evidence could
+hide executable work; continue bounded recovery or apply an existing terminal rule
+with the exact evidence gap. Do not broaden inspection to another repository's
+queue or infer dependencies from similar wording.
+
+Technical-recovery narration does not hand control back to the owner or add a
+confirmation gate. Continue the same authorized invocation and phase until an
+existing terminal condition is actually met. For uncertain validation results,
+inspect process state and recover durable logs/exit status before any diagnosed
+rerun; never duplicate validation or claim an unobserved pass. `WAIT` is not a new
+terminal status: any existing WAIT recommendation names the precise external action
+or genuine owner decision required.
+
+This declarative assessment is checked offline; it is not a runtime dependency
+engine or evidence that a live invocation performed the inspection:
+
+| Evidence Case | Assessment | Next Action | Queue Rule |
+| --- | --- | --- | --- |
+| explicit_backward_dependency_chain | TRACE_BACKWARD | ASSESS_EARLIEST_EXECUTABLE | follow_explicit_MI_edges |
+| separate_verified_eligible_issue | ELIGIBLE | CONTINUE_SELECT | unrelated_gate_does_not_block |
+| changed_producer_or_contract_evidence | REVALIDATE | REFRESH_EVIDENCE | do_not_reuse_historical_gate |
+| missing_or_unresolved_dependency_evidence | UNVERIFIED | RECOVER_EXACT_CHECK | neither_ready_nor_proven_gate |
+| exhaustive_MI_queue_with_unverified_eligibility | NOT_QUEUE_EMPTY | CONTINUE_RECOVERY | unknown_may_hide_work |
+| exhaustive_MI_queue_without_eligible_or_unverified_work | NO_ELIGIBLE | QUEUE_EMPTY | MI_queue_only |
 
 ## Post-Selection Eligibility Revalidation
 
@@ -111,8 +165,9 @@ For a proven pre-implementation gate:
    not a permanent exclusion or authority from progress memory; revalidate gates
    against current canonical/upstream evidence each cycle.
 5. This transition is NONTERMINAL: a gated candidate alone never emits BLOCKED,
-   STOP_REVISE or STOP_AND_ASK. If all remaining issues are ineligible, QUEUE_EMPTY
-   reports their reasons. A single gated issue cannot block unrelated eligible work.
+   STOP_REVISE or STOP_AND_ASK. If all remaining issues are verified ineligible and
+   none has `UNVERIFIED` eligibility, QUEUE_EMPTY reports their reasons. A single
+   gated issue cannot block unrelated eligible work.
 
 The classification precedes ordinary blocker escalation. History is retained on
 every path; this is a command contract, not a controller or MI product rule:
@@ -123,7 +178,8 @@ every path; this is a command contract, not a controller or MI product rule:
 | missing_producer | SELECT | PRESERVE_DELIVERY | retain |
 | missing_contract_artifact | SELECT | PRESERVE_DELIVERY | retain |
 | known_dependency_gate | SELECT | PRESERVE_DELIVERY | retain |
-| all_ineligible_queue | QUEUE_EMPTY | NOT_APPLICABLE | retain |
+| unverified_eligibility | RECOVER | PRESERVE_DELIVERY | retain |
+| all_verified_ineligible_queue | QUEUE_EMPTY | NOT_APPLICABLE | retain |
 | genuine_owner_decision | STOP_AND_ASK | STOP_AND_ASK | retain |
 | eligible_execution_problem | RECOVER | RECOVER | retain |
 | exhausted_machinery_failure | BLOCKED | BLOCKED | retain |

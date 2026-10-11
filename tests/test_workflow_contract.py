@@ -32,7 +32,132 @@ def eligibility_transitions() -> dict[str, tuple[str, str, str]]:
     return rows
 
 
+def dependency_assessments() -> dict[str, tuple[str, str, str]]:
+    """Decode the loop's declarative evidence rules, not runtime orchestration."""
+    section = (
+        (ROOT / ".kilo/command/loop.md")
+        .read_text()
+        .split("## Dependency Evidence Before Inactivity", 1)[1]
+        .split("## Post-Selection Eligibility Revalidation", 1)[0]
+    )
+    rows: dict[str, tuple[str, str, str]] = {}
+    for line in section.splitlines():
+        if not line.startswith("| "):
+            continue
+        cells = tuple(cell.strip() for cell in line.strip("|").split("|"))
+        if cells[0] in ("Evidence Case", "---"):
+            continue
+        if len(cells) != 4 or cells[0] in rows:
+            raise AssertionError("dependency rows must be unique four-column rules")
+        rows[cells[0]] = (cells[1], cells[2], cells[3])
+    return rows
+
+
 class WorkflowContractTests(unittest.TestCase):
+    def test_backward_dependency_chains_reach_earliest_executable_predecessor(self) -> None:
+        self.assertEqual(
+            dependency_assessments()["explicit_backward_dependency_chain"],
+            ("TRACE_BACKWARD", "ASSESS_EARLIEST_EXECUTABLE", "follow_explicit_MI_edges"),
+        )
+        loop = text(".kilo/command/loop.md")
+        for invariant in (
+            "Follow explicit dependency edges backward through their chain",
+            "assessing each unfinished MI predecessor",
+            "until reaching the earliest executable predecessor",
+            "An open issue is not itself a gate",
+            "existing priority/required-ordering/age rules",
+        ):
+            with self.subTest(invariant=invariant):
+                self.assertIn(invariant, loop)
+
+    def test_one_gated_issue_does_not_block_an_unrelated_verified_eligible_issue(self) -> None:
+        self.assertEqual(
+            dependency_assessments()["separate_verified_eligible_issue"],
+            ("ELIGIBLE", "CONTINUE_SELECT", "unrelated_gate_does_not_block"),
+        )
+        loop = text(".kilo/command/loop.md")
+        self.assertIn("a gated candidate must not block another verified eligible MI issue", loop)
+        self.assertIn("Keep assessing unrelated issues whose eligibility is verified", loop)
+
+    def test_changed_producer_evidence_requires_fresh_eligibility_assessment(self) -> None:
+        self.assertEqual(
+            dependency_assessments()["changed_producer_or_contract_evidence"],
+            ("REVALIDATE", "REFRESH_EVIDENCE", "do_not_reuse_historical_gate"),
+        )
+        loop = text(".kilo/command/loop.md")
+        self.assertIn("Revalidate dependent eligibility when relevant producer or contract evidence changes", loop)
+        self.assertIn("do not reuse a historical gate as current evidence", loop)
+
+    def test_unknown_dependency_evidence_is_unverified_and_not_a_proven_gate(self) -> None:
+        self.assertEqual(
+            dependency_assessments()["missing_or_unresolved_dependency_evidence"],
+            ("UNVERIFIED", "RECOVER_EXACT_CHECK", "neither_ready_nor_proven_gate"),
+        )
+        loop = text(".kilo/command/loop.md")
+        for invariant in (
+            "Missing, inaccessible or unresolved dependency/producer evidence is `UNVERIFIED`",
+            "not readiness and not a proven gate",
+            "State the precise missing check",
+            "attempt authorized read-only recovery under rule 50",
+            "Do not invent dependencies from similar prose",
+        ):
+            with self.subTest(invariant=invariant):
+                self.assertIn(invariant, loop)
+        self.assertEqual(
+            eligibility_transitions()["unverified_eligibility"],
+            ("RECOVER", "PRESERVE_DELIVERY", "retain"),
+        )
+
+    def test_queue_empty_is_mi_scoped_and_unknown_evidence_cannot_hide_work(self) -> None:
+        assessments = dependency_assessments()
+        self.assertEqual(
+            assessments["exhaustive_MI_queue_with_unverified_eligibility"],
+            ("NOT_QUEUE_EMPTY", "CONTINUE_RECOVERY", "unknown_may_hide_work"),
+        )
+        self.assertEqual(
+            assessments["exhaustive_MI_queue_without_eligible_or_unverified_work"],
+            ("NO_ELIGIBLE", "QUEUE_EMPTY", "MI_queue_only"),
+        )
+        self.assertEqual(sum(action == "QUEUE_EMPTY" for _, action, _ in assessments.values()), 1)
+        loop = text(".kilo/command/loop.md")
+        for invariant in (
+            "refresh the full canonical MI open-issue queue, paging to exhaustion",
+            "Do not report `QUEUE_EMPTY` while unknown evidence could hide executable work",
+            "Do not broaden inspection to another repository's queue",
+            "This is scoped to this canonical MI queue, not whole-program inactivity",
+        ):
+            with self.subTest(invariant=invariant):
+                self.assertIn(invariant, loop)
+
+    def test_technical_recovery_narration_continues_same_invocation_nonterminally(self) -> None:
+        paths = (
+            ".kilo/command/loop.md",
+            ".kilo/rules/10-task-system.md",
+            ".kilo/rules/50-technical-remediation.md",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                contract = text(path)
+                self.assertIn("progress narration", contract)
+                self.assertIn("nonterminal", contract)
+        task_system = text(".kilo/rules/10-task-system.md").casefold()
+        self.assertIn("standalone", task_system)
+        self.assertIn("selected-issue/pr-local", task_system)
+        recovery_policy = text(".kilo/rules/50-technical-remediation.md").casefold()
+        self.assertIn("does not authorize broader queue inspection for standalone", recovery_policy)
+        loop = text(".kilo/command/loop.md")
+        self.assertIn("Continue the already-authorized phase in this same primary context after recovery", loop)
+        recovery = text(".kilo/rules/50-technical-remediation.md")
+        for invariant in (
+            "not an owner handoff, confirmation gate",
+            "preserving delivery/review counters",
+            "recover durable logs/exit status before a diagnosed rerun",
+            "do not start duplicate validation processes",
+            "do not convert uncertainty into readiness, a proven prerequisite gate or `QUEUE_EMPTY`",
+        ):
+            with self.subTest(invariant=invariant):
+                self.assertIn(invariant, recovery)
+
     def test_pre_delivery_gates_refresh_queue_without_terminating_or_resetting_history(self) -> None:
         transitions = eligibility_transitions()
         gates = ("unmet_prerequisite", "missing_producer", "missing_contract_artifact", "known_dependency_gate")
@@ -47,7 +172,7 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertNotIn(before, ("BLOCKED", "STOP_REVISE", "STOP_AND_ASK"))
                 gated_this_cycle.add(19)
                 eligible = tuple(issue for issue in fresh_queue if issue not in gated_this_cycle)
-                outcome = eligible[0] if eligible else transitions["all_ineligible_queue"][0]
+                outcome = eligible[0] if eligible else transitions["all_verified_ineligible_queue"][0]
                 self.assertEqual(outcome, "QUEUE_EMPTY")
         section = (
             text(".kilo/command/loop.md")
@@ -65,7 +190,7 @@ class WorkflowContractTests(unittest.TestCase):
             "rebuild the FULL canonical issue queue, paging to exhaustion",
             "not a permanent exclusion or authority from progress memory",
             "revalidate gates against current canonical/upstream evidence each cycle",
-            "If all remaining issues are ineligible, QUEUE_EMPTY",
+            "If all remaining issues are verified ineligible",
             "a gated candidate alone never emits BLOCKED",
         ):
             self.assertIn(invariant, section)
@@ -127,7 +252,7 @@ class WorkflowContractTests(unittest.TestCase):
             "Equal timestamps break ties by ascending issue number",
             "cyclic ordering",
             "restart SELECT before editing",
-            "If no eligible issue remains, report QUEUE_EMPTY",
+            "If no eligible issue remains, run the dependency evidence check below before reporting QUEUE_EMPTY",
         ):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, loop)
