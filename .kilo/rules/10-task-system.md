@@ -20,11 +20,24 @@
   decision arises for selected work, STOP_AND_ASK terminates the entire loop.
   Preserve STOP_REVISE dispositions; an open PR cannot authorize restarting them.
   No issue registration is authorized merely to keep `/loop` running.
+- Before an existing WAIT recommendation or terminal `BLOCKED`, `STOP_AND_ASK` or
+  `QUEUE_EMPTY`, explicit `/loop` refreshes the full canonical MI issue queue and
+  relevant explicit dependencies/producer contracts, then traces dependency edges
+  backward to the earliest executable MI predecessor. Reassess changed evidence;
+  an open predecessor is not itself a gate, and one gated issue cannot block an
+  unrelated verified eligible issue. Missing or unresolved evidence is
+  `UNVERIFIED`, neither readiness nor a proven gate; name the exact gap and follow
+  bounded authorized recovery. Unknown evidence cannot justify `QUEUE_EMPTY`.
+  Keep this evidence scan within the current MI queue and its explicitly required
+  producer/contract evidence. Recovery progress narration is nonterminal: continue
+  the same authorized invocation until an existing terminal condition is met.
+  Standalone implementation, finish and review retain selected-issue/PR-local scope.
 - Before substantive delivery, apply loop.md's post-selection eligibility revalidation.
   A freshly proven missing prerequisite/producer/contract makes an untouched issue
   temporarily ineligible: retain history/counters, keep it open, safely return to
   clean develop and rebuild the full canonical queue; continue SELECT nonterminally.
-  All-gated queues yield QUEUE_EMPTY. Existing implementation commits/current PRs/
+  Only fully evidenced all-gated queues yield `QUEUE_EMPTY`; unknown checks remain
+  `UNVERIFIED`. Existing implementation commits/current PRs/
   substantive changes require preservation, not silent de-selection. Genuine new
   owner decisions still stop; eligible-issue execution failures use rule 50 recovery.
 - Verify the canonical remote, fetch current `develop`, record its exact SHA and

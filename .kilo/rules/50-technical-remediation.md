@@ -30,6 +30,24 @@ classify the obstacle and record evidence in the excluded delivery ledger:
   is a product/architecture commitment, or undelegated merge/release/deploy authority.
   Only this class normally yields STOP_AND_ASK.
 
+## Authorized Loop Recovery Continuation
+
+During an explicit `/loop`, progress narration about technical recovery is
+NONTERMINAL: it is not an owner handoff, confirmation gate or substitute for an
+existing terminal outcome. Continue the same authorized invocation and phase after
+each recovery step, preserving delivery/review counters and all existing validation,
+review, currentness and acceptance gates. For uncertain checks, inspect actual
+process state and recover durable logs/exit status before a diagnosed rerun; do not
+start duplicate validation processes or report an unobserved pass.
+
+If dependency or producer evidence remains missing, inaccessible or unresolved,
+record `UNVERIFIED` and the exact evidence gap. Attempt bounded authorized read-only
+recovery; do not convert uncertainty into readiness, a proven prerequisite gate or
+`QUEUE_EMPTY`. Continue other issues whose eligibility is verified. Use only an
+existing terminal rule after its evidence and bounded-recovery conditions are met.
+This continuation does not authorize broader queue inspection for standalone
+implementation, finish or review.
+
 A reviewer infrastructure failure means no verdict could be established, not a
 finding against the implementation. A finding requires evidence of a delivered
 defect. Disagreement/uncertainty with evidence is separate: resolve through accepted
