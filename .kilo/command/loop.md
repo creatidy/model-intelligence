@@ -217,8 +217,9 @@ review, COMMENT, invalidated reviews and corrected retries. Reserve/persist each
 ordinal BEFORE dispatch in the shared delivery ledger; `/finish-pr` reentry,
 internal phases, new tasks and model/session changes cannot reset it. This is a
 safety ceiling, not a target; stop immediately for a genuine material decision.
-Fresh reviews inspect the COMPLETE PR, exact HEAD/base/merge base, read-only in a
-fresh isolated context, and return the existing structured JSON verdict/result.
+Fresh reviews inspect the COMPLETE PR, exact HEAD/base/merge base, read-only under
+AGENTS.md's conversational-independence policy, and return the existing structured
+JSON verdict/result.
 Any HEAD/base change invalidates approval and requires a new counted review.
 
 REQUEST_CHANGES: understand/reproduce actionable in-scope findings, remediate with

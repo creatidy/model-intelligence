@@ -33,7 +33,8 @@ Pass only the PR number/URL, expected HEAD/base and fresh whole-PR review
 instructions including the prepared checkout/environment and source pins/paths
 when needed. Do not pass implementation
 reasoning, previous findings or desired verdict. The agent definition owns the
-JSON result contract and GPT-6.1 Sol High selection. Never resume a past reviewer.
+JSON result contract and inherited/owner-overridden model binding; AGENTS.md defines
+conversational independence. Never resume a past reviewer.
 
 Require JSON fields reviewed_head, reviewed_base, verdict, findings, limitations,
 checks_run as defined in `.kilo/agents/pr-reviewer.md`. Validate their types and
