@@ -56,6 +56,12 @@ commitment, never mere reviewer inconvenience or implementation trivia.
 
 ## Mechanisms and Bounds
 
+Follow AGENTS.md's conversational-independence policy: use the existing prepared
+checkout/environment for ordinary review. Separate execution is justified only by
+a concrete technical necessity, such as protecting unrelated work, preserving a
+stable candidate or preventing credential exposure during untrusted checks, never
+by reviewer independence alone. Secret-safe validation below remains mandatory.
+
 Use the smallest suitable existing mechanism, not automatic Docker execution:
 clean explicit environments; synthetic HOME/cache/temp directories; an ephemeral
 container; an isolated temporary worktree/checkout; exact public pinned fetches;
@@ -88,7 +94,7 @@ terminal outcome. Never erase prior attempts or weaken acceptance/checks.
 
 After a diagnosed infrastructure failure, change environment or reviewer strategy.
 Use another available authorized independent path automatically when sufficient.
-Keep a fresh isolated reviewer context, full-PR scope, exact frozen SHAs, independent
+Keep a fresh reviewer conversation, full-PR scope, exact frozen SHAs, independent
 evidence and the same structured result/currentness gates. Never substitute parent
 self-review, resumed reviewers or an external controller. This rule does not widen
 tool permissions, network/secret access or authorize arbitrary shell execution;

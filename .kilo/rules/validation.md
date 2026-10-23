@@ -18,7 +18,9 @@
   of passing checks, push or PR creation without successful evidence.
 - Parent uses the prepared delivery/review checkout on the exact clean PR HEAD and prepares
   its offline locked development environment before invoking a reviewer. Apply
-  rule 50 for sanitized/isolated execution and bounded environment failover. No
+  rule 50 for secret-safe validation and bounded environment failover; AGENTS.md
+  defines conversational independence. The existing prepared environment may be
+  shared; separate execution requires a concrete technical necessity. No
   candidate edits or branch switching during review. Reviewer verifies HEAD
   and clean status before/after checks and inspects frozen Git objects/full base
   delta. Ignored validation artifacts are allowed; tracked-file edits and
