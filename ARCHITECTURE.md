@@ -211,6 +211,16 @@ consumer receipt. Green offline fixtures grant none of those or product GO.
 
 ## Integration Contracts
 
+Current installed evidence is separately recorded in [MI #19's frozen
+explicit-input receipt](INSTALLED_ACCEPTANCE.md): installed MI
+`d65891668b7e79f7b666c021f02a1b4bf8c4ca9c` and Router
+`4162f6fa9f774beaf6e92d86b7ebc92f306da4bd` exercise the real optional library
+consumer/selector and retained utilization binding. This supersedes older absence
+claims only for that controlled offline explanation-only path. Selected-source
+positive applicability, default/live activation, active admission, Kernel/Console
+adoption and product GO are not established; historical source-cut limits below
+remain historical, not current prerequisite gates.
+
 ### Owner-Accepted Production Extension
 
 The owner accepted #15's minimum public identity/native-limit contract on
