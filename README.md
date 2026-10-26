@@ -50,6 +50,9 @@ installed Router adoption, a live intelligence service, private intake or produc
 - [Installation and maintenance](src/model_intelligence/INSTALLATION.md): #18
   offline source-build/wheel distribution, installed compatibility and recovery.
   This resource is included in the package; no registry release or deployment.
+- [Installed explicit-input acceptance](INSTALLED_ACCEPTANCE.md): #19 frozen
+  installed MI/Router offline receipt, retained utilization binding and selected-source
+  adoption limitations; no default activation, live/provider acceptance or product GO.
 - [Agent guidance](AGENTS.md): owner-selected work, explicit `/loop` and native bounded PR review.
 
 The target is a local-first, open and observable system optimizing accepted work,

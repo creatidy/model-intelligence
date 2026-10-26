@@ -34,3 +34,14 @@ Official Z.ai documents contribute original factual annotations and public
 references only. Their source pages, images, examples and tables are not copied
 into distributed artifacts. Public facts do not establish private account state,
 entitlement, actual execution, permitted data sharing or inference authority.
+
+Installed acceptance test reuse (MI #19): the offline collector pairing and
+explicit-input fixture technique in tests/installed_router_cases.py adapt the
+Apache-2.0 Scarcity Router tests/test_mi_consumer.py and tests/observation.py at
+4162f6fa9f774beaf6e92d86b7ebc92f306da4bd:
+https://forgejo.creatidy.com/BioMedical-IT/scarcity-router
+These test adaptations are changed from the original fixture. The runner also
+executes unchanged copies of those two tests from that exact source archive in
+temporary staging, retaining the original repository LICENSE with the archive.
+No foreign selector, validator, production implementation or public dataset is
+vendored. The Apache-2.0 license is provided in this repository's LICENSE.
