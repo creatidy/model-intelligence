@@ -46,7 +46,7 @@ SOURCES = (
     Source("catalog", CATALOG + "models/zhipuai/glm-5.3-flash.toml", 1661, "MIT models.dev 2025"),
     Source("api", CATALOG + "providers/zai/models/glm-5.3-flash.toml", 551, "MIT models.dev 2025"),
     Source("coding", CATALOG + "providers/zai-coding-plan/models/glm-5.3-flash.toml", 437, "MIT models.dev 2025"),
-    Source("prices", "https://docs.z.ai/guides/overview/pricing.md", 2620, FACT_RIGHTS),
+    Source("prices", "https://docs.z.ai/guides/overview/pricing.md", 4096, FACT_RIGHTS),
     Source("plans", "https://docs.z.ai/devpack/overview.md", 8315, FACT_RIGHTS),
     Source("campaign", "https://docs.z.ai/devpack/notice/event-glm-5.3-flash.md", 1947, FACT_RIGHTS),
     Source("interface", "https://docs.z.ai/api-reference/llm/chat-completion.md", 44328, FACT_RIGHTS),

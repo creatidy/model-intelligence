@@ -75,6 +75,34 @@ class AcquisitionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unexpected"):
                 fetch(SOURCE, at=T, timeout=1)
 
+    def test_bounded_oversize_reads_are_not_misclassified_as_incomplete(self) -> None:
+        cases = (
+            (b"x" * SOURCE.max_bytes, str(SOURCE.max_bytes), None),
+            (b"x" * (SOURCE.max_bytes + 1), str(SOURCE.max_bytes + 1), "source-size-policy"),
+            (b"x" * (SOURCE.max_bytes + 1), None, "source-size-policy"),
+            (b"x" * (SOURCE.max_bytes + 1), str(SOURCE.max_bytes), "source-incomplete-response"),
+            (b"short", str(SOURCE.max_bytes + 10), "source-incomplete-response"),
+            (b"short", "not-a-length", "source-incomplete-response"),
+        )
+        for data, length, diagnostic in cases:
+            with self.subTest(size=len(data), length=length, diagnostic=diagnostic):
+                response = MagicMock()
+                response.__enter__.return_value = response
+                response.status = 200
+                response.geturl.return_value = SOURCE.reference
+                response.headers = {"Content-Encoding": "identity"}
+                if length is not None:
+                    response.headers["Content-Length"] = length
+                response.read.return_value = data
+                opener = MagicMock()
+                opener.open.return_value = response
+                with patch("model_intelligence.acquisition.build_opener", return_value=opener):
+                    if diagnostic is None:
+                        self.assertEqual(fetch(SOURCE, at=T, timeout=1).data, data)
+                    else:
+                        with self.assertRaisesRegex(ValueError, diagnostic):
+                            fetch(SOURCE, at=T, timeout=1)
+
 
 if __name__ == "__main__":
     unittest.main()
