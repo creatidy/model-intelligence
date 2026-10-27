@@ -30,6 +30,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+The separately scoped coding benchmark adapter uses only the four pinned model
+TOMLs for GPT-6.1 Sol, GPT-6 Luna, GLM-5.3 and GLM-5.3-Flash at models.dev
+commit 3fb4bb98e633ff1af1b94f84ba07c8549e859aa8. The exact-revision MIT
+LICENSE covers these model records, including their benchmark metadata. Only
+DeepSWE and SWE-Marathon rows are normalized; each cited provider/model-card
+reference and reported configuration is retained. No upstream source page or
+full benchmark dataset is copied. SWE-Marathon's separately published
+leaderboard dataset has no verified reuse grant and is excluded from this scope.
+GLM configuration facts are attributed to the pinned Z.ai model-card revisions
+listed in CODING_BENCHMARK_COMPARISON.md; only the cited facts are retained.
+
 Official Z.ai documents contribute original factual annotations and public
 references only. Their source pages, images, examples and tables are not copied
 into distributed artifacts. Public facts do not establish private account state,

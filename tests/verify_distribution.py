@@ -118,7 +118,14 @@ def main() -> None:
                 "from importlib.resources import files; "
                 'assert files("model_intelligence").joinpath("INSTALLATION.md").is_file()',
             )
-            for pattern in ("test_producer.py", "test_zai_source.py", "test_operator.py", "test_portable_operator.py"):
+            for pattern in (
+                "test_producer.py",
+                "test_zai_source.py",
+                "test_benchmarks_source.py",
+                "test_aa_probe.py",
+                "test_operator.py",
+                "test_portable_operator.py",
+            ):
                 _ = run(str(python), "-I", "-B", "-m", "unittest", "discover", "-s", str(tested), "-p", pattern, "-v")
             outputs = [
                 run(
