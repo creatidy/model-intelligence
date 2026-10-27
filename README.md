@@ -36,6 +36,9 @@ installed Router adoption, a live intelligence service, private intake or produc
   owner-accepted #15 `/2` representation, selected models.dev/Z.ai source adapter,
   atomic retained publication and source-health facts. No consumer admission,
   private calibration, installed adoption or product GO.
+- [Coding benchmark evidence comparison](CODING_BENCHMARK_COMPARISON.md): a separately
+  scoped, pinned models.dev evidence publication for selected coding benchmarks,
+  including the exact source-to-publication receipt and explicit comparability gaps.
 - [Capability boundary record](ARCHITECTURE.md#capability-boundary-record):
   completed/closed #14, merged PR #31, versioned ownership research and guarded
   offline mapping fixtures; not production mapping approval or installed acceptance.
@@ -95,9 +98,11 @@ without inventing a price change.
 
 Reuse candidates remain models.dev, AI Model Watch, Model Price Watch, genai-prices
 and codingplan, with producer/benchmark sources including Artificial Analysis:
-upstream catalogs/pricing are not recreated. No third-party code or
-data is copied or redistributed; URLs and fixtures are synthetic. No upstream license
-endorsement, official-source accuracy or product GO is asserted by this proof.
+upstream catalogs/pricing are not recreated. The later bounded benchmark adapter
+uses only four MIT-licensed models.dev TOML records at an explicit pin; it retains
+source attribution and does not store raw source pages. No AA data or unlicensed
+SWE-Marathon leaderboard dataset is redistributed. No upstream license endorsement,
+official-source accuracy or product GO is asserted by the synthetic architecture proof.
 
 This project does not own credentials, private subscriptions or remaining quota,
 held reset credits/cards, authenticated runtime state, private workspaces, local
@@ -114,7 +119,8 @@ source, issues, PRs, reviews and integration history.
 
 ## Public Producer
 
-The narrow adapter is `model_intelligence.zai`, not a catalog fork or service.
+The narrow source adapters are `model_intelligence.zai` and the separately scoped
+`model_intelligence.benchmarks`, not a catalog fork or service.
 `SOURCES` fixes inspected public URI/pin, rights route and measured byte bounds;
 `SCOPE` binds its configuration. Every declared source must parse before activation.
 The caller supplies time, timeout and artifact byte policy; no global TTL, daemon
