@@ -85,8 +85,20 @@ def fetch(source: Source, *, at: datetime, timeout: float) -> Capture:
                 raise ValueError("source-compressed-response")
             data = response.read(source.max_bytes + 1)
             length = response.headers.get("Content-Length")
-            if length is not None and (not length.isdecimal() or int(length) != len(data)):
-                raise ValueError("source-incomplete-response")
+            declared_length: int | None = None
+            if length is not None:
+                if not length.isdecimal():
+                    raise ValueError("source-incomplete-response")
+                try:
+                    declared_length = int(length)
+                except ValueError:
+                    raise ValueError("source-incomplete-response") from None
+                if declared_length < len(data):
+                    raise ValueError("source-incomplete-response")
+                if len(data) <= source.max_bytes and declared_length != len(data):
+                    raise ValueError("source-incomplete-response")
+            if len(data) > source.max_bytes:
+                raise ValueError("source-size-policy")
             return Capture(source, data, at)
     except IncompleteRead:
         raise ValueError("source-incomplete-response") from None

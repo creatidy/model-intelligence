@@ -1,5 +1,6 @@
 """Original tiny source-shaped fixtures, not copied provider documents/data tables."""
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -16,9 +17,9 @@ from model_intelligence.acquisition import Capture
 from model_intelligence.contract import NATIVE_PAYLOAD_SCHEMA, decode_public_evidence, encode_public_evidence
 from model_intelligence.deltas import evidence_delta, projection_delta
 from model_intelligence.evidence import ModelClaim, Money, NativeLimit
-from model_intelligence.producer import retained
+from model_intelligence.producer import publish, retained
 from model_intelligence.projection import effective_at
-from model_intelligence.zai import SOURCES, normalize, refresh
+from model_intelligence.zai import SCOPE, SOURCE_CONFIG, SOURCES, normalize, refresh
 
 CATALOG = """name = "GLM-5.3-Flash"
 [limit]
@@ -101,6 +102,51 @@ def captures(*, texts: dict[str, str] | None = None, at: datetime = T) -> tuple[
 
 
 class ZaiSourceTests(unittest.TestCase):
+    def test_pricing_source_policy_change_has_a_new_scope_and_refuses_old_store(self) -> None:
+        old_sources = tuple(
+            replace(source, max_bytes=2620) if source.source_id == "prices" else source for source in SOURCES
+        )
+        old_config = hashlib.sha256(repr(old_sources).encode()).hexdigest()
+        assert SCOPE.configuration is not None
+        old_scope = replace(
+            SCOPE,
+            configuration=tuple(
+                (key, old_config if key == "source-config-sha256" else value) for key, value in SCOPE.configuration
+            ),
+        )
+        self.assertEqual(next(source.max_bytes for source in SOURCES if source.source_id == "prices"), 4096)
+        self.assertNotEqual(old_config, SOURCE_CONFIG)
+        self.assertNotEqual(old_scope, SCOPE)
+
+        new_cut = normalize(captures())
+        old_cut = replace(new_cut, applicability=old_scope)
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as fresh_directory:
+            old_reference = publish(Path(directory), old_cut, expected=old_scope, produced_at=T, max_bytes=65536)
+            old_active = retained(Path(directory), max_bytes=65536)
+            with self.assertRaisesRegex(ValueError, "scope-change-needs-consumer-review"):
+                publish(Path(directory), new_cut, expected=SCOPE, produced_at=T + DAY, max_bytes=65536)
+            self.assertEqual(retained(Path(directory), max_bytes=65536), old_active)
+            self.assertTrue((Path(directory) / f"{old_reference.sha256}.json").is_file())
+            with self.assertRaisesRegex(ValueError, "migration"):
+                normalize(captures(), previous=old_cut)
+
+            fresh_reference = publish(
+                Path(fresh_directory), new_cut, expected=SCOPE, produced_at=T + DAY, max_bytes=65536
+            )
+            fresh_active = retained(Path(fresh_directory), max_bytes=65536)
+            assert fresh_active is not None
+            self.assertEqual(fresh_active[1], fresh_reference)
+
+    def test_pricing_parser_ignores_expanded_unrelated_sections(self) -> None:
+        expanded = dict(TEXT)
+        expanded["prices"] += "\n## Archived prices\nUnrelated descriptive content.\n"
+        original = normalize(captures())
+        updated = normalize(captures(texts=expanded))
+        self.assertEqual(original.applicability, updated.applicability)
+        self.assertEqual(original.evidence, updated.evidence)
+        self.assertEqual(original.uncertain_campaigns, updated.uncertain_campaigns)
+        self.assertNotEqual(original.revisions, updated.revisions)
+
     def test_unused_component_without_operation_link_does_not_prove_applicability(self) -> None:
         link = "                - $ref: '#/components/schemas/ChatCompletionVisionRequest'\n"
         for replacement in ("", link.replace("VisionRequest", "OtherRequest"), link * 2):
