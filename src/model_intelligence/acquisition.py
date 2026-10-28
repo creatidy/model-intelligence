@@ -13,6 +13,10 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 
 from model_intelligence.evidence import instant
 
+TERMINAL_BENCH_SUBMISSIONS_PREFIX = (
+    "/harbor-framework/terminal-bench/6964e9252c90227fc1cfa26cbc59aee4134792e4/leaderboard/submissions/"
+)
+
 
 @dataclass(frozen=True)
 class Source:
@@ -33,7 +37,9 @@ class Source:
             or parsed.fragment
         ):
             raise ValueError("unexpected-source-origin")
-        if parsed.hostname == "raw.githubusercontent.com" and not parsed.path.startswith("/anomalyco/models.dev/"):
+        if parsed.hostname == "raw.githubusercontent.com" and not any(
+            parsed.path.startswith(prefix) for prefix in ("/anomalyco/models.dev/", TERMINAL_BENCH_SUBMISSIONS_PREFIX)
+        ):
             raise ValueError("unexpected-source-path")
         if (
             not self.source_id.strip()
@@ -49,8 +55,11 @@ class Capture:
     source: Source
     data: bytes
     acquired_at: datetime
+    http_status: int = 200
 
     def __post_init__(self) -> None:
+        if type(self.http_status) is not int or self.http_status != 200:
+            raise ValueError("source-http-status")
         object.__setattr__(self, "acquired_at", instant(self.acquired_at))
         if not self.data or len(self.data) > self.source.max_bytes:
             raise ValueError("source-size-policy")
@@ -99,7 +108,7 @@ def fetch(source: Source, *, at: datetime, timeout: float) -> Capture:
                     raise ValueError("source-incomplete-response")
             if len(data) > source.max_bytes:
                 raise ValueError("source-size-policy")
-            return Capture(source, data, at)
+            return Capture(source, data, at, response.status)
     except IncompleteRead:
         raise ValueError("source-incomplete-response") from None
     except HTTPException:

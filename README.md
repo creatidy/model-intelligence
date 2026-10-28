@@ -37,8 +37,9 @@ installed Router adoption, a live intelligence service, private intake or produc
   atomic retained publication and source-health facts. No consumer admission,
   private calibration, installed adoption or product GO.
 - [Coding benchmark evidence comparison](CODING_BENCHMARK_COMPARISON.md): a separately
-  scoped, pinned models.dev evidence publication for selected coding benchmarks,
-  including the exact source-to-publication receipt and explicit comparability gaps.
+  scoped, pinned models.dev and Terminal-Bench 4.0 evidence publication for selected
+  coding benchmarks, including Apache-licensed submission provenance, a real
+  source-to-publication receipt and explicit configuration/comparability limits.
 - [Capability boundary record](ARCHITECTURE.md#capability-boundary-record):
   completed/closed #14, merged PR #31, versioned ownership research and guarded
   offline mapping fixtures; not production mapping approval or installed acceptance.
