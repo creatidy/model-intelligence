@@ -56,3 +56,17 @@ executes unchanged copies of those two tests from that exact source archive in
 temporary staging, retaining the original repository LICENSE with the archive.
 No foreign selector, validator, production implementation or public dataset is
 vendored. The Apache-2.0 license is provided in this repository's LICENSE.
+
+Terminal-Bench 4.0 selected result evidence originates from the four
+`leaderboard/submissions/*.json` files at
+`harbor-framework/terminal-bench` commit
+`6964e9252c90227fc1cfa26cbc59aee4134792e4`. These are repository submission
+contributions under its root Apache-2.0 License (Sections 2 and 5); the
+maintainer submission workflow and per-file provenance are recorded in
+`CODING_BENCHMARK_COMPARISON.md`. This is the rights basis for these selected
+summary observations, not an assumption that a code license covers unrelated
+leaderboard data. Terminal-Bench 4.0 task content and raw Harbor Hub trial
+payloads/trajectories are not copied. Source-job identifiers are retained only
+as citations from the licensed submission records. The benchmark result rows,
+metrics, source filters and candidate configurations are attributed to the
+official Terminal-Bench submission repository at the pinned revision.

@@ -123,6 +123,8 @@ def main() -> None:
                 "test_zai_source.py",
                 "test_benchmarks_source.py",
                 "test_aa_probe.py",
+                "test_terminal_bench.py",
+                "test_acquisition.py",
                 "test_operator.py",
                 "test_portable_operator.py",
             ):

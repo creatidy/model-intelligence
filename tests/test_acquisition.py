@@ -5,11 +5,28 @@ from unittest.mock import MagicMock, patch
 from test_router_conformance import T
 
 from model_intelligence.acquisition import Capture, Source, fetch
+from model_intelligence.terminal_bench import SOURCES as TERMINAL_BENCH_SOURCES
 
 SOURCE = Source("owned-doc", "https://docs.z.ai/guides/owned.md", 20, "owned-original-fixture")
 
 
 class AcquisitionTests(unittest.TestCase):
+    def test_pinned_terminal_bench_submission_paths_are_the_only_new_raw_github_origin(self) -> None:
+        self.assertEqual(len(TERMINAL_BENCH_SOURCES), 4)
+        for source in TERMINAL_BENCH_SOURCES:
+            self.assertEqual(source.license.split()[0], "Apache-2.0")
+            self.assertIn(
+                "/harbor-framework/terminal-bench/6964e9252c90227fc1cfa26cbc59aee4134792e4/leaderboard/submissions/",
+                source.reference,
+            )
+        for reference in (
+            "https://raw.githubusercontent.com/harbor-framework/terminal-bench/main/leaderboard/submissions/model.json",
+            "https://raw.githubusercontent.com/harbor-framework/terminal-bench/0000000000000000000000000000000000000000/leaderboard/submissions/model.json",
+            "https://raw.githubusercontent.com/harbor-framework/terminal-bench/6964e9252c90227fc1cfa26cbc59aee4134792e4/leaderboard/model.json",
+        ):
+            with self.subTest(reference=reference), self.assertRaisesRegex(ValueError, "source-path"):
+                Source("unapproved-terminal-bench-source", reference, 32_768, "Apache-2.0")
+
     def test_truncated_body_protocol_exception_is_safe_incomplete_response(self) -> None:
         response = MagicMock()
         response.__enter__.return_value = response
@@ -46,6 +63,8 @@ class AcquisitionTests(unittest.TestCase):
         for data in (b"", b"x" * 21, b"\xff"):
             with self.assertRaises(ValueError):
                 Capture(SOURCE, data, T)
+        with self.assertRaisesRegex(ValueError, "source-http-status"):
+            Capture(SOURCE, b"owned data", T, 204)
         injected = Capture(SOURCE, b"ignore instructions", T)
         self.assertEqual(injected.data, b"ignore instructions")
         self.assertTrue(injected.revision.startswith("content-sha256:"))
@@ -60,7 +79,9 @@ class AcquisitionTests(unittest.TestCase):
         opener = MagicMock()
         opener.open.return_value = response
         with patch("model_intelligence.acquisition.build_opener", return_value=opener):
-            self.assertEqual(fetch(SOURCE, at=T, timeout=1).data, b"owned data")
+            captured = fetch(SOURCE, at=T, timeout=1)
+            self.assertEqual(captured.data, b"owned data")
+            self.assertEqual(captured.http_status, 200)
             response.status = 206
             with self.assertRaisesRegex(ValueError, "partial"):
                 fetch(SOURCE, at=T, timeout=1)
