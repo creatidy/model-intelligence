@@ -9,6 +9,37 @@
   substitute or bypass any gate. Focused commands may diagnose before the gate.
 - Tests use synthetic fixtures, controlled time and no live network/private
   accounts. Verify installed/built packaging when packaging changes.
+- During development prefer checks focused on the change; the required final
+  `make check` and command-specific validation still apply. Do not assume CI is
+  an equivalent replacement: that requires an actual complete, accessible run
+  bound to the exact candidate and a consistent change to the delivery rules.
+- Define each scenario once where practical. Do not maintain manually copied
+  scenario matrices or repeat the same scenario without a distinct evidentiary
+  purpose. Consolidate only when all assertions and required boundaries survive;
+  checkout, installed wheel, dependency-free runtime and sdist-rebuilt wheel can
+  establish different facts and must not be treated as interchangeable.
+- Build identical immutable artifacts once per run where their identity and
+  provenance are verified. Different source revisions or build paths are distinct
+  evidence. Share artifacts, not mutable test state: isolate working directories,
+  databases, ports, process identifiers and fixtures unless sharing is under test.
+- Parallelize only after verifying isolation, preferably in separate processes;
+  serialize or truly isolate host-global state, fixed markers, shared containers
+  and signals. Do not mask races by increasing timeouts or automatic retries.
+  If suites are split into phases or shards, automatically verify a complete,
+  disjoint union of case identities, including parameters, not just counts.
+- Installed-artifact tests must verify import and executable provenance from the
+  intended artifact, including workers and representative child processes where
+  applicable. Preserve a separate proof without undeclared runtime dependencies.
+- Bind successful validation to the actual checkout or explicit merge tree and
+  exact candidate/base, required steps and results; a green badge alone is not
+  sufficient. Independent review examines code, assertions and exact-run evidence;
+  it may add focused checks for unresolved risks rather than repeat equivalent
+  checks without a distinct purpose. Required command-specific gates remain binding.
+- When optimizing validation, measure before and after: total wall-clock, major
+  phases, executed and skipped case counts, and runner conditions. A single timing
+  is an observation, not a future guarantee. Report unavailable or skipped required
+  evidence as UNPROVED, never success, including native, security, external
+  integration and failure-recovery evidence where applicable.
 - Before commit inspect `git status`, intended diff, recent commit style and the
   complete delta against the recorded develop SHA. Stage explicit intended files;
   exclude secrets, credentials, runtime state, caches and scratch. After commit
