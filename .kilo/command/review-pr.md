@@ -18,8 +18,9 @@ exact frozen HEAD; refuse local divergence rather than rewriting a branch.
 Never stash/reset unrelated changes;
 if they prevent safe switching, attempt authorized isolation under rule 50 before
 reporting a blocker. Bounded temporary exact-candidate review checkouts are allowed.
-Prepare the sanitized offline locked
-environment here; review frozen Git objects/current clean branch read-only. The
+Prepare a sanitized offline locked environment only for chosen optional reviewer
+checks, not as a source/CI-only review prerequisite; required implementation validation
+is unchanged. Review frozen Git objects/current clean branch read-only. The
 parent must not edit/switch while the reviewer is active. Locate `pr-reviewer`.
 The reviewer verifies canonical identity and current PR refs/SHAs through read-only
 Forgejo MCP; anonymous `git ls-remote` is optional corroboration, never a review gate.

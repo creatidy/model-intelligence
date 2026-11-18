@@ -47,8 +47,10 @@
 - Handoff includes issue/PR URLs, exact base/head SHAs, substantive files, exact
   executed validation/results and genuine unresolved decisions/blockers. No claim
   of passing checks, push or PR creation without successful evidence.
-- Parent uses the prepared delivery/review checkout on the exact clean PR HEAD and prepares
-  its offline locked development environment before invoking a reviewer. Apply
+- Parent uses the prepared delivery/review checkout on the exact clean PR HEAD. Prepare
+  an offline locked development environment only for chosen optional reviewer checks,
+  not as a source/CI-only review prerequisite. Required implementation validation is
+  unchanged. Apply
   rule 50 for secret-safe validation and bounded environment failover; AGENTS.md
   defines conversational independence. The existing prepared environment may be
   shared; separate execution requires a concrete technical necessity. No

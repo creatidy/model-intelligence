@@ -320,6 +320,36 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("Parent makes no edits/branch switches while it runs", loop)
         self.assertIn("Any HEAD/base change invalidates approval", loop)
 
+    def test_practical_review_scope_ci_and_optional_checks(self) -> None:
+        reviewer = text(".kilo/agents/pr-reviewer.md")
+        for requirement in (
+            "every changed hunk and relevant surrounding code",
+            "issue requirements, accepted decisions, architecture and producer contracts",
+            "introduced security/privacy risks and test adequacy",
+            "Prioritize P0/P1 and material P2",
+            "only for material questions raised by this PR",
+            "Mandatory implementation/security/producer/release gates remain binding",
+            "Independently verify authoritative CI status for the exact reviewed HEAD",
+            "including applicable required checks",
+            "missing, stale, pending, failed or ambiguous status",
+            "unavailable job detail alone does not invalidate the status or require COMMENT",
+            "Never claim unobserved steps or waive required evidence",
+            "Where no applicable CI is configured, report its absence",
+            "without claiming CI success or replacing any mandatory gate",
+            "Reviewer full-suite reruns are not required",
+            "Targeted local investigations are optional",
+            "an unavailable optional check does not automatically require COMMENT",
+            "Unresolved material uncertainty still prevents APPROVE",
+            "Local test setup is required only for chosen checks",
+            "Required implementation validation under validation.md remains unchanged",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, reviewer)
+        for path in (".kilo/rules/validation.md", ".kilo/command/review-pr.md"):
+            self.assertIn("only for chosen optional reviewer checks", text(path))
+            self.assertIn("not as a source/CI-only review prerequisite", text(path))
+            self.assertIn("implementation validation is unchanged", text(path))
+
     def test_delivery_counter_survives_reentry(self) -> None:
         finish = text(".kilo/command/finish-pr.md")
         for requirement in (

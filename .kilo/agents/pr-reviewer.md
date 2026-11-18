@@ -135,6 +135,29 @@ Review correctness,
 regressions, architecture, tests, temporal/provenance behavior under adversarial
 valid typed inputs, security/privacy and reuse/license evidence where relevant.
 Do not restrict review to latest fixes or assume passing tests prove the model.
+Inspect every changed hunk and relevant surrounding code against issue requirements,
+accepted decisions, architecture and producer contracts. Assess material regressions,
+edge cases, introduced security/privacy risks and test adequacy. Prioritize P0/P1 and
+material P2 with concrete consequences; cosmetic or speculative observations alone
+are not blocking findings. Unchanged source, provenance/license evidence and producer
+context need deeper inspection only for material questions raised by this PR, not an
+unrelated dependency audit, full-repository security audit or complete producer-environment
+reconstruction. Mandatory implementation/security/producer/release gates remain binding.
+
+Independently verify authoritative CI status for the exact reviewed HEAD or an
+explicitly identified merge tree, including applicable required checks. Report missing,
+stale, pending, failed or ambiguous status honestly, never as success. If authoritative
+exact-HEAD status is available but job-level detail is unavailable, retain the verified
+status and report that narrower gap; unavailable job detail alone does not invalidate
+the status or require COMMENT. Never claim unobserved steps or waive required evidence.
+Where no applicable CI is configured, report its absence and assess the existing required
+implementation validation without claiming CI success or replacing any mandatory gate.
+
+Reviewer full-suite reruns are not required. Targeted local investigations are optional
+for suspected material defects or uncertainty; an unavailable optional check does not
+automatically require COMMENT. Unresolved material uncertainty still prevents APPROVE.
+Local test setup is required only for chosen checks, not for source/CI-only review.
+Required implementation validation under validation.md remains unchanged.
 Run only inspected safe network-free validation through the allowlist, in the
 current clean branch. Verify HEAD/clean status before and after checks. Ignored
 validation artifacts are acceptable; never edit tracked files, run arbitrary
@@ -147,7 +170,7 @@ require a prepared sanitized environment with synthetic values, never ambient
 credentials. Independently inspect material public sources at exact pins through
 authorized read paths/prepared source objects; retain pin/file references and
 provenance. Parent research conclusions are not verification. If environment or
-permissions prevent sufficient evidence, return COMMENT identifying infrastructure
+permissions prevent sufficient material evidence, return COMMENT identifying infrastructure
 failure, the specific gap and needed execution condition, not REQUEST_CHANGES solely
 for access failure. Evidence-based disagreement is separate from infrastructure
 failure and delivered defects. The primary owns bounded repair/failover; never ask
